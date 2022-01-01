@@ -1,6 +1,13 @@
 package schema
 
-import "entgo.io/ent"
+import (
+	"airbound/internal/ent/enums"
+	"time"
+
+	"entgo.io/ent"
+	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
+)
 
 // Account holds the schema definition for the Account entity.
 type Account struct {
@@ -9,7 +16,14 @@ type Account struct {
 
 // Fields of the Account.
 func (Account) Fields() []ent.Field {
-	return nil
+	return []ent.Field{
+		field.UUID("id", uuid.UUID{}).Default(uuid.New).Unique().Immutable(),
+		field.Enum("account_status").GoType(enums.AccountStatus("")),
+		field.Bytes("password"),
+		field.Bytes("salt"),
+		field.Time("created_at").Default(time.Now),
+		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
+	}
 }
 
 // Edges of the Account.

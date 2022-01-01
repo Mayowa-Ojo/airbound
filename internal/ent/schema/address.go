@@ -1,6 +1,12 @@
 package schema
 
-import "entgo.io/ent"
+import (
+	"time"
+
+	"entgo.io/ent"
+	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
+)
 
 // Address holds the schema definition for the Address entity.
 type Address struct {
@@ -9,7 +15,15 @@ type Address struct {
 
 // Fields of the Address.
 func (Address) Fields() []ent.Field {
-	return nil
+	return []ent.Field{
+		field.UUID("id", uuid.UUID{}).Default(uuid.New).Unique().Immutable(),
+		field.String("street").MaxLen(150),
+		field.String("city").MaxLen(150),
+		field.String("state").MaxLen(150),
+		field.String("zipcode").MaxLen(50),
+		field.Time("created_at").Default(time.Now),
+		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
+	}
 }
 
 // Edges of the Address.
