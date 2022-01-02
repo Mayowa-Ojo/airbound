@@ -3,10 +3,12 @@
 package ent
 
 import (
+	"airbound/internal/ent/enums"
 	"airbound/internal/ent/flight"
 	"airbound/internal/ent/predicate"
 	"context"
 	"fmt"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -26,6 +28,64 @@ func (fu *FlightUpdate) Where(ps ...predicate.Flight) *FlightUpdate {
 	return fu
 }
 
+// SetFlightNumber sets the "flight_number" field.
+func (fu *FlightUpdate) SetFlightNumber(s string) *FlightUpdate {
+	fu.mutation.SetFlightNumber(s)
+	return fu
+}
+
+// SetDuration sets the "duration" field.
+func (fu *FlightUpdate) SetDuration(i int) *FlightUpdate {
+	fu.mutation.ResetDuration()
+	fu.mutation.SetDuration(i)
+	return fu
+}
+
+// AddDuration adds i to the "duration" field.
+func (fu *FlightUpdate) AddDuration(i int) *FlightUpdate {
+	fu.mutation.AddDuration(i)
+	return fu
+}
+
+// SetDistance sets the "distance" field.
+func (fu *FlightUpdate) SetDistance(i int) *FlightUpdate {
+	fu.mutation.ResetDistance()
+	fu.mutation.SetDistance(i)
+	return fu
+}
+
+// AddDistance adds i to the "distance" field.
+func (fu *FlightUpdate) AddDistance(i int) *FlightUpdate {
+	fu.mutation.AddDistance(i)
+	return fu
+}
+
+// SetBoardingPolicy sets the "boarding_policy" field.
+func (fu *FlightUpdate) SetBoardingPolicy(ep enums.BoardingPolicy) *FlightUpdate {
+	fu.mutation.SetBoardingPolicy(ep)
+	return fu
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (fu *FlightUpdate) SetCreatedAt(t time.Time) *FlightUpdate {
+	fu.mutation.SetCreatedAt(t)
+	return fu
+}
+
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (fu *FlightUpdate) SetNillableCreatedAt(t *time.Time) *FlightUpdate {
+	if t != nil {
+		fu.SetCreatedAt(*t)
+	}
+	return fu
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (fu *FlightUpdate) SetUpdatedAt(t time.Time) *FlightUpdate {
+	fu.mutation.SetUpdatedAt(t)
+	return fu
+}
+
 // Mutation returns the FlightMutation object of the builder.
 func (fu *FlightUpdate) Mutation() *FlightMutation {
 	return fu.mutation
@@ -37,13 +97,20 @@ func (fu *FlightUpdate) Save(ctx context.Context) (int, error) {
 		err      error
 		affected int
 	)
+	fu.defaults()
 	if len(fu.hooks) == 0 {
+		if err = fu.check(); err != nil {
+			return 0, err
+		}
 		affected, err = fu.sqlSave(ctx)
 	} else {
 		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 			mutation, ok := m.(*FlightMutation)
 			if !ok {
 				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			if err = fu.check(); err != nil {
+				return 0, err
 			}
 			fu.mutation = mutation
 			affected, err = fu.sqlSave(ctx)
@@ -85,13 +152,46 @@ func (fu *FlightUpdate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (fu *FlightUpdate) defaults() {
+	if _, ok := fu.mutation.UpdatedAt(); !ok {
+		v := flight.UpdateDefaultUpdatedAt()
+		fu.mutation.SetUpdatedAt(v)
+	}
+}
+
+// check runs all checks and user-defined validators on the builder.
+func (fu *FlightUpdate) check() error {
+	if v, ok := fu.mutation.FlightNumber(); ok {
+		if err := flight.FlightNumberValidator(v); err != nil {
+			return &ValidationError{Name: "flight_number", err: fmt.Errorf("ent: validator failed for field \"flight_number\": %w", err)}
+		}
+	}
+	if v, ok := fu.mutation.Duration(); ok {
+		if err := flight.DurationValidator(v); err != nil {
+			return &ValidationError{Name: "duration", err: fmt.Errorf("ent: validator failed for field \"duration\": %w", err)}
+		}
+	}
+	if v, ok := fu.mutation.Distance(); ok {
+		if err := flight.DistanceValidator(v); err != nil {
+			return &ValidationError{Name: "distance", err: fmt.Errorf("ent: validator failed for field \"distance\": %w", err)}
+		}
+	}
+	if v, ok := fu.mutation.BoardingPolicy(); ok {
+		if err := flight.BoardingPolicyValidator(v); err != nil {
+			return &ValidationError{Name: "boarding_policy", err: fmt.Errorf("ent: validator failed for field \"boarding_policy\": %w", err)}
+		}
+	}
+	return nil
+}
+
 func (fu *FlightUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   flight.Table,
 			Columns: flight.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
+				Type:   field.TypeUUID,
 				Column: flight.FieldID,
 			},
 		},
@@ -102,6 +202,62 @@ func (fu *FlightUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := fu.mutation.FlightNumber(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: flight.FieldFlightNumber,
+		})
+	}
+	if value, ok := fu.mutation.Duration(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: flight.FieldDuration,
+		})
+	}
+	if value, ok := fu.mutation.AddedDuration(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: flight.FieldDuration,
+		})
+	}
+	if value, ok := fu.mutation.Distance(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: flight.FieldDistance,
+		})
+	}
+	if value, ok := fu.mutation.AddedDistance(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: flight.FieldDistance,
+		})
+	}
+	if value, ok := fu.mutation.BoardingPolicy(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeEnum,
+			Value:  value,
+			Column: flight.FieldBoardingPolicy,
+		})
+	}
+	if value, ok := fu.mutation.CreatedAt(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  value,
+			Column: flight.FieldCreatedAt,
+		})
+	}
+	if value, ok := fu.mutation.UpdatedAt(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  value,
+			Column: flight.FieldUpdatedAt,
+		})
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, fu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -122,6 +278,64 @@ type FlightUpdateOne struct {
 	mutation *FlightMutation
 }
 
+// SetFlightNumber sets the "flight_number" field.
+func (fuo *FlightUpdateOne) SetFlightNumber(s string) *FlightUpdateOne {
+	fuo.mutation.SetFlightNumber(s)
+	return fuo
+}
+
+// SetDuration sets the "duration" field.
+func (fuo *FlightUpdateOne) SetDuration(i int) *FlightUpdateOne {
+	fuo.mutation.ResetDuration()
+	fuo.mutation.SetDuration(i)
+	return fuo
+}
+
+// AddDuration adds i to the "duration" field.
+func (fuo *FlightUpdateOne) AddDuration(i int) *FlightUpdateOne {
+	fuo.mutation.AddDuration(i)
+	return fuo
+}
+
+// SetDistance sets the "distance" field.
+func (fuo *FlightUpdateOne) SetDistance(i int) *FlightUpdateOne {
+	fuo.mutation.ResetDistance()
+	fuo.mutation.SetDistance(i)
+	return fuo
+}
+
+// AddDistance adds i to the "distance" field.
+func (fuo *FlightUpdateOne) AddDistance(i int) *FlightUpdateOne {
+	fuo.mutation.AddDistance(i)
+	return fuo
+}
+
+// SetBoardingPolicy sets the "boarding_policy" field.
+func (fuo *FlightUpdateOne) SetBoardingPolicy(ep enums.BoardingPolicy) *FlightUpdateOne {
+	fuo.mutation.SetBoardingPolicy(ep)
+	return fuo
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (fuo *FlightUpdateOne) SetCreatedAt(t time.Time) *FlightUpdateOne {
+	fuo.mutation.SetCreatedAt(t)
+	return fuo
+}
+
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (fuo *FlightUpdateOne) SetNillableCreatedAt(t *time.Time) *FlightUpdateOne {
+	if t != nil {
+		fuo.SetCreatedAt(*t)
+	}
+	return fuo
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (fuo *FlightUpdateOne) SetUpdatedAt(t time.Time) *FlightUpdateOne {
+	fuo.mutation.SetUpdatedAt(t)
+	return fuo
+}
+
 // Mutation returns the FlightMutation object of the builder.
 func (fuo *FlightUpdateOne) Mutation() *FlightMutation {
 	return fuo.mutation
@@ -140,13 +354,20 @@ func (fuo *FlightUpdateOne) Save(ctx context.Context) (*Flight, error) {
 		err  error
 		node *Flight
 	)
+	fuo.defaults()
 	if len(fuo.hooks) == 0 {
+		if err = fuo.check(); err != nil {
+			return nil, err
+		}
 		node, err = fuo.sqlSave(ctx)
 	} else {
 		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 			mutation, ok := m.(*FlightMutation)
 			if !ok {
 				return nil, fmt.Errorf("unexpected mutation type %T", m)
+			}
+			if err = fuo.check(); err != nil {
+				return nil, err
 			}
 			fuo.mutation = mutation
 			node, err = fuo.sqlSave(ctx)
@@ -188,13 +409,46 @@ func (fuo *FlightUpdateOne) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (fuo *FlightUpdateOne) defaults() {
+	if _, ok := fuo.mutation.UpdatedAt(); !ok {
+		v := flight.UpdateDefaultUpdatedAt()
+		fuo.mutation.SetUpdatedAt(v)
+	}
+}
+
+// check runs all checks and user-defined validators on the builder.
+func (fuo *FlightUpdateOne) check() error {
+	if v, ok := fuo.mutation.FlightNumber(); ok {
+		if err := flight.FlightNumberValidator(v); err != nil {
+			return &ValidationError{Name: "flight_number", err: fmt.Errorf("ent: validator failed for field \"flight_number\": %w", err)}
+		}
+	}
+	if v, ok := fuo.mutation.Duration(); ok {
+		if err := flight.DurationValidator(v); err != nil {
+			return &ValidationError{Name: "duration", err: fmt.Errorf("ent: validator failed for field \"duration\": %w", err)}
+		}
+	}
+	if v, ok := fuo.mutation.Distance(); ok {
+		if err := flight.DistanceValidator(v); err != nil {
+			return &ValidationError{Name: "distance", err: fmt.Errorf("ent: validator failed for field \"distance\": %w", err)}
+		}
+	}
+	if v, ok := fuo.mutation.BoardingPolicy(); ok {
+		if err := flight.BoardingPolicyValidator(v); err != nil {
+			return &ValidationError{Name: "boarding_policy", err: fmt.Errorf("ent: validator failed for field \"boarding_policy\": %w", err)}
+		}
+	}
+	return nil
+}
+
 func (fuo *FlightUpdateOne) sqlSave(ctx context.Context) (_node *Flight, err error) {
 	_spec := &sqlgraph.UpdateSpec{
 		Node: &sqlgraph.NodeSpec{
 			Table:   flight.Table,
 			Columns: flight.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
+				Type:   field.TypeUUID,
 				Column: flight.FieldID,
 			},
 		},
@@ -222,6 +476,62 @@ func (fuo *FlightUpdateOne) sqlSave(ctx context.Context) (_node *Flight, err err
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := fuo.mutation.FlightNumber(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: flight.FieldFlightNumber,
+		})
+	}
+	if value, ok := fuo.mutation.Duration(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: flight.FieldDuration,
+		})
+	}
+	if value, ok := fuo.mutation.AddedDuration(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: flight.FieldDuration,
+		})
+	}
+	if value, ok := fuo.mutation.Distance(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: flight.FieldDistance,
+		})
+	}
+	if value, ok := fuo.mutation.AddedDistance(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: flight.FieldDistance,
+		})
+	}
+	if value, ok := fuo.mutation.BoardingPolicy(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeEnum,
+			Value:  value,
+			Column: flight.FieldBoardingPolicy,
+		})
+	}
+	if value, ok := fuo.mutation.CreatedAt(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  value,
+			Column: flight.FieldCreatedAt,
+		})
+	}
+	if value, ok := fuo.mutation.UpdatedAt(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  value,
+			Column: flight.FieldUpdatedAt,
+		})
 	}
 	_node = &Flight{config: fuo.config}
 	_spec.Assign = _node.assignValues

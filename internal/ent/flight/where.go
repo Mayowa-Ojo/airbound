@@ -3,34 +3,37 @@
 package flight
 
 import (
+	"airbound/internal/ent/enums"
 	"airbound/internal/ent/predicate"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"github.com/google/uuid"
 )
 
 // ID filters vertices based on their ID field.
-func ID(id int) predicate.Flight {
+func ID(id uuid.UUID) predicate.Flight {
 	return predicate.Flight(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldID), id))
 	})
 }
 
 // IDEQ applies the EQ predicate on the ID field.
-func IDEQ(id int) predicate.Flight {
+func IDEQ(id uuid.UUID) predicate.Flight {
 	return predicate.Flight(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldID), id))
 	})
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
-func IDNEQ(id int) predicate.Flight {
+func IDNEQ(id uuid.UUID) predicate.Flight {
 	return predicate.Flight(func(s *sql.Selector) {
 		s.Where(sql.NEQ(s.C(FieldID), id))
 	})
 }
 
 // IDIn applies the In predicate on the ID field.
-func IDIn(ids ...int) predicate.Flight {
+func IDIn(ids ...uuid.UUID) predicate.Flight {
 	return predicate.Flight(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
@@ -47,7 +50,7 @@ func IDIn(ids ...int) predicate.Flight {
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
-func IDNotIn(ids ...int) predicate.Flight {
+func IDNotIn(ids ...uuid.UUID) predicate.Flight {
 	return predicate.Flight(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
@@ -64,30 +67,530 @@ func IDNotIn(ids ...int) predicate.Flight {
 }
 
 // IDGT applies the GT predicate on the ID field.
-func IDGT(id int) predicate.Flight {
+func IDGT(id uuid.UUID) predicate.Flight {
 	return predicate.Flight(func(s *sql.Selector) {
 		s.Where(sql.GT(s.C(FieldID), id))
 	})
 }
 
 // IDGTE applies the GTE predicate on the ID field.
-func IDGTE(id int) predicate.Flight {
+func IDGTE(id uuid.UUID) predicate.Flight {
 	return predicate.Flight(func(s *sql.Selector) {
 		s.Where(sql.GTE(s.C(FieldID), id))
 	})
 }
 
 // IDLT applies the LT predicate on the ID field.
-func IDLT(id int) predicate.Flight {
+func IDLT(id uuid.UUID) predicate.Flight {
 	return predicate.Flight(func(s *sql.Selector) {
 		s.Where(sql.LT(s.C(FieldID), id))
 	})
 }
 
 // IDLTE applies the LTE predicate on the ID field.
-func IDLTE(id int) predicate.Flight {
+func IDLTE(id uuid.UUID) predicate.Flight {
 	return predicate.Flight(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldID), id))
+	})
+}
+
+// FlightNumber applies equality check predicate on the "flight_number" field. It's identical to FlightNumberEQ.
+func FlightNumber(v string) predicate.Flight {
+	return predicate.Flight(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldFlightNumber), v))
+	})
+}
+
+// Duration applies equality check predicate on the "duration" field. It's identical to DurationEQ.
+func Duration(v int) predicate.Flight {
+	return predicate.Flight(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldDuration), v))
+	})
+}
+
+// Distance applies equality check predicate on the "distance" field. It's identical to DistanceEQ.
+func Distance(v int) predicate.Flight {
+	return predicate.Flight(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldDistance), v))
+	})
+}
+
+// CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
+func CreatedAt(v time.Time) predicate.Flight {
+	return predicate.Flight(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldCreatedAt), v))
+	})
+}
+
+// UpdatedAt applies equality check predicate on the "updated_at" field. It's identical to UpdatedAtEQ.
+func UpdatedAt(v time.Time) predicate.Flight {
+	return predicate.Flight(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldUpdatedAt), v))
+	})
+}
+
+// FlightNumberEQ applies the EQ predicate on the "flight_number" field.
+func FlightNumberEQ(v string) predicate.Flight {
+	return predicate.Flight(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldFlightNumber), v))
+	})
+}
+
+// FlightNumberNEQ applies the NEQ predicate on the "flight_number" field.
+func FlightNumberNEQ(v string) predicate.Flight {
+	return predicate.Flight(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldFlightNumber), v))
+	})
+}
+
+// FlightNumberIn applies the In predicate on the "flight_number" field.
+func FlightNumberIn(vs ...string) predicate.Flight {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Flight(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldFlightNumber), v...))
+	})
+}
+
+// FlightNumberNotIn applies the NotIn predicate on the "flight_number" field.
+func FlightNumberNotIn(vs ...string) predicate.Flight {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Flight(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldFlightNumber), v...))
+	})
+}
+
+// FlightNumberGT applies the GT predicate on the "flight_number" field.
+func FlightNumberGT(v string) predicate.Flight {
+	return predicate.Flight(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldFlightNumber), v))
+	})
+}
+
+// FlightNumberGTE applies the GTE predicate on the "flight_number" field.
+func FlightNumberGTE(v string) predicate.Flight {
+	return predicate.Flight(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldFlightNumber), v))
+	})
+}
+
+// FlightNumberLT applies the LT predicate on the "flight_number" field.
+func FlightNumberLT(v string) predicate.Flight {
+	return predicate.Flight(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldFlightNumber), v))
+	})
+}
+
+// FlightNumberLTE applies the LTE predicate on the "flight_number" field.
+func FlightNumberLTE(v string) predicate.Flight {
+	return predicate.Flight(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldFlightNumber), v))
+	})
+}
+
+// FlightNumberContains applies the Contains predicate on the "flight_number" field.
+func FlightNumberContains(v string) predicate.Flight {
+	return predicate.Flight(func(s *sql.Selector) {
+		s.Where(sql.Contains(s.C(FieldFlightNumber), v))
+	})
+}
+
+// FlightNumberHasPrefix applies the HasPrefix predicate on the "flight_number" field.
+func FlightNumberHasPrefix(v string) predicate.Flight {
+	return predicate.Flight(func(s *sql.Selector) {
+		s.Where(sql.HasPrefix(s.C(FieldFlightNumber), v))
+	})
+}
+
+// FlightNumberHasSuffix applies the HasSuffix predicate on the "flight_number" field.
+func FlightNumberHasSuffix(v string) predicate.Flight {
+	return predicate.Flight(func(s *sql.Selector) {
+		s.Where(sql.HasSuffix(s.C(FieldFlightNumber), v))
+	})
+}
+
+// FlightNumberEqualFold applies the EqualFold predicate on the "flight_number" field.
+func FlightNumberEqualFold(v string) predicate.Flight {
+	return predicate.Flight(func(s *sql.Selector) {
+		s.Where(sql.EqualFold(s.C(FieldFlightNumber), v))
+	})
+}
+
+// FlightNumberContainsFold applies the ContainsFold predicate on the "flight_number" field.
+func FlightNumberContainsFold(v string) predicate.Flight {
+	return predicate.Flight(func(s *sql.Selector) {
+		s.Where(sql.ContainsFold(s.C(FieldFlightNumber), v))
+	})
+}
+
+// DurationEQ applies the EQ predicate on the "duration" field.
+func DurationEQ(v int) predicate.Flight {
+	return predicate.Flight(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldDuration), v))
+	})
+}
+
+// DurationNEQ applies the NEQ predicate on the "duration" field.
+func DurationNEQ(v int) predicate.Flight {
+	return predicate.Flight(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldDuration), v))
+	})
+}
+
+// DurationIn applies the In predicate on the "duration" field.
+func DurationIn(vs ...int) predicate.Flight {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Flight(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldDuration), v...))
+	})
+}
+
+// DurationNotIn applies the NotIn predicate on the "duration" field.
+func DurationNotIn(vs ...int) predicate.Flight {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Flight(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldDuration), v...))
+	})
+}
+
+// DurationGT applies the GT predicate on the "duration" field.
+func DurationGT(v int) predicate.Flight {
+	return predicate.Flight(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldDuration), v))
+	})
+}
+
+// DurationGTE applies the GTE predicate on the "duration" field.
+func DurationGTE(v int) predicate.Flight {
+	return predicate.Flight(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldDuration), v))
+	})
+}
+
+// DurationLT applies the LT predicate on the "duration" field.
+func DurationLT(v int) predicate.Flight {
+	return predicate.Flight(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldDuration), v))
+	})
+}
+
+// DurationLTE applies the LTE predicate on the "duration" field.
+func DurationLTE(v int) predicate.Flight {
+	return predicate.Flight(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldDuration), v))
+	})
+}
+
+// DistanceEQ applies the EQ predicate on the "distance" field.
+func DistanceEQ(v int) predicate.Flight {
+	return predicate.Flight(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldDistance), v))
+	})
+}
+
+// DistanceNEQ applies the NEQ predicate on the "distance" field.
+func DistanceNEQ(v int) predicate.Flight {
+	return predicate.Flight(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldDistance), v))
+	})
+}
+
+// DistanceIn applies the In predicate on the "distance" field.
+func DistanceIn(vs ...int) predicate.Flight {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Flight(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldDistance), v...))
+	})
+}
+
+// DistanceNotIn applies the NotIn predicate on the "distance" field.
+func DistanceNotIn(vs ...int) predicate.Flight {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Flight(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldDistance), v...))
+	})
+}
+
+// DistanceGT applies the GT predicate on the "distance" field.
+func DistanceGT(v int) predicate.Flight {
+	return predicate.Flight(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldDistance), v))
+	})
+}
+
+// DistanceGTE applies the GTE predicate on the "distance" field.
+func DistanceGTE(v int) predicate.Flight {
+	return predicate.Flight(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldDistance), v))
+	})
+}
+
+// DistanceLT applies the LT predicate on the "distance" field.
+func DistanceLT(v int) predicate.Flight {
+	return predicate.Flight(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldDistance), v))
+	})
+}
+
+// DistanceLTE applies the LTE predicate on the "distance" field.
+func DistanceLTE(v int) predicate.Flight {
+	return predicate.Flight(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldDistance), v))
+	})
+}
+
+// BoardingPolicyEQ applies the EQ predicate on the "boarding_policy" field.
+func BoardingPolicyEQ(v enums.BoardingPolicy) predicate.Flight {
+	vc := v
+	return predicate.Flight(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldBoardingPolicy), vc))
+	})
+}
+
+// BoardingPolicyNEQ applies the NEQ predicate on the "boarding_policy" field.
+func BoardingPolicyNEQ(v enums.BoardingPolicy) predicate.Flight {
+	vc := v
+	return predicate.Flight(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldBoardingPolicy), vc))
+	})
+}
+
+// BoardingPolicyIn applies the In predicate on the "boarding_policy" field.
+func BoardingPolicyIn(vs ...enums.BoardingPolicy) predicate.Flight {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Flight(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldBoardingPolicy), v...))
+	})
+}
+
+// BoardingPolicyNotIn applies the NotIn predicate on the "boarding_policy" field.
+func BoardingPolicyNotIn(vs ...enums.BoardingPolicy) predicate.Flight {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Flight(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldBoardingPolicy), v...))
+	})
+}
+
+// CreatedAtEQ applies the EQ predicate on the "created_at" field.
+func CreatedAtEQ(v time.Time) predicate.Flight {
+	return predicate.Flight(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldCreatedAt), v))
+	})
+}
+
+// CreatedAtNEQ applies the NEQ predicate on the "created_at" field.
+func CreatedAtNEQ(v time.Time) predicate.Flight {
+	return predicate.Flight(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldCreatedAt), v))
+	})
+}
+
+// CreatedAtIn applies the In predicate on the "created_at" field.
+func CreatedAtIn(vs ...time.Time) predicate.Flight {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Flight(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldCreatedAt), v...))
+	})
+}
+
+// CreatedAtNotIn applies the NotIn predicate on the "created_at" field.
+func CreatedAtNotIn(vs ...time.Time) predicate.Flight {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Flight(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldCreatedAt), v...))
+	})
+}
+
+// CreatedAtGT applies the GT predicate on the "created_at" field.
+func CreatedAtGT(v time.Time) predicate.Flight {
+	return predicate.Flight(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldCreatedAt), v))
+	})
+}
+
+// CreatedAtGTE applies the GTE predicate on the "created_at" field.
+func CreatedAtGTE(v time.Time) predicate.Flight {
+	return predicate.Flight(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldCreatedAt), v))
+	})
+}
+
+// CreatedAtLT applies the LT predicate on the "created_at" field.
+func CreatedAtLT(v time.Time) predicate.Flight {
+	return predicate.Flight(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldCreatedAt), v))
+	})
+}
+
+// CreatedAtLTE applies the LTE predicate on the "created_at" field.
+func CreatedAtLTE(v time.Time) predicate.Flight {
+	return predicate.Flight(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldCreatedAt), v))
+	})
+}
+
+// UpdatedAtEQ applies the EQ predicate on the "updated_at" field.
+func UpdatedAtEQ(v time.Time) predicate.Flight {
+	return predicate.Flight(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldUpdatedAt), v))
+	})
+}
+
+// UpdatedAtNEQ applies the NEQ predicate on the "updated_at" field.
+func UpdatedAtNEQ(v time.Time) predicate.Flight {
+	return predicate.Flight(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldUpdatedAt), v))
+	})
+}
+
+// UpdatedAtIn applies the In predicate on the "updated_at" field.
+func UpdatedAtIn(vs ...time.Time) predicate.Flight {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Flight(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldUpdatedAt), v...))
+	})
+}
+
+// UpdatedAtNotIn applies the NotIn predicate on the "updated_at" field.
+func UpdatedAtNotIn(vs ...time.Time) predicate.Flight {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Flight(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldUpdatedAt), v...))
+	})
+}
+
+// UpdatedAtGT applies the GT predicate on the "updated_at" field.
+func UpdatedAtGT(v time.Time) predicate.Flight {
+	return predicate.Flight(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldUpdatedAt), v))
+	})
+}
+
+// UpdatedAtGTE applies the GTE predicate on the "updated_at" field.
+func UpdatedAtGTE(v time.Time) predicate.Flight {
+	return predicate.Flight(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldUpdatedAt), v))
+	})
+}
+
+// UpdatedAtLT applies the LT predicate on the "updated_at" field.
+func UpdatedAtLT(v time.Time) predicate.Flight {
+	return predicate.Flight(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldUpdatedAt), v))
+	})
+}
+
+// UpdatedAtLTE applies the LTE predicate on the "updated_at" field.
+func UpdatedAtLTE(v time.Time) predicate.Flight {
+	return predicate.Flight(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldUpdatedAt), v))
 	})
 }
 

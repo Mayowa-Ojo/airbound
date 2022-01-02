@@ -3,12 +3,16 @@
 package ent
 
 import (
+	"airbound/internal/ent/enums"
 	"airbound/internal/ent/flight"
 	"context"
+	"errors"
 	"fmt"
+	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 )
 
 // FlightCreate is the builder for creating a Flight entity.
@@ -16,6 +20,64 @@ type FlightCreate struct {
 	config
 	mutation *FlightMutation
 	hooks    []Hook
+}
+
+// SetFlightNumber sets the "flight_number" field.
+func (fc *FlightCreate) SetFlightNumber(s string) *FlightCreate {
+	fc.mutation.SetFlightNumber(s)
+	return fc
+}
+
+// SetDuration sets the "duration" field.
+func (fc *FlightCreate) SetDuration(i int) *FlightCreate {
+	fc.mutation.SetDuration(i)
+	return fc
+}
+
+// SetDistance sets the "distance" field.
+func (fc *FlightCreate) SetDistance(i int) *FlightCreate {
+	fc.mutation.SetDistance(i)
+	return fc
+}
+
+// SetBoardingPolicy sets the "boarding_policy" field.
+func (fc *FlightCreate) SetBoardingPolicy(ep enums.BoardingPolicy) *FlightCreate {
+	fc.mutation.SetBoardingPolicy(ep)
+	return fc
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (fc *FlightCreate) SetCreatedAt(t time.Time) *FlightCreate {
+	fc.mutation.SetCreatedAt(t)
+	return fc
+}
+
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (fc *FlightCreate) SetNillableCreatedAt(t *time.Time) *FlightCreate {
+	if t != nil {
+		fc.SetCreatedAt(*t)
+	}
+	return fc
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (fc *FlightCreate) SetUpdatedAt(t time.Time) *FlightCreate {
+	fc.mutation.SetUpdatedAt(t)
+	return fc
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (fc *FlightCreate) SetNillableUpdatedAt(t *time.Time) *FlightCreate {
+	if t != nil {
+		fc.SetUpdatedAt(*t)
+	}
+	return fc
+}
+
+// SetID sets the "id" field.
+func (fc *FlightCreate) SetID(u uuid.UUID) *FlightCreate {
+	fc.mutation.SetID(u)
+	return fc
 }
 
 // Mutation returns the FlightMutation object of the builder.
@@ -29,6 +91,7 @@ func (fc *FlightCreate) Save(ctx context.Context) (*Flight, error) {
 		err  error
 		node *Flight
 	)
+	fc.defaults()
 	if len(fc.hooks) == 0 {
 		if err = fc.check(); err != nil {
 			return nil, err
@@ -86,8 +149,62 @@ func (fc *FlightCreate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (fc *FlightCreate) defaults() {
+	if _, ok := fc.mutation.CreatedAt(); !ok {
+		v := flight.DefaultCreatedAt()
+		fc.mutation.SetCreatedAt(v)
+	}
+	if _, ok := fc.mutation.UpdatedAt(); !ok {
+		v := flight.DefaultUpdatedAt()
+		fc.mutation.SetUpdatedAt(v)
+	}
+	if _, ok := fc.mutation.ID(); !ok {
+		v := flight.DefaultID()
+		fc.mutation.SetID(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (fc *FlightCreate) check() error {
+	if _, ok := fc.mutation.FlightNumber(); !ok {
+		return &ValidationError{Name: "flight_number", err: errors.New(`ent: missing required field "flight_number"`)}
+	}
+	if v, ok := fc.mutation.FlightNumber(); ok {
+		if err := flight.FlightNumberValidator(v); err != nil {
+			return &ValidationError{Name: "flight_number", err: fmt.Errorf(`ent: validator failed for field "flight_number": %w`, err)}
+		}
+	}
+	if _, ok := fc.mutation.Duration(); !ok {
+		return &ValidationError{Name: "duration", err: errors.New(`ent: missing required field "duration"`)}
+	}
+	if v, ok := fc.mutation.Duration(); ok {
+		if err := flight.DurationValidator(v); err != nil {
+			return &ValidationError{Name: "duration", err: fmt.Errorf(`ent: validator failed for field "duration": %w`, err)}
+		}
+	}
+	if _, ok := fc.mutation.Distance(); !ok {
+		return &ValidationError{Name: "distance", err: errors.New(`ent: missing required field "distance"`)}
+	}
+	if v, ok := fc.mutation.Distance(); ok {
+		if err := flight.DistanceValidator(v); err != nil {
+			return &ValidationError{Name: "distance", err: fmt.Errorf(`ent: validator failed for field "distance": %w`, err)}
+		}
+	}
+	if _, ok := fc.mutation.BoardingPolicy(); !ok {
+		return &ValidationError{Name: "boarding_policy", err: errors.New(`ent: missing required field "boarding_policy"`)}
+	}
+	if v, ok := fc.mutation.BoardingPolicy(); ok {
+		if err := flight.BoardingPolicyValidator(v); err != nil {
+			return &ValidationError{Name: "boarding_policy", err: fmt.Errorf(`ent: validator failed for field "boarding_policy": %w`, err)}
+		}
+	}
+	if _, ok := fc.mutation.CreatedAt(); !ok {
+		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "created_at"`)}
+	}
+	if _, ok := fc.mutation.UpdatedAt(); !ok {
+		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "updated_at"`)}
+	}
 	return nil
 }
 
@@ -99,8 +216,9 @@ func (fc *FlightCreate) sqlSave(ctx context.Context) (*Flight, error) {
 		}
 		return nil, err
 	}
-	id := _spec.ID.Value.(int64)
-	_node.ID = int(id)
+	if _spec.ID.Value != nil {
+		_node.ID = _spec.ID.Value.(uuid.UUID)
+	}
 	return _node, nil
 }
 
@@ -110,11 +228,63 @@ func (fc *FlightCreate) createSpec() (*Flight, *sqlgraph.CreateSpec) {
 		_spec = &sqlgraph.CreateSpec{
 			Table: flight.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
+				Type:   field.TypeUUID,
 				Column: flight.FieldID,
 			},
 		}
 	)
+	if id, ok := fc.mutation.ID(); ok {
+		_node.ID = id
+		_spec.ID.Value = id
+	}
+	if value, ok := fc.mutation.FlightNumber(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: flight.FieldFlightNumber,
+		})
+		_node.FlightNumber = value
+	}
+	if value, ok := fc.mutation.Duration(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: flight.FieldDuration,
+		})
+		_node.Duration = value
+	}
+	if value, ok := fc.mutation.Distance(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: flight.FieldDistance,
+		})
+		_node.Distance = value
+	}
+	if value, ok := fc.mutation.BoardingPolicy(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeEnum,
+			Value:  value,
+			Column: flight.FieldBoardingPolicy,
+		})
+		_node.BoardingPolicy = value
+	}
+	if value, ok := fc.mutation.CreatedAt(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  value,
+			Column: flight.FieldCreatedAt,
+		})
+		_node.CreatedAt = value
+	}
+	if value, ok := fc.mutation.UpdatedAt(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  value,
+			Column: flight.FieldUpdatedAt,
+		})
+		_node.UpdatedAt = value
+	}
 	return _node, _spec
 }
 
@@ -132,6 +302,7 @@ func (fcb *FlightCreateBulk) Save(ctx context.Context) ([]*Flight, error) {
 	for i := range fcb.builders {
 		func(i int, root context.Context) {
 			builder := fcb.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*FlightMutation)
 				if !ok {
@@ -159,10 +330,6 @@ func (fcb *FlightCreateBulk) Save(ctx context.Context) ([]*Flight, error) {
 				}
 				mutation.id = &nodes[i].ID
 				mutation.done = true
-				if specs[i].ID.Value != nil {
-					id := specs[i].ID.Value.(int64)
-					nodes[i].ID = int(id)
-				}
 				return nodes[i], nil
 			})
 			for i := len(builder.hooks) - 1; i >= 0; i-- {

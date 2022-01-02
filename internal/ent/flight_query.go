@@ -13,6 +13,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 )
 
 // FlightQuery is the builder for querying Flight entities.
@@ -84,8 +85,8 @@ func (fq *FlightQuery) FirstX(ctx context.Context) *Flight {
 
 // FirstID returns the first Flight ID from the query.
 // Returns a *NotFoundError when no Flight ID was found.
-func (fq *FlightQuery) FirstID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (fq *FlightQuery) FirstID(ctx context.Context) (id uuid.UUID, err error) {
+	var ids []uuid.UUID
 	if ids, err = fq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -97,7 +98,7 @@ func (fq *FlightQuery) FirstID(ctx context.Context) (id int, err error) {
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (fq *FlightQuery) FirstIDX(ctx context.Context) int {
+func (fq *FlightQuery) FirstIDX(ctx context.Context) uuid.UUID {
 	id, err := fq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -135,8 +136,8 @@ func (fq *FlightQuery) OnlyX(ctx context.Context) *Flight {
 // OnlyID is like Only, but returns the only Flight ID in the query.
 // Returns a *NotSingularError when exactly one Flight ID is not found.
 // Returns a *NotFoundError when no entities are found.
-func (fq *FlightQuery) OnlyID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (fq *FlightQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error) {
+	var ids []uuid.UUID
 	if ids, err = fq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -152,7 +153,7 @@ func (fq *FlightQuery) OnlyID(ctx context.Context) (id int, err error) {
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (fq *FlightQuery) OnlyIDX(ctx context.Context) int {
+func (fq *FlightQuery) OnlyIDX(ctx context.Context) uuid.UUID {
 	id, err := fq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -178,8 +179,8 @@ func (fq *FlightQuery) AllX(ctx context.Context) []*Flight {
 }
 
 // IDs executes the query and returns a list of Flight IDs.
-func (fq *FlightQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
+func (fq *FlightQuery) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	var ids []uuid.UUID
 	if err := fq.Select(flight.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -187,7 +188,7 @@ func (fq *FlightQuery) IDs(ctx context.Context) ([]int, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (fq *FlightQuery) IDsX(ctx context.Context) []int {
+func (fq *FlightQuery) IDsX(ctx context.Context) []uuid.UUID {
 	ids, err := fq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -249,6 +250,19 @@ func (fq *FlightQuery) Clone() *FlightQuery {
 
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
+//
+// Example:
+//
+//	var v []struct {
+//		FlightNumber string `json:"flight_number,omitempty"`
+//		Count int `json:"count,omitempty"`
+//	}
+//
+//	client.Flight.Query().
+//		GroupBy(flight.FieldFlightNumber).
+//		Aggregate(ent.Count()).
+//		Scan(ctx, &v)
+//
 func (fq *FlightQuery) GroupBy(field string, fields ...string) *FlightGroupBy {
 	group := &FlightGroupBy{config: fq.config}
 	group.fields = append([]string{field}, fields...)
@@ -263,6 +277,17 @@ func (fq *FlightQuery) GroupBy(field string, fields ...string) *FlightGroupBy {
 
 // Select allows the selection one or more fields/columns for the given query,
 // instead of selecting all fields in the entity.
+//
+// Example:
+//
+//	var v []struct {
+//		FlightNumber string `json:"flight_number,omitempty"`
+//	}
+//
+//	client.Flight.Query().
+//		Select(flight.FieldFlightNumber).
+//		Scan(ctx, &v)
+//
 func (fq *FlightQuery) Select(fields ...string) *FlightSelect {
 	fq.fields = append(fq.fields, fields...)
 	return &FlightSelect{FlightQuery: fq}
@@ -329,7 +354,7 @@ func (fq *FlightQuery) querySpec() *sqlgraph.QuerySpec {
 			Table:   flight.Table,
 			Columns: flight.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
+				Type:   field.TypeUUID,
 				Column: flight.FieldID,
 			},
 		},

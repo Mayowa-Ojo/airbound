@@ -20,8 +20,6 @@ func (FlightInstance) Fields() []ent.Field {
 		field.UUID("id", uuid.UUID{}).Default(uuid.New).Unique().Immutable(),
 		field.Int("departure_gate").NonNegative(),
 		field.Int("arrival_gate").NonNegative(),
-		field.Time("departs_at"),
-		field.Time("arrives_at"),
 		field.Enum("flight_status").GoType(enums.FlightStatus("")),
 		field.Time("created_at").Default(time.Now),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),

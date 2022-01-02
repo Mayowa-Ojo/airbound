@@ -3,18 +3,33 @@
 package ent
 
 import (
+	"airbound/internal/ent/enums"
 	"airbound/internal/ent/flight"
 	"fmt"
 	"strings"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"github.com/google/uuid"
 )
 
 // Flight is the model entity for the Flight schema.
 type Flight struct {
-	config
+	config `json:"-"`
 	// ID of the ent.
-	ID int `json:"id,omitempty"`
+	ID uuid.UUID `json:"id,omitempty"`
+	// FlightNumber holds the value of the "flight_number" field.
+	FlightNumber string `json:"flight_number,omitempty"`
+	// Duration holds the value of the "duration" field.
+	Duration int `json:"duration,omitempty"`
+	// Distance holds the value of the "distance" field.
+	Distance int `json:"distance,omitempty"`
+	// BoardingPolicy holds the value of the "boarding_policy" field.
+	BoardingPolicy enums.BoardingPolicy `json:"boarding_policy,omitempty"`
+	// CreatedAt holds the value of the "created_at" field.
+	CreatedAt time.Time `json:"created_at,omitempty"`
+	// UpdatedAt holds the value of the "updated_at" field.
+	UpdatedAt time.Time `json:"updated_at,omitempty"`
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -22,8 +37,14 @@ func (*Flight) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case flight.FieldID:
+		case flight.FieldDuration, flight.FieldDistance:
 			values[i] = new(sql.NullInt64)
+		case flight.FieldFlightNumber, flight.FieldBoardingPolicy:
+			values[i] = new(sql.NullString)
+		case flight.FieldCreatedAt, flight.FieldUpdatedAt:
+			values[i] = new(sql.NullTime)
+		case flight.FieldID:
+			values[i] = new(uuid.UUID)
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Flight", columns[i])
 		}
@@ -40,11 +61,47 @@ func (f *Flight) assignValues(columns []string, values []interface{}) error {
 	for i := range columns {
 		switch columns[i] {
 		case flight.FieldID:
-			value, ok := values[i].(*sql.NullInt64)
-			if !ok {
-				return fmt.Errorf("unexpected type %T for field id", value)
+			if value, ok := values[i].(*uuid.UUID); !ok {
+				return fmt.Errorf("unexpected type %T for field id", values[i])
+			} else if value != nil {
+				f.ID = *value
 			}
-			f.ID = int(value.Int64)
+		case flight.FieldFlightNumber:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field flight_number", values[i])
+			} else if value.Valid {
+				f.FlightNumber = value.String
+			}
+		case flight.FieldDuration:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field duration", values[i])
+			} else if value.Valid {
+				f.Duration = int(value.Int64)
+			}
+		case flight.FieldDistance:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field distance", values[i])
+			} else if value.Valid {
+				f.Distance = int(value.Int64)
+			}
+		case flight.FieldBoardingPolicy:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field boarding_policy", values[i])
+			} else if value.Valid {
+				f.BoardingPolicy = enums.BoardingPolicy(value.String)
+			}
+		case flight.FieldCreatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field created_at", values[i])
+			} else if value.Valid {
+				f.CreatedAt = value.Time
+			}
+		case flight.FieldUpdatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
+			} else if value.Valid {
+				f.UpdatedAt = value.Time
+			}
 		}
 	}
 	return nil
@@ -73,6 +130,18 @@ func (f *Flight) String() string {
 	var builder strings.Builder
 	builder.WriteString("Flight(")
 	builder.WriteString(fmt.Sprintf("id=%v", f.ID))
+	builder.WriteString(", flight_number=")
+	builder.WriteString(f.FlightNumber)
+	builder.WriteString(", duration=")
+	builder.WriteString(fmt.Sprintf("%v", f.Duration))
+	builder.WriteString(", distance=")
+	builder.WriteString(fmt.Sprintf("%v", f.Distance))
+	builder.WriteString(", boarding_policy=")
+	builder.WriteString(fmt.Sprintf("%v", f.BoardingPolicy))
+	builder.WriteString(", created_at=")
+	builder.WriteString(f.CreatedAt.Format(time.ANSIC))
+	builder.WriteString(", updated_at=")
+	builder.WriteString(f.UpdatedAt.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
 }

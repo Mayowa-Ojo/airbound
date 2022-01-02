@@ -12,8 +12,48 @@ import (
 // Tx is a transactional client that is created by calling Client.Tx().
 type Tx struct {
 	config
+	// Account is the client for interacting with the Account builders.
+	Account *AccountClient
+	// Address is the client for interacting with the Address builders.
+	Address *AddressClient
+	// Admin is the client for interacting with the Admin builders.
+	Admin *AdminClient
+	// Aircraft is the client for interacting with the Aircraft builders.
+	Aircraft *AircraftClient
+	// Airline is the client for interacting with the Airline builders.
+	Airline *AirlineClient
+	// Airport is the client for interacting with the Airport builders.
+	Airport *AirportClient
+	// Crew is the client for interacting with the Crew builders.
+	Crew *CrewClient
+	// Customer is the client for interacting with the Customer builders.
+	Customer *CustomerClient
 	// Flight is the client for interacting with the Flight builders.
 	Flight *FlightClient
+	// FlightInstance is the client for interacting with the FlightInstance builders.
+	FlightInstance *FlightInstanceClient
+	// FlightReservation is the client for interacting with the FlightReservation builders.
+	FlightReservation *FlightReservationClient
+	// FlightSchedule is the client for interacting with the FlightSchedule builders.
+	FlightSchedule *FlightScheduleClient
+	// FlightSeat is the client for interacting with the FlightSeat builders.
+	FlightSeat *FlightSeatClient
+	// FrontDesk is the client for interacting with the FrontDesk builders.
+	FrontDesk *FrontDeskClient
+	// Itenerary is the client for interacting with the Itenerary builders.
+	Itenerary *IteneraryClient
+	// Passenger is the client for interacting with the Passenger builders.
+	Passenger *PassengerClient
+	// Permission is the client for interacting with the Permission builders.
+	Permission *PermissionClient
+	// Pilot is the client for interacting with the Pilot builders.
+	Pilot *PilotClient
+	// Role is the client for interacting with the Role builders.
+	Role *RoleClient
+	// Seat is the client for interacting with the Seat builders.
+	Seat *SeatClient
+	// User is the client for interacting with the User builders.
+	User *UserClient
 
 	// lazily loaded.
 	client     *Client
@@ -149,7 +189,27 @@ func (tx *Tx) Client() *Client {
 }
 
 func (tx *Tx) init() {
+	tx.Account = NewAccountClient(tx.config)
+	tx.Address = NewAddressClient(tx.config)
+	tx.Admin = NewAdminClient(tx.config)
+	tx.Aircraft = NewAircraftClient(tx.config)
+	tx.Airline = NewAirlineClient(tx.config)
+	tx.Airport = NewAirportClient(tx.config)
+	tx.Crew = NewCrewClient(tx.config)
+	tx.Customer = NewCustomerClient(tx.config)
 	tx.Flight = NewFlightClient(tx.config)
+	tx.FlightInstance = NewFlightInstanceClient(tx.config)
+	tx.FlightReservation = NewFlightReservationClient(tx.config)
+	tx.FlightSchedule = NewFlightScheduleClient(tx.config)
+	tx.FlightSeat = NewFlightSeatClient(tx.config)
+	tx.FrontDesk = NewFrontDeskClient(tx.config)
+	tx.Itenerary = NewIteneraryClient(tx.config)
+	tx.Passenger = NewPassengerClient(tx.config)
+	tx.Permission = NewPermissionClient(tx.config)
+	tx.Pilot = NewPilotClient(tx.config)
+	tx.Role = NewRoleClient(tx.config)
+	tx.Seat = NewSeatClient(tx.config)
+	tx.User = NewUserClient(tx.config)
 }
 
 // txDriver wraps the given dialect.Tx with a nop dialect.Driver implementation.
@@ -159,7 +219,7 @@ func (tx *Tx) init() {
 // of them in order to commit or rollback the transaction.
 //
 // If a closed transaction is embedded in one of the generated entities, and the entity
-// applies a query, for example: Flight.QueryXXX(), the query will be executed
+// applies a query, for example: Account.QueryXXX(), the query will be executed
 // through the driver which created this transaction.
 //
 // Note that txDriver is not goroutine safe.

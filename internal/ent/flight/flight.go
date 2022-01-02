@@ -2,11 +2,31 @@
 
 package flight
 
+import (
+	"airbound/internal/ent/enums"
+	"fmt"
+	"time"
+
+	"github.com/google/uuid"
+)
+
 const (
 	// Label holds the string label denoting the flight type in the database.
 	Label = "flight"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldFlightNumber holds the string denoting the flight_number field in the database.
+	FieldFlightNumber = "flight_number"
+	// FieldDuration holds the string denoting the duration field in the database.
+	FieldDuration = "duration"
+	// FieldDistance holds the string denoting the distance field in the database.
+	FieldDistance = "distance"
+	// FieldBoardingPolicy holds the string denoting the boarding_policy field in the database.
+	FieldBoardingPolicy = "boarding_policy"
+	// FieldCreatedAt holds the string denoting the created_at field in the database.
+	FieldCreatedAt = "created_at"
+	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
+	FieldUpdatedAt = "updated_at"
 	// Table holds the table name of the flight in the database.
 	Table = "flights"
 )
@@ -14,6 +34,12 @@ const (
 // Columns holds all SQL columns for flight fields.
 var Columns = []string{
 	FieldID,
+	FieldFlightNumber,
+	FieldDuration,
+	FieldDistance,
+	FieldBoardingPolicy,
+	FieldCreatedAt,
+	FieldUpdatedAt,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -24,4 +50,31 @@ func ValidColumn(column string) bool {
 		}
 	}
 	return false
+}
+
+var (
+	// FlightNumberValidator is a validator for the "flight_number" field. It is called by the builders before save.
+	FlightNumberValidator func(string) error
+	// DurationValidator is a validator for the "duration" field. It is called by the builders before save.
+	DurationValidator func(int) error
+	// DistanceValidator is a validator for the "distance" field. It is called by the builders before save.
+	DistanceValidator func(int) error
+	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
+	DefaultCreatedAt func() time.Time
+	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
+	DefaultUpdatedAt func() time.Time
+	// UpdateDefaultUpdatedAt holds the default value on update for the "updated_at" field.
+	UpdateDefaultUpdatedAt func() time.Time
+	// DefaultID holds the default value on creation for the "id" field.
+	DefaultID func() uuid.UUID
+)
+
+// BoardingPolicyValidator is a validator for the "boarding_policy" field enum values. It is called by the builders before save.
+func BoardingPolicyValidator(bp enums.BoardingPolicy) error {
+	switch bp {
+	case "GROUP_BASED", "ZONE_BASED":
+		return nil
+	default:
+		return fmt.Errorf("flight: invalid enum value for boarding_policy field: %q", bp)
+	}
 }

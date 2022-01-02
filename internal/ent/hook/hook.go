@@ -8,6 +8,110 @@ import (
 	"fmt"
 )
 
+// The AccountFunc type is an adapter to allow the use of ordinary
+// function as Account mutator.
+type AccountFunc func(context.Context, *ent.AccountMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AccountFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.AccountMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AccountMutation", m)
+	}
+	return f(ctx, mv)
+}
+
+// The AddressFunc type is an adapter to allow the use of ordinary
+// function as Address mutator.
+type AddressFunc func(context.Context, *ent.AddressMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AddressFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.AddressMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AddressMutation", m)
+	}
+	return f(ctx, mv)
+}
+
+// The AdminFunc type is an adapter to allow the use of ordinary
+// function as Admin mutator.
+type AdminFunc func(context.Context, *ent.AdminMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AdminFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.AdminMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AdminMutation", m)
+	}
+	return f(ctx, mv)
+}
+
+// The AircraftFunc type is an adapter to allow the use of ordinary
+// function as Aircraft mutator.
+type AircraftFunc func(context.Context, *ent.AircraftMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AircraftFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.AircraftMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AircraftMutation", m)
+	}
+	return f(ctx, mv)
+}
+
+// The AirlineFunc type is an adapter to allow the use of ordinary
+// function as Airline mutator.
+type AirlineFunc func(context.Context, *ent.AirlineMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AirlineFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.AirlineMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AirlineMutation", m)
+	}
+	return f(ctx, mv)
+}
+
+// The AirportFunc type is an adapter to allow the use of ordinary
+// function as Airport mutator.
+type AirportFunc func(context.Context, *ent.AirportMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AirportFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.AirportMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AirportMutation", m)
+	}
+	return f(ctx, mv)
+}
+
+// The CrewFunc type is an adapter to allow the use of ordinary
+// function as Crew mutator.
+type CrewFunc func(context.Context, *ent.CrewMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f CrewFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.CrewMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CrewMutation", m)
+	}
+	return f(ctx, mv)
+}
+
+// The CustomerFunc type is an adapter to allow the use of ordinary
+// function as Customer mutator.
+type CustomerFunc func(context.Context, *ent.CustomerMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f CustomerFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.CustomerMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CustomerMutation", m)
+	}
+	return f(ctx, mv)
+}
+
 // The FlightFunc type is an adapter to allow the use of ordinary
 // function as Flight mutator.
 type FlightFunc func(context.Context, *ent.FlightMutation) (ent.Value, error)
@@ -17,6 +121,162 @@ func (f FlightFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, erro
 	mv, ok := m.(*ent.FlightMutation)
 	if !ok {
 		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FlightMutation", m)
+	}
+	return f(ctx, mv)
+}
+
+// The FlightInstanceFunc type is an adapter to allow the use of ordinary
+// function as FlightInstance mutator.
+type FlightInstanceFunc func(context.Context, *ent.FlightInstanceMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f FlightInstanceFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.FlightInstanceMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FlightInstanceMutation", m)
+	}
+	return f(ctx, mv)
+}
+
+// The FlightReservationFunc type is an adapter to allow the use of ordinary
+// function as FlightReservation mutator.
+type FlightReservationFunc func(context.Context, *ent.FlightReservationMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f FlightReservationFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.FlightReservationMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FlightReservationMutation", m)
+	}
+	return f(ctx, mv)
+}
+
+// The FlightScheduleFunc type is an adapter to allow the use of ordinary
+// function as FlightSchedule mutator.
+type FlightScheduleFunc func(context.Context, *ent.FlightScheduleMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f FlightScheduleFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.FlightScheduleMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FlightScheduleMutation", m)
+	}
+	return f(ctx, mv)
+}
+
+// The FlightSeatFunc type is an adapter to allow the use of ordinary
+// function as FlightSeat mutator.
+type FlightSeatFunc func(context.Context, *ent.FlightSeatMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f FlightSeatFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.FlightSeatMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FlightSeatMutation", m)
+	}
+	return f(ctx, mv)
+}
+
+// The FrontDeskFunc type is an adapter to allow the use of ordinary
+// function as FrontDesk mutator.
+type FrontDeskFunc func(context.Context, *ent.FrontDeskMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f FrontDeskFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.FrontDeskMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.FrontDeskMutation", m)
+	}
+	return f(ctx, mv)
+}
+
+// The IteneraryFunc type is an adapter to allow the use of ordinary
+// function as Itenerary mutator.
+type IteneraryFunc func(context.Context, *ent.IteneraryMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f IteneraryFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.IteneraryMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.IteneraryMutation", m)
+	}
+	return f(ctx, mv)
+}
+
+// The PassengerFunc type is an adapter to allow the use of ordinary
+// function as Passenger mutator.
+type PassengerFunc func(context.Context, *ent.PassengerMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f PassengerFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.PassengerMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PassengerMutation", m)
+	}
+	return f(ctx, mv)
+}
+
+// The PermissionFunc type is an adapter to allow the use of ordinary
+// function as Permission mutator.
+type PermissionFunc func(context.Context, *ent.PermissionMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f PermissionFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.PermissionMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PermissionMutation", m)
+	}
+	return f(ctx, mv)
+}
+
+// The PilotFunc type is an adapter to allow the use of ordinary
+// function as Pilot mutator.
+type PilotFunc func(context.Context, *ent.PilotMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f PilotFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.PilotMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PilotMutation", m)
+	}
+	return f(ctx, mv)
+}
+
+// The RoleFunc type is an adapter to allow the use of ordinary
+// function as Role mutator.
+type RoleFunc func(context.Context, *ent.RoleMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f RoleFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.RoleMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.RoleMutation", m)
+	}
+	return f(ctx, mv)
+}
+
+// The SeatFunc type is an adapter to allow the use of ordinary
+// function as Seat mutator.
+type SeatFunc func(context.Context, *ent.SeatMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f SeatFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.SeatMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SeatMutation", m)
+	}
+	return f(ctx, mv)
+}
+
+// The UserFunc type is an adapter to allow the use of ordinary
+// function as User mutator.
+type UserFunc func(context.Context, *ent.UserMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f UserFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.UserMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UserMutation", m)
 	}
 	return f(ctx, mv)
 }

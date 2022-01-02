@@ -24,7 +24,27 @@ type config struct {
 
 // hooks per client, for fast access.
 type hooks struct {
-	Flight []ent.Hook
+	Account           []ent.Hook
+	Address           []ent.Hook
+	Admin             []ent.Hook
+	Aircraft          []ent.Hook
+	Airline           []ent.Hook
+	Airport           []ent.Hook
+	Crew              []ent.Hook
+	Customer          []ent.Hook
+	Flight            []ent.Hook
+	FlightInstance    []ent.Hook
+	FlightReservation []ent.Hook
+	FlightSchedule    []ent.Hook
+	FlightSeat        []ent.Hook
+	FrontDesk         []ent.Hook
+	Itenerary         []ent.Hook
+	Passenger         []ent.Hook
+	Permission        []ent.Hook
+	Pilot             []ent.Hook
+	Role              []ent.Hook
+	Seat              []ent.Hook
+	User              []ent.Hook
 }
 
 // Options applies the options on the config object.

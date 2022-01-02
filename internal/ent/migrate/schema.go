@@ -8,9 +8,132 @@ import (
 )
 
 var (
+	// AccountsColumns holds the columns for the "accounts" table.
+	AccountsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "account_status", Type: field.TypeEnum, Enums: []string{"ACTIVE", "CLOSED", "BLACKLISTED", "BLOCKED"}},
+		{Name: "password", Type: field.TypeBytes},
+		{Name: "salt", Type: field.TypeBytes},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// AccountsTable holds the schema information for the "accounts" table.
+	AccountsTable = &schema.Table{
+		Name:       "accounts",
+		Columns:    AccountsColumns,
+		PrimaryKey: []*schema.Column{AccountsColumns[0]},
+	}
+	// AddressesColumns holds the columns for the "addresses" table.
+	AddressesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "street", Type: field.TypeString, Size: 150},
+		{Name: "city", Type: field.TypeString, Size: 150},
+		{Name: "state", Type: field.TypeString, Size: 150},
+		{Name: "zipcode", Type: field.TypeString, Size: 50},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// AddressesTable holds the schema information for the "addresses" table.
+	AddressesTable = &schema.Table{
+		Name:       "addresses",
+		Columns:    AddressesColumns,
+		PrimaryKey: []*schema.Column{AddressesColumns[0]},
+	}
+	// AdminsColumns holds the columns for the "admins" table.
+	AdminsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "two_fa_secret", Type: field.TypeString, Nullable: true, Size: 250},
+		{Name: "two_fa_completed", Type: field.TypeBool, Default: false},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// AdminsTable holds the schema information for the "admins" table.
+	AdminsTable = &schema.Table{
+		Name:       "admins",
+		Columns:    AdminsColumns,
+		PrimaryKey: []*schema.Column{AdminsColumns[0]},
+	}
+	// AircraftsColumns holds the columns for the "aircrafts" table.
+	AircraftsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "tail_number", Type: field.TypeString, Size: 250},
+		{Name: "manufacturer", Type: field.TypeString, Size: 250},
+		{Name: "model", Type: field.TypeString, Size: 250},
+		{Name: "capacity", Type: field.TypeInt},
+		{Name: "range", Type: field.TypeInt},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// AircraftsTable holds the schema information for the "aircrafts" table.
+	AircraftsTable = &schema.Table{
+		Name:       "aircrafts",
+		Columns:    AircraftsColumns,
+		PrimaryKey: []*schema.Column{AircraftsColumns[0]},
+	}
+	// AirlinesColumns holds the columns for the "airlines" table.
+	AirlinesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "name", Type: field.TypeString, Size: 250},
+		{Name: "iata_code", Type: field.TypeString, Size: 2},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// AirlinesTable holds the schema information for the "airlines" table.
+	AirlinesTable = &schema.Table{
+		Name:       "airlines",
+		Columns:    AirlinesColumns,
+		PrimaryKey: []*schema.Column{AirlinesColumns[0]},
+	}
+	// AirportsColumns holds the columns for the "airports" table.
+	AirportsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "name", Type: field.TypeString, Size: 250},
+		{Name: "iata_code", Type: field.TypeString, Size: 3},
+		{Name: "icao_code", Type: field.TypeString, Size: 4},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// AirportsTable holds the schema information for the "airports" table.
+	AirportsTable = &schema.Table{
+		Name:       "airports",
+		Columns:    AirportsColumns,
+		PrimaryKey: []*schema.Column{AirportsColumns[0]},
+	}
+	// CrewsColumns holds the columns for the "crews" table.
+	CrewsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "employee_id", Type: field.TypeString, Size: 50},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// CrewsTable holds the schema information for the "crews" table.
+	CrewsTable = &schema.Table{
+		Name:       "crews",
+		Columns:    CrewsColumns,
+		PrimaryKey: []*schema.Column{CrewsColumns[0]},
+	}
+	// CustomersColumns holds the columns for the "customers" table.
+	CustomersColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "frequent_flyer_number", Type: field.TypeString, Size: 50},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// CustomersTable holds the schema information for the "customers" table.
+	CustomersTable = &schema.Table{
+		Name:       "customers",
+		Columns:    CustomersColumns,
+		PrimaryKey: []*schema.Column{CustomersColumns[0]},
+	}
 	// FlightsColumns holds the columns for the "flights" table.
 	FlightsColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "flight_number", Type: field.TypeString, Unique: true, Size: 20},
+		{Name: "duration", Type: field.TypeInt},
+		{Name: "distance", Type: field.TypeInt},
+		{Name: "boarding_policy", Type: field.TypeEnum, Enums: []string{"GROUP_BASED", "ZONE_BASED"}},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
 	}
 	// FlightsTable holds the schema information for the "flights" table.
 	FlightsTable = &schema.Table{
@@ -18,9 +141,202 @@ var (
 		Columns:    FlightsColumns,
 		PrimaryKey: []*schema.Column{FlightsColumns[0]},
 	}
+	// FlightInstancesColumns holds the columns for the "flight_instances" table.
+	FlightInstancesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "departure_gate", Type: field.TypeInt},
+		{Name: "arrival_gate", Type: field.TypeInt},
+		{Name: "flight_status", Type: field.TypeEnum, Enums: []string{"ACTIVE", "SCHEDULED", "DELAYED", "DEPARTED", "ARRIVED", "CANCELED"}},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// FlightInstancesTable holds the schema information for the "flight_instances" table.
+	FlightInstancesTable = &schema.Table{
+		Name:       "flight_instances",
+		Columns:    FlightInstancesColumns,
+		PrimaryKey: []*schema.Column{FlightInstancesColumns[0]},
+	}
+	// FlightReservationsColumns holds the columns for the "flight_reservations" table.
+	FlightReservationsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "reservation_number", Type: field.TypeString, Size: 50},
+		{Name: "reservation_status", Type: field.TypeEnum, Enums: []string{"REQUESTED", "PENDING", "CONFIRMED", "CANCELED", "CHECKED_IN", "ABANDONED"}},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// FlightReservationsTable holds the schema information for the "flight_reservations" table.
+	FlightReservationsTable = &schema.Table{
+		Name:       "flight_reservations",
+		Columns:    FlightReservationsColumns,
+		PrimaryKey: []*schema.Column{FlightReservationsColumns[0]},
+	}
+	// FlightSchedulesColumns holds the columns for the "flight_schedules" table.
+	FlightSchedulesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "weekday", Type: field.TypeEnum, Nullable: true, Enums: []string{"MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"}},
+		{Name: "schedule_type", Type: field.TypeEnum, Enums: []string{"WEEKLY", "CUSTOM"}},
+		{Name: "custom_date", Type: field.TypeString, Nullable: true, SchemaType: map[string]string{"postgres": "date"}},
+		{Name: "departs_at", Type: field.TypeString, SchemaType: map[string]string{"postgres": "time"}},
+		{Name: "arrives_at", Type: field.TypeString, SchemaType: map[string]string{"postgres": "time"}},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// FlightSchedulesTable holds the schema information for the "flight_schedules" table.
+	FlightSchedulesTable = &schema.Table{
+		Name:       "flight_schedules",
+		Columns:    FlightSchedulesColumns,
+		PrimaryKey: []*schema.Column{FlightSchedulesColumns[0]},
+	}
+	// FlightSeatsColumns holds the columns for the "flight_seats" table.
+	FlightSeatsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "fare", Type: field.TypeFloat64},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// FlightSeatsTable holds the schema information for the "flight_seats" table.
+	FlightSeatsTable = &schema.Table{
+		Name:       "flight_seats",
+		Columns:    FlightSeatsColumns,
+		PrimaryKey: []*schema.Column{FlightSeatsColumns[0]},
+	}
+	// FrontDesksColumns holds the columns for the "front_desks" table.
+	FrontDesksColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "employee_id", Type: field.TypeString, Size: 50},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// FrontDesksTable holds the schema information for the "front_desks" table.
+	FrontDesksTable = &schema.Table{
+		Name:       "front_desks",
+		Columns:    FrontDesksColumns,
+		PrimaryKey: []*schema.Column{FrontDesksColumns[0]},
+	}
+	// ItenerariesColumns holds the columns for the "iteneraries" table.
+	ItenerariesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// ItenerariesTable holds the schema information for the "iteneraries" table.
+	ItenerariesTable = &schema.Table{
+		Name:       "iteneraries",
+		Columns:    ItenerariesColumns,
+		PrimaryKey: []*schema.Column{ItenerariesColumns[0]},
+	}
+	// PassengersColumns holds the columns for the "passengers" table.
+	PassengersColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "firstname", Type: field.TypeString, Size: 250},
+		{Name: "lastname", Type: field.TypeString, Size: 250},
+		{Name: "age", Type: field.TypeInt},
+		{Name: "passport_number", Type: field.TypeString, Size: 50},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// PassengersTable holds the schema information for the "passengers" table.
+	PassengersTable = &schema.Table{
+		Name:       "passengers",
+		Columns:    PassengersColumns,
+		PrimaryKey: []*schema.Column{PassengersColumns[0]},
+	}
+	// PermissionsColumns holds the columns for the "permissions" table.
+	PermissionsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "permission", Type: field.TypeString, Size: 1000},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// PermissionsTable holds the schema information for the "permissions" table.
+	PermissionsTable = &schema.Table{
+		Name:       "permissions",
+		Columns:    PermissionsColumns,
+		PrimaryKey: []*schema.Column{PermissionsColumns[0]},
+	}
+	// PilotsColumns holds the columns for the "pilots" table.
+	PilotsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "employee_id", Type: field.TypeString, Size: 50},
+		{Name: "licence_number", Type: field.TypeString, Size: 50},
+		{Name: "flight_hours", Type: field.TypeInt},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// PilotsTable holds the schema information for the "pilots" table.
+	PilotsTable = &schema.Table{
+		Name:       "pilots",
+		Columns:    PilotsColumns,
+		PrimaryKey: []*schema.Column{PilotsColumns[0]},
+	}
+	// RolesColumns holds the columns for the "roles" table.
+	RolesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "name", Type: field.TypeString, Size: 250},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// RolesTable holds the schema information for the "roles" table.
+	RolesTable = &schema.Table{
+		Name:       "roles",
+		Columns:    RolesColumns,
+		PrimaryKey: []*schema.Column{RolesColumns[0]},
+	}
+	// SeatsColumns holds the columns for the "seats" table.
+	SeatsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "seat_number", Type: field.TypeInt},
+		{Name: "seat_row", Type: field.TypeString, Size: 1},
+		{Name: "seat_type", Type: field.TypeEnum, Enums: []string{"REGULAR", "EMERGENCY_EXIT", "ACCESSIBLE"}},
+		{Name: "seat_class", Type: field.TypeEnum, Enums: []string{"ECONOMY", "ECONOMY_PLUS", "BUSINESS", "FIRST"}},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// SeatsTable holds the schema information for the "seats" table.
+	SeatsTable = &schema.Table{
+		Name:       "seats",
+		Columns:    SeatsColumns,
+		PrimaryKey: []*schema.Column{SeatsColumns[0]},
+	}
+	// UsersColumns holds the columns for the "users" table.
+	UsersColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "firstname", Type: field.TypeString, Size: 250},
+		{Name: "lastname", Type: field.TypeString, Size: 250},
+		{Name: "email", Type: field.TypeString, Size: 250},
+		{Name: "phone", Type: field.TypeString, Size: 15},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+	}
+	// UsersTable holds the schema information for the "users" table.
+	UsersTable = &schema.Table{
+		Name:       "users",
+		Columns:    UsersColumns,
+		PrimaryKey: []*schema.Column{UsersColumns[0]},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		AccountsTable,
+		AddressesTable,
+		AdminsTable,
+		AircraftsTable,
+		AirlinesTable,
+		AirportsTable,
+		CrewsTable,
+		CustomersTable,
 		FlightsTable,
+		FlightInstancesTable,
+		FlightReservationsTable,
+		FlightSchedulesTable,
+		FlightSeatsTable,
+		FrontDesksTable,
+		ItenerariesTable,
+		PassengersTable,
+		PermissionsTable,
+		PilotsTable,
+		RolesTable,
+		SeatsTable,
+		UsersTable,
 	}
 )
 

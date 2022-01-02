@@ -3,7 +3,27 @@
 package ent
 
 import (
+	"airbound/internal/ent/account"
+	"airbound/internal/ent/address"
+	"airbound/internal/ent/admin"
+	"airbound/internal/ent/aircraft"
+	"airbound/internal/ent/airline"
+	"airbound/internal/ent/airport"
+	"airbound/internal/ent/crew"
+	"airbound/internal/ent/customer"
 	"airbound/internal/ent/flight"
+	"airbound/internal/ent/flightinstance"
+	"airbound/internal/ent/flightreservation"
+	"airbound/internal/ent/flightschedule"
+	"airbound/internal/ent/flightseat"
+	"airbound/internal/ent/frontdesk"
+	"airbound/internal/ent/itenerary"
+	"airbound/internal/ent/passenger"
+	"airbound/internal/ent/permission"
+	"airbound/internal/ent/pilot"
+	"airbound/internal/ent/role"
+	"airbound/internal/ent/seat"
+	"airbound/internal/ent/user"
 	"errors"
 	"fmt"
 
@@ -29,7 +49,27 @@ type OrderFunc func(*sql.Selector)
 // columnChecker returns a function indicates if the column exists in the given column.
 func columnChecker(table string) func(string) error {
 	checks := map[string]func(string) bool{
-		flight.Table: flight.ValidColumn,
+		account.Table:           account.ValidColumn,
+		address.Table:           address.ValidColumn,
+		admin.Table:             admin.ValidColumn,
+		aircraft.Table:          aircraft.ValidColumn,
+		airline.Table:           airline.ValidColumn,
+		airport.Table:           airport.ValidColumn,
+		crew.Table:              crew.ValidColumn,
+		customer.Table:          customer.ValidColumn,
+		flight.Table:            flight.ValidColumn,
+		flightinstance.Table:    flightinstance.ValidColumn,
+		flightreservation.Table: flightreservation.ValidColumn,
+		flightschedule.Table:    flightschedule.ValidColumn,
+		flightseat.Table:        flightseat.ValidColumn,
+		frontdesk.Table:         frontdesk.ValidColumn,
+		itenerary.Table:         itenerary.ValidColumn,
+		passenger.Table:         passenger.ValidColumn,
+		permission.Table:        permission.ValidColumn,
+		pilot.Table:             pilot.ValidColumn,
+		role.Table:              role.ValidColumn,
+		seat.Table:              seat.ValidColumn,
+		user.Table:              user.ValidColumn,
 	}
 	check, ok := checks[table]
 	if !ok {
