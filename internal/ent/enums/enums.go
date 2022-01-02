@@ -1,5 +1,7 @@
 package enums
 
+import "database/sql/driver"
+
 type BoardingPolicy string
 
 const (
@@ -104,4 +106,95 @@ func (ReservationStatus) Values() (kinds []string) {
 		kinds = append(kinds, string(s))
 	}
 	return
+}
+
+type FlightScheduleType string
+
+const (
+	FlightScheduleWeekly FlightScheduleType = "WEEKLY"
+	FlightScheduleCustom FlightScheduleType = "CUSTOM"
+)
+
+func (FlightScheduleType) Values() (kinds []string) {
+	for _, s := range []FlightScheduleType{FlightScheduleWeekly, FlightScheduleCustom} {
+		kinds = append(kinds, string(s))
+	}
+	return
+}
+
+type WeekDay int
+
+const (
+	Monday WeekDay = iota
+	Tuesday
+	Wednesday
+	Thursday
+	Friday
+	Saturday
+	Sunday
+)
+
+func (w WeekDay) String() string {
+	switch w {
+	case Monday:
+		return "MONDAY"
+	case Tuesday:
+		return "TUESDAY"
+	case Wednesday:
+		return "WEDNESDAY"
+	case Thursday:
+		return "THURSDAY"
+	case Friday:
+		return "FRIDAY"
+	case Saturday:
+		return "SATURDAY"
+	case Sunday:
+		return "SUNDAY"
+	default:
+		return ""
+	}
+}
+
+func (WeekDay) Values() []string {
+	return []string{
+		Monday.String(), Tuesday.String(),
+		Wednesday.String(), Thursday.String(),
+		Friday.String(), Saturday.String(), Sunday.String(),
+	}
+}
+
+func (w WeekDay) Value() (driver.Value, error) {
+	return w.String, nil
+}
+
+func (w *WeekDay) Scan(val interface{}) error {
+	var s string
+
+	switch v := val.(type) {
+	case nil:
+		return nil
+	case string:
+		s = v
+	case []uint8:
+		s = string(v)
+	}
+
+	switch s {
+	case "MONDAY":
+		*w = Monday
+	case "TUESDAY":
+		*w = Tuesday
+	case "WEDNESDAY":
+		*w = Wednesday
+	case "THURSDAY":
+		*w = Thursday
+	case "FRIDAY":
+		*w = Friday
+	case "SATURDAY":
+		*w = Saturday
+	case "SUNDAY":
+		*w = Sunday
+	}
+
+	return nil
 }
