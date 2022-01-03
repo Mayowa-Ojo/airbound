@@ -4,14 +4,18 @@ package ent
 
 import (
 	"airbound/internal/ent/address"
+	"airbound/internal/ent/airport"
 	"airbound/internal/ent/predicate"
+	"airbound/internal/ent/user"
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 )
 
 // AddressUpdate is the builder for updating Address entities.
@@ -71,9 +75,43 @@ func (au *AddressUpdate) SetUpdatedAt(t time.Time) *AddressUpdate {
 	return au
 }
 
+// SetUserID sets the "user" edge to the User entity by ID.
+func (au *AddressUpdate) SetUserID(id uuid.UUID) *AddressUpdate {
+	au.mutation.SetUserID(id)
+	return au
+}
+
+// SetUser sets the "user" edge to the User entity.
+func (au *AddressUpdate) SetUser(u *User) *AddressUpdate {
+	return au.SetUserID(u.ID)
+}
+
+// SetAirportID sets the "airport" edge to the Airport entity by ID.
+func (au *AddressUpdate) SetAirportID(id uuid.UUID) *AddressUpdate {
+	au.mutation.SetAirportID(id)
+	return au
+}
+
+// SetAirport sets the "airport" edge to the Airport entity.
+func (au *AddressUpdate) SetAirport(a *Airport) *AddressUpdate {
+	return au.SetAirportID(a.ID)
+}
+
 // Mutation returns the AddressMutation object of the builder.
 func (au *AddressUpdate) Mutation() *AddressMutation {
 	return au.mutation
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (au *AddressUpdate) ClearUser() *AddressUpdate {
+	au.mutation.ClearUser()
+	return au
+}
+
+// ClearAirport clears the "airport" edge to the Airport entity.
+func (au *AddressUpdate) ClearAirport() *AddressUpdate {
+	au.mutation.ClearAirport()
+	return au
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -167,6 +205,12 @@ func (au *AddressUpdate) check() error {
 			return &ValidationError{Name: "zipcode", err: fmt.Errorf("ent: validator failed for field \"zipcode\": %w", err)}
 		}
 	}
+	if _, ok := au.mutation.UserID(); au.mutation.UserCleared() && !ok {
+		return errors.New("ent: clearing a required unique edge \"user\"")
+	}
+	if _, ok := au.mutation.AirportID(); au.mutation.AirportCleared() && !ok {
+		return errors.New("ent: clearing a required unique edge \"airport\"")
+	}
 	return nil
 }
 
@@ -229,6 +273,76 @@ func (au *AddressUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Value:  value,
 			Column: address.FieldUpdatedAt,
 		})
+	}
+	if au.mutation.UserCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   address.UserTable,
+			Columns: []string{address.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := au.mutation.UserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   address.UserTable,
+			Columns: []string{address.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if au.mutation.AirportCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   address.AirportTable,
+			Columns: []string{address.AirportColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: airport.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := au.mutation.AirportIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   address.AirportTable,
+			Columns: []string{address.AirportColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: airport.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, au.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -293,9 +407,43 @@ func (auo *AddressUpdateOne) SetUpdatedAt(t time.Time) *AddressUpdateOne {
 	return auo
 }
 
+// SetUserID sets the "user" edge to the User entity by ID.
+func (auo *AddressUpdateOne) SetUserID(id uuid.UUID) *AddressUpdateOne {
+	auo.mutation.SetUserID(id)
+	return auo
+}
+
+// SetUser sets the "user" edge to the User entity.
+func (auo *AddressUpdateOne) SetUser(u *User) *AddressUpdateOne {
+	return auo.SetUserID(u.ID)
+}
+
+// SetAirportID sets the "airport" edge to the Airport entity by ID.
+func (auo *AddressUpdateOne) SetAirportID(id uuid.UUID) *AddressUpdateOne {
+	auo.mutation.SetAirportID(id)
+	return auo
+}
+
+// SetAirport sets the "airport" edge to the Airport entity.
+func (auo *AddressUpdateOne) SetAirport(a *Airport) *AddressUpdateOne {
+	return auo.SetAirportID(a.ID)
+}
+
 // Mutation returns the AddressMutation object of the builder.
 func (auo *AddressUpdateOne) Mutation() *AddressMutation {
 	return auo.mutation
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (auo *AddressUpdateOne) ClearUser() *AddressUpdateOne {
+	auo.mutation.ClearUser()
+	return auo
+}
+
+// ClearAirport clears the "airport" edge to the Airport entity.
+func (auo *AddressUpdateOne) ClearAirport() *AddressUpdateOne {
+	auo.mutation.ClearAirport()
+	return auo
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -396,6 +544,12 @@ func (auo *AddressUpdateOne) check() error {
 			return &ValidationError{Name: "zipcode", err: fmt.Errorf("ent: validator failed for field \"zipcode\": %w", err)}
 		}
 	}
+	if _, ok := auo.mutation.UserID(); auo.mutation.UserCleared() && !ok {
+		return errors.New("ent: clearing a required unique edge \"user\"")
+	}
+	if _, ok := auo.mutation.AirportID(); auo.mutation.AirportCleared() && !ok {
+		return errors.New("ent: clearing a required unique edge \"airport\"")
+	}
 	return nil
 }
 
@@ -475,6 +629,76 @@ func (auo *AddressUpdateOne) sqlSave(ctx context.Context) (_node *Address, err e
 			Value:  value,
 			Column: address.FieldUpdatedAt,
 		})
+	}
+	if auo.mutation.UserCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   address.UserTable,
+			Columns: []string{address.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := auo.mutation.UserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   address.UserTable,
+			Columns: []string{address.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if auo.mutation.AirportCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   address.AirportTable,
+			Columns: []string{address.AirportColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: airport.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := auo.mutation.AirportIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   address.AirportTable,
+			Columns: []string{address.AirportColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: airport.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &Address{config: auo.config}
 	_spec.Assign = _node.assignValues

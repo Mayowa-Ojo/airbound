@@ -4,6 +4,7 @@ package ent
 
 import (
 	"airbound/internal/ent/customer"
+	"airbound/internal/ent/user"
 	"fmt"
 	"strings"
 	"time"
@@ -23,6 +24,44 @@ type Customer struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the CustomerQuery when eager-loading is set.
+	Edges         CustomerEdges `json:"edges"`
+	user_customer *uuid.UUID
+}
+
+// CustomerEdges holds the relations/edges for other nodes in the graph.
+type CustomerEdges struct {
+	// User holds the value of the user edge.
+	User *User `json:"user,omitempty"`
+	// Iteneraries holds the value of the iteneraries edge.
+	Iteneraries []*Itenerary `json:"iteneraries,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [2]bool
+}
+
+// UserOrErr returns the User value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e CustomerEdges) UserOrErr() (*User, error) {
+	if e.loadedTypes[0] {
+		if e.User == nil {
+			// The edge user was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: user.Label}
+		}
+		return e.User, nil
+	}
+	return nil, &NotLoadedError{edge: "user"}
+}
+
+// ItenerariesOrErr returns the Iteneraries value or an error if the edge
+// was not loaded in eager-loading.
+func (e CustomerEdges) ItenerariesOrErr() ([]*Itenerary, error) {
+	if e.loadedTypes[1] {
+		return e.Iteneraries, nil
+	}
+	return nil, &NotLoadedError{edge: "iteneraries"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -36,6 +75,8 @@ func (*Customer) scanValues(columns []string) ([]interface{}, error) {
 			values[i] = new(sql.NullTime)
 		case customer.FieldID:
 			values[i] = new(uuid.UUID)
+		case customer.ForeignKeys[0]: // user_customer
+			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Customer", columns[i])
 		}
@@ -75,9 +116,26 @@ func (c *Customer) assignValues(columns []string, values []interface{}) error {
 			} else if value.Valid {
 				c.UpdatedAt = value.Time
 			}
+		case customer.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field user_customer", values[i])
+			} else if value.Valid {
+				c.user_customer = new(uuid.UUID)
+				*c.user_customer = *value.S.(*uuid.UUID)
+			}
 		}
 	}
 	return nil
+}
+
+// QueryUser queries the "user" edge of the Customer entity.
+func (c *Customer) QueryUser() *UserQuery {
+	return (&CustomerClient{config: c.config}).QueryUser(c)
+}
+
+// QueryIteneraries queries the "iteneraries" edge of the Customer entity.
+func (c *Customer) QueryIteneraries() *IteneraryQuery {
+	return (&CustomerClient{config: c.config}).QueryIteneraries(c)
 }
 
 // Update returns a builder for updating this Customer.

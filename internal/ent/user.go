@@ -3,6 +3,14 @@
 package ent
 
 import (
+	"airbound/internal/ent/account"
+	"airbound/internal/ent/address"
+	"airbound/internal/ent/admin"
+	"airbound/internal/ent/crew"
+	"airbound/internal/ent/customer"
+	"airbound/internal/ent/frontdesk"
+	"airbound/internal/ent/pilot"
+	"airbound/internal/ent/role"
 	"airbound/internal/ent/user"
 	"fmt"
 	"strings"
@@ -29,6 +37,145 @@ type User struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the UserQuery when eager-loading is set.
+	Edges   UserEdges `json:"edges"`
+	role_id *uuid.UUID
+}
+
+// UserEdges holds the relations/edges for other nodes in the graph.
+type UserEdges struct {
+	// Account holds the value of the account edge.
+	Account *Account `json:"account,omitempty"`
+	// Admin holds the value of the admin edge.
+	Admin *Admin `json:"admin,omitempty"`
+	// Crew holds the value of the crew edge.
+	Crew *Crew `json:"crew,omitempty"`
+	// Pilot holds the value of the pilot edge.
+	Pilot *Pilot `json:"pilot,omitempty"`
+	// FrontDesk holds the value of the front_desk edge.
+	FrontDesk *FrontDesk `json:"front_desk,omitempty"`
+	// Customer holds the value of the customer edge.
+	Customer *Customer `json:"customer,omitempty"`
+	// Address holds the value of the address edge.
+	Address *Address `json:"address,omitempty"`
+	// Role holds the value of the role edge.
+	Role *Role `json:"role,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [8]bool
+}
+
+// AccountOrErr returns the Account value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e UserEdges) AccountOrErr() (*Account, error) {
+	if e.loadedTypes[0] {
+		if e.Account == nil {
+			// The edge account was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: account.Label}
+		}
+		return e.Account, nil
+	}
+	return nil, &NotLoadedError{edge: "account"}
+}
+
+// AdminOrErr returns the Admin value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e UserEdges) AdminOrErr() (*Admin, error) {
+	if e.loadedTypes[1] {
+		if e.Admin == nil {
+			// The edge admin was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: admin.Label}
+		}
+		return e.Admin, nil
+	}
+	return nil, &NotLoadedError{edge: "admin"}
+}
+
+// CrewOrErr returns the Crew value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e UserEdges) CrewOrErr() (*Crew, error) {
+	if e.loadedTypes[2] {
+		if e.Crew == nil {
+			// The edge crew was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: crew.Label}
+		}
+		return e.Crew, nil
+	}
+	return nil, &NotLoadedError{edge: "crew"}
+}
+
+// PilotOrErr returns the Pilot value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e UserEdges) PilotOrErr() (*Pilot, error) {
+	if e.loadedTypes[3] {
+		if e.Pilot == nil {
+			// The edge pilot was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: pilot.Label}
+		}
+		return e.Pilot, nil
+	}
+	return nil, &NotLoadedError{edge: "pilot"}
+}
+
+// FrontDeskOrErr returns the FrontDesk value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e UserEdges) FrontDeskOrErr() (*FrontDesk, error) {
+	if e.loadedTypes[4] {
+		if e.FrontDesk == nil {
+			// The edge front_desk was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: frontdesk.Label}
+		}
+		return e.FrontDesk, nil
+	}
+	return nil, &NotLoadedError{edge: "front_desk"}
+}
+
+// CustomerOrErr returns the Customer value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e UserEdges) CustomerOrErr() (*Customer, error) {
+	if e.loadedTypes[5] {
+		if e.Customer == nil {
+			// The edge customer was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: customer.Label}
+		}
+		return e.Customer, nil
+	}
+	return nil, &NotLoadedError{edge: "customer"}
+}
+
+// AddressOrErr returns the Address value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e UserEdges) AddressOrErr() (*Address, error) {
+	if e.loadedTypes[6] {
+		if e.Address == nil {
+			// The edge address was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: address.Label}
+		}
+		return e.Address, nil
+	}
+	return nil, &NotLoadedError{edge: "address"}
+}
+
+// RoleOrErr returns the Role value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e UserEdges) RoleOrErr() (*Role, error) {
+	if e.loadedTypes[7] {
+		if e.Role == nil {
+			// The edge role was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: role.Label}
+		}
+		return e.Role, nil
+	}
+	return nil, &NotLoadedError{edge: "role"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -42,6 +189,8 @@ func (*User) scanValues(columns []string) ([]interface{}, error) {
 			values[i] = new(sql.NullTime)
 		case user.FieldID:
 			values[i] = new(uuid.UUID)
+		case user.ForeignKeys[0]: // role_id
+			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type User", columns[i])
 		}
@@ -99,9 +248,56 @@ func (u *User) assignValues(columns []string, values []interface{}) error {
 			} else if value.Valid {
 				u.UpdatedAt = value.Time
 			}
+		case user.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field role_id", values[i])
+			} else if value.Valid {
+				u.role_id = new(uuid.UUID)
+				*u.role_id = *value.S.(*uuid.UUID)
+			}
 		}
 	}
 	return nil
+}
+
+// QueryAccount queries the "account" edge of the User entity.
+func (u *User) QueryAccount() *AccountQuery {
+	return (&UserClient{config: u.config}).QueryAccount(u)
+}
+
+// QueryAdmin queries the "admin" edge of the User entity.
+func (u *User) QueryAdmin() *AdminQuery {
+	return (&UserClient{config: u.config}).QueryAdmin(u)
+}
+
+// QueryCrew queries the "crew" edge of the User entity.
+func (u *User) QueryCrew() *CrewQuery {
+	return (&UserClient{config: u.config}).QueryCrew(u)
+}
+
+// QueryPilot queries the "pilot" edge of the User entity.
+func (u *User) QueryPilot() *PilotQuery {
+	return (&UserClient{config: u.config}).QueryPilot(u)
+}
+
+// QueryFrontDesk queries the "front_desk" edge of the User entity.
+func (u *User) QueryFrontDesk() *FrontDeskQuery {
+	return (&UserClient{config: u.config}).QueryFrontDesk(u)
+}
+
+// QueryCustomer queries the "customer" edge of the User entity.
+func (u *User) QueryCustomer() *CustomerQuery {
+	return (&UserClient{config: u.config}).QueryCustomer(u)
+}
+
+// QueryAddress queries the "address" edge of the User entity.
+func (u *User) QueryAddress() *AddressQuery {
+	return (&UserClient{config: u.config}).QueryAddress(u)
+}
+
+// QueryRole queries the "role" edge of the User entity.
+func (u *User) QueryRole() *RoleQuery {
+	return (&UserClient{config: u.config}).QueryRole(u)
 }
 
 // Update returns a builder for updating this User.

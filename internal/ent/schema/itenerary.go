@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"entgo.io/ent"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 )
@@ -24,5 +25,13 @@ func (Itenerary) Fields() []ent.Field {
 
 // Edges of the Itenerary.
 func (Itenerary) Edges() []ent.Edge {
-	return nil
+	return []ent.Edge{
+		edge.To("flight_reservations", FlightReservation.Type).
+			StorageKey(edge.Column("itenerary_id")),
+		edge.From("customer", Customer.Type).
+			Ref("iteneraries").
+			Unique(),
+		edge.From("origin_airport", Airport.Type).Ref("origin_iteneraries").Unique(),
+		edge.From("destination_airport", Airport.Type).Ref("destination_iteneraries").Unique(),
+	}
 }

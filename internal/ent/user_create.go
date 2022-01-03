@@ -3,6 +3,14 @@
 package ent
 
 import (
+	"airbound/internal/ent/account"
+	"airbound/internal/ent/address"
+	"airbound/internal/ent/admin"
+	"airbound/internal/ent/crew"
+	"airbound/internal/ent/customer"
+	"airbound/internal/ent/frontdesk"
+	"airbound/internal/ent/pilot"
+	"airbound/internal/ent/role"
 	"airbound/internal/ent/user"
 	"context"
 	"errors"
@@ -77,6 +85,158 @@ func (uc *UserCreate) SetNillableUpdatedAt(t *time.Time) *UserCreate {
 func (uc *UserCreate) SetID(u uuid.UUID) *UserCreate {
 	uc.mutation.SetID(u)
 	return uc
+}
+
+// SetAccountID sets the "account" edge to the Account entity by ID.
+func (uc *UserCreate) SetAccountID(id uuid.UUID) *UserCreate {
+	uc.mutation.SetAccountID(id)
+	return uc
+}
+
+// SetNillableAccountID sets the "account" edge to the Account entity by ID if the given value is not nil.
+func (uc *UserCreate) SetNillableAccountID(id *uuid.UUID) *UserCreate {
+	if id != nil {
+		uc = uc.SetAccountID(*id)
+	}
+	return uc
+}
+
+// SetAccount sets the "account" edge to the Account entity.
+func (uc *UserCreate) SetAccount(a *Account) *UserCreate {
+	return uc.SetAccountID(a.ID)
+}
+
+// SetAdminID sets the "admin" edge to the Admin entity by ID.
+func (uc *UserCreate) SetAdminID(id uuid.UUID) *UserCreate {
+	uc.mutation.SetAdminID(id)
+	return uc
+}
+
+// SetNillableAdminID sets the "admin" edge to the Admin entity by ID if the given value is not nil.
+func (uc *UserCreate) SetNillableAdminID(id *uuid.UUID) *UserCreate {
+	if id != nil {
+		uc = uc.SetAdminID(*id)
+	}
+	return uc
+}
+
+// SetAdmin sets the "admin" edge to the Admin entity.
+func (uc *UserCreate) SetAdmin(a *Admin) *UserCreate {
+	return uc.SetAdminID(a.ID)
+}
+
+// SetCrewID sets the "crew" edge to the Crew entity by ID.
+func (uc *UserCreate) SetCrewID(id uuid.UUID) *UserCreate {
+	uc.mutation.SetCrewID(id)
+	return uc
+}
+
+// SetNillableCrewID sets the "crew" edge to the Crew entity by ID if the given value is not nil.
+func (uc *UserCreate) SetNillableCrewID(id *uuid.UUID) *UserCreate {
+	if id != nil {
+		uc = uc.SetCrewID(*id)
+	}
+	return uc
+}
+
+// SetCrew sets the "crew" edge to the Crew entity.
+func (uc *UserCreate) SetCrew(c *Crew) *UserCreate {
+	return uc.SetCrewID(c.ID)
+}
+
+// SetPilotID sets the "pilot" edge to the Pilot entity by ID.
+func (uc *UserCreate) SetPilotID(id uuid.UUID) *UserCreate {
+	uc.mutation.SetPilotID(id)
+	return uc
+}
+
+// SetNillablePilotID sets the "pilot" edge to the Pilot entity by ID if the given value is not nil.
+func (uc *UserCreate) SetNillablePilotID(id *uuid.UUID) *UserCreate {
+	if id != nil {
+		uc = uc.SetPilotID(*id)
+	}
+	return uc
+}
+
+// SetPilot sets the "pilot" edge to the Pilot entity.
+func (uc *UserCreate) SetPilot(p *Pilot) *UserCreate {
+	return uc.SetPilotID(p.ID)
+}
+
+// SetFrontDeskID sets the "front_desk" edge to the FrontDesk entity by ID.
+func (uc *UserCreate) SetFrontDeskID(id uuid.UUID) *UserCreate {
+	uc.mutation.SetFrontDeskID(id)
+	return uc
+}
+
+// SetNillableFrontDeskID sets the "front_desk" edge to the FrontDesk entity by ID if the given value is not nil.
+func (uc *UserCreate) SetNillableFrontDeskID(id *uuid.UUID) *UserCreate {
+	if id != nil {
+		uc = uc.SetFrontDeskID(*id)
+	}
+	return uc
+}
+
+// SetFrontDesk sets the "front_desk" edge to the FrontDesk entity.
+func (uc *UserCreate) SetFrontDesk(f *FrontDesk) *UserCreate {
+	return uc.SetFrontDeskID(f.ID)
+}
+
+// SetCustomerID sets the "customer" edge to the Customer entity by ID.
+func (uc *UserCreate) SetCustomerID(id uuid.UUID) *UserCreate {
+	uc.mutation.SetCustomerID(id)
+	return uc
+}
+
+// SetNillableCustomerID sets the "customer" edge to the Customer entity by ID if the given value is not nil.
+func (uc *UserCreate) SetNillableCustomerID(id *uuid.UUID) *UserCreate {
+	if id != nil {
+		uc = uc.SetCustomerID(*id)
+	}
+	return uc
+}
+
+// SetCustomer sets the "customer" edge to the Customer entity.
+func (uc *UserCreate) SetCustomer(c *Customer) *UserCreate {
+	return uc.SetCustomerID(c.ID)
+}
+
+// SetAddressID sets the "address" edge to the Address entity by ID.
+func (uc *UserCreate) SetAddressID(id uuid.UUID) *UserCreate {
+	uc.mutation.SetAddressID(id)
+	return uc
+}
+
+// SetNillableAddressID sets the "address" edge to the Address entity by ID if the given value is not nil.
+func (uc *UserCreate) SetNillableAddressID(id *uuid.UUID) *UserCreate {
+	if id != nil {
+		uc = uc.SetAddressID(*id)
+	}
+	return uc
+}
+
+// SetAddress sets the "address" edge to the Address entity.
+func (uc *UserCreate) SetAddress(a *Address) *UserCreate {
+	return uc.SetAddressID(a.ID)
+}
+
+// SetRoleID sets the "role" edge to the Role entity by ID.
+func (uc *UserCreate) SetRoleID(id uuid.UUID) *UserCreate {
+	uc.mutation.SetRoleID(id)
+	return uc
+}
+
+// SetNillableRoleID sets the "role" edge to the Role entity by ID if the given value is not nil.
+func (uc *UserCreate) SetNillableRoleID(id *uuid.UUID) *UserCreate {
+	if id != nil {
+		uc = uc.SetRoleID(*id)
+	}
+	return uc
+}
+
+// SetRole sets the "role" edge to the Role entity.
+func (uc *UserCreate) SetRole(r *Role) *UserCreate {
+	return uc.SetRoleID(r.ID)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -283,6 +443,159 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Column: user.FieldUpdatedAt,
 		})
 		_node.UpdatedAt = value
+	}
+	if nodes := uc.mutation.AccountIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.AccountTable,
+			Columns: []string{user.AccountColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: account.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.AdminIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.AdminTable,
+			Columns: []string{user.AdminColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: admin.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.CrewIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.CrewTable,
+			Columns: []string{user.CrewColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: crew.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.PilotIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.PilotTable,
+			Columns: []string{user.PilotColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: pilot.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.FrontDeskIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.FrontDeskTable,
+			Columns: []string{user.FrontDeskColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: frontdesk.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.CustomerIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.CustomerTable,
+			Columns: []string{user.CustomerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: customer.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.AddressIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.AddressTable,
+			Columns: []string{user.AddressColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: address.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.RoleIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   user.RoleTable,
+			Columns: []string{user.RoleColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: role.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.role_id = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

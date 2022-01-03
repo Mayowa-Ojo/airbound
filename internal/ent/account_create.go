@@ -5,6 +5,7 @@ package ent
 import (
 	"airbound/internal/ent/account"
 	"airbound/internal/ent/enums"
+	"airbound/internal/ent/user"
 	"context"
 	"errors"
 	"fmt"
@@ -72,6 +73,17 @@ func (ac *AccountCreate) SetNillableUpdatedAt(t *time.Time) *AccountCreate {
 func (ac *AccountCreate) SetID(u uuid.UUID) *AccountCreate {
 	ac.mutation.SetID(u)
 	return ac
+}
+
+// SetUserID sets the "user" edge to the User entity by ID.
+func (ac *AccountCreate) SetUserID(id uuid.UUID) *AccountCreate {
+	ac.mutation.SetUserID(id)
+	return ac
+}
+
+// SetUser sets the "user" edge to the User entity.
+func (ac *AccountCreate) SetUser(u *User) *AccountCreate {
+	return ac.SetUserID(u.ID)
 }
 
 // Mutation returns the AccountMutation object of the builder.
@@ -181,6 +193,9 @@ func (ac *AccountCreate) check() error {
 	if _, ok := ac.mutation.UpdatedAt(); !ok {
 		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "updated_at"`)}
 	}
+	if _, ok := ac.mutation.UserID(); !ok {
+		return &ValidationError{Name: "user", err: errors.New("ent: missing required edge \"user\"")}
+	}
 	return nil
 }
 
@@ -252,6 +267,26 @@ func (ac *AccountCreate) createSpec() (*Account, *sqlgraph.CreateSpec) {
 			Column: account.FieldUpdatedAt,
 		})
 		_node.UpdatedAt = value
+	}
+	if nodes := ac.mutation.UserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   account.UserTable,
+			Columns: []string{account.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.user_account = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

@@ -4,6 +4,8 @@ package ent
 
 import (
 	"airbound/internal/ent/aircraft"
+	"airbound/internal/ent/airline"
+	"airbound/internal/ent/flightinstance"
 	"fmt"
 	"strings"
 	"time"
@@ -31,6 +33,61 @@ type Aircraft struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the AircraftQuery when eager-loading is set.
+	Edges                    AircraftEdges `json:"edges"`
+	airline_id               *uuid.UUID
+	flight_instance_aircraft *uuid.UUID
+}
+
+// AircraftEdges holds the relations/edges for other nodes in the graph.
+type AircraftEdges struct {
+	// Airline holds the value of the airline edge.
+	Airline *Airline `json:"airline,omitempty"`
+	// FlightInstance holds the value of the flight_instance edge.
+	FlightInstance *FlightInstance `json:"flight_instance,omitempty"`
+	// Seats holds the value of the seats edge.
+	Seats []*Seat `json:"seats,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [3]bool
+}
+
+// AirlineOrErr returns the Airline value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e AircraftEdges) AirlineOrErr() (*Airline, error) {
+	if e.loadedTypes[0] {
+		if e.Airline == nil {
+			// The edge airline was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: airline.Label}
+		}
+		return e.Airline, nil
+	}
+	return nil, &NotLoadedError{edge: "airline"}
+}
+
+// FlightInstanceOrErr returns the FlightInstance value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e AircraftEdges) FlightInstanceOrErr() (*FlightInstance, error) {
+	if e.loadedTypes[1] {
+		if e.FlightInstance == nil {
+			// The edge flight_instance was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: flightinstance.Label}
+		}
+		return e.FlightInstance, nil
+	}
+	return nil, &NotLoadedError{edge: "flight_instance"}
+}
+
+// SeatsOrErr returns the Seats value or an error if the edge
+// was not loaded in eager-loading.
+func (e AircraftEdges) SeatsOrErr() ([]*Seat, error) {
+	if e.loadedTypes[2] {
+		return e.Seats, nil
+	}
+	return nil, &NotLoadedError{edge: "seats"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -46,6 +103,10 @@ func (*Aircraft) scanValues(columns []string) ([]interface{}, error) {
 			values[i] = new(sql.NullTime)
 		case aircraft.FieldID:
 			values[i] = new(uuid.UUID)
+		case aircraft.ForeignKeys[0]: // airline_id
+			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
+		case aircraft.ForeignKeys[1]: // flight_instance_aircraft
+			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Aircraft", columns[i])
 		}
@@ -109,9 +170,38 @@ func (a *Aircraft) assignValues(columns []string, values []interface{}) error {
 			} else if value.Valid {
 				a.UpdatedAt = value.Time
 			}
+		case aircraft.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field airline_id", values[i])
+			} else if value.Valid {
+				a.airline_id = new(uuid.UUID)
+				*a.airline_id = *value.S.(*uuid.UUID)
+			}
+		case aircraft.ForeignKeys[1]:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field flight_instance_aircraft", values[i])
+			} else if value.Valid {
+				a.flight_instance_aircraft = new(uuid.UUID)
+				*a.flight_instance_aircraft = *value.S.(*uuid.UUID)
+			}
 		}
 	}
 	return nil
+}
+
+// QueryAirline queries the "airline" edge of the Aircraft entity.
+func (a *Aircraft) QueryAirline() *AirlineQuery {
+	return (&AircraftClient{config: a.config}).QueryAirline(a)
+}
+
+// QueryFlightInstance queries the "flight_instance" edge of the Aircraft entity.
+func (a *Aircraft) QueryFlightInstance() *FlightInstanceQuery {
+	return (&AircraftClient{config: a.config}).QueryFlightInstance(a)
+}
+
+// QuerySeats queries the "seats" edge of the Aircraft entity.
+func (a *Aircraft) QuerySeats() *SeatQuery {
+	return (&AircraftClient{config: a.config}).QuerySeats(a)
 }
 
 // Update returns a builder for updating this Aircraft.

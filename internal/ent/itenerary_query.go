@@ -3,9 +3,13 @@
 package ent
 
 import (
+	"airbound/internal/ent/airport"
+	"airbound/internal/ent/customer"
+	"airbound/internal/ent/flightreservation"
 	"airbound/internal/ent/itenerary"
 	"airbound/internal/ent/predicate"
 	"context"
+	"database/sql/driver"
 	"errors"
 	"fmt"
 	"math"
@@ -25,6 +29,12 @@ type IteneraryQuery struct {
 	order      []OrderFunc
 	fields     []string
 	predicates []predicate.Itenerary
+	// eager-loading edges.
+	withFlightReservations *FlightReservationQuery
+	withCustomer           *CustomerQuery
+	withOriginAirport      *AirportQuery
+	withDestinationAirport *AirportQuery
+	withFKs                bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -59,6 +69,94 @@ func (iq *IteneraryQuery) Unique(unique bool) *IteneraryQuery {
 func (iq *IteneraryQuery) Order(o ...OrderFunc) *IteneraryQuery {
 	iq.order = append(iq.order, o...)
 	return iq
+}
+
+// QueryFlightReservations chains the current query on the "flight_reservations" edge.
+func (iq *IteneraryQuery) QueryFlightReservations() *FlightReservationQuery {
+	query := &FlightReservationQuery{config: iq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := iq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := iq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(itenerary.Table, itenerary.FieldID, selector),
+			sqlgraph.To(flightreservation.Table, flightreservation.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, itenerary.FlightReservationsTable, itenerary.FlightReservationsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(iq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryCustomer chains the current query on the "customer" edge.
+func (iq *IteneraryQuery) QueryCustomer() *CustomerQuery {
+	query := &CustomerQuery{config: iq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := iq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := iq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(itenerary.Table, itenerary.FieldID, selector),
+			sqlgraph.To(customer.Table, customer.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, itenerary.CustomerTable, itenerary.CustomerColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(iq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryOriginAirport chains the current query on the "origin_airport" edge.
+func (iq *IteneraryQuery) QueryOriginAirport() *AirportQuery {
+	query := &AirportQuery{config: iq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := iq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := iq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(itenerary.Table, itenerary.FieldID, selector),
+			sqlgraph.To(airport.Table, airport.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, itenerary.OriginAirportTable, itenerary.OriginAirportColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(iq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryDestinationAirport chains the current query on the "destination_airport" edge.
+func (iq *IteneraryQuery) QueryDestinationAirport() *AirportQuery {
+	query := &AirportQuery{config: iq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := iq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := iq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(itenerary.Table, itenerary.FieldID, selector),
+			sqlgraph.To(airport.Table, airport.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, itenerary.DestinationAirportTable, itenerary.DestinationAirportColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(iq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first Itenerary entity from the query.
@@ -237,15 +335,63 @@ func (iq *IteneraryQuery) Clone() *IteneraryQuery {
 		return nil
 	}
 	return &IteneraryQuery{
-		config:     iq.config,
-		limit:      iq.limit,
-		offset:     iq.offset,
-		order:      append([]OrderFunc{}, iq.order...),
-		predicates: append([]predicate.Itenerary{}, iq.predicates...),
+		config:                 iq.config,
+		limit:                  iq.limit,
+		offset:                 iq.offset,
+		order:                  append([]OrderFunc{}, iq.order...),
+		predicates:             append([]predicate.Itenerary{}, iq.predicates...),
+		withFlightReservations: iq.withFlightReservations.Clone(),
+		withCustomer:           iq.withCustomer.Clone(),
+		withOriginAirport:      iq.withOriginAirport.Clone(),
+		withDestinationAirport: iq.withDestinationAirport.Clone(),
 		// clone intermediate query.
 		sql:  iq.sql.Clone(),
 		path: iq.path,
 	}
+}
+
+// WithFlightReservations tells the query-builder to eager-load the nodes that are connected to
+// the "flight_reservations" edge. The optional arguments are used to configure the query builder of the edge.
+func (iq *IteneraryQuery) WithFlightReservations(opts ...func(*FlightReservationQuery)) *IteneraryQuery {
+	query := &FlightReservationQuery{config: iq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	iq.withFlightReservations = query
+	return iq
+}
+
+// WithCustomer tells the query-builder to eager-load the nodes that are connected to
+// the "customer" edge. The optional arguments are used to configure the query builder of the edge.
+func (iq *IteneraryQuery) WithCustomer(opts ...func(*CustomerQuery)) *IteneraryQuery {
+	query := &CustomerQuery{config: iq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	iq.withCustomer = query
+	return iq
+}
+
+// WithOriginAirport tells the query-builder to eager-load the nodes that are connected to
+// the "origin_airport" edge. The optional arguments are used to configure the query builder of the edge.
+func (iq *IteneraryQuery) WithOriginAirport(opts ...func(*AirportQuery)) *IteneraryQuery {
+	query := &AirportQuery{config: iq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	iq.withOriginAirport = query
+	return iq
+}
+
+// WithDestinationAirport tells the query-builder to eager-load the nodes that are connected to
+// the "destination_airport" edge. The optional arguments are used to configure the query builder of the edge.
+func (iq *IteneraryQuery) WithDestinationAirport(opts ...func(*AirportQuery)) *IteneraryQuery {
+	query := &AirportQuery{config: iq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	iq.withDestinationAirport = query
+	return iq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -311,9 +457,22 @@ func (iq *IteneraryQuery) prepareQuery(ctx context.Context) error {
 
 func (iq *IteneraryQuery) sqlAll(ctx context.Context) ([]*Itenerary, error) {
 	var (
-		nodes = []*Itenerary{}
-		_spec = iq.querySpec()
+		nodes       = []*Itenerary{}
+		withFKs     = iq.withFKs
+		_spec       = iq.querySpec()
+		loadedTypes = [4]bool{
+			iq.withFlightReservations != nil,
+			iq.withCustomer != nil,
+			iq.withOriginAirport != nil,
+			iq.withDestinationAirport != nil,
+		}
 	)
+	if iq.withCustomer != nil || iq.withOriginAirport != nil || iq.withDestinationAirport != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, itenerary.ForeignKeys...)
+	}
 	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
 		node := &Itenerary{config: iq.config}
 		nodes = append(nodes, node)
@@ -324,6 +483,7 @@ func (iq *IteneraryQuery) sqlAll(ctx context.Context) ([]*Itenerary, error) {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	if err := sqlgraph.QueryNodes(ctx, iq.driver, _spec); err != nil {
@@ -332,6 +492,123 @@ func (iq *IteneraryQuery) sqlAll(ctx context.Context) ([]*Itenerary, error) {
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+
+	if query := iq.withFlightReservations; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[uuid.UUID]*Itenerary)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+			nodes[i].Edges.FlightReservations = []*FlightReservation{}
+		}
+		query.withFKs = true
+		query.Where(predicate.FlightReservation(func(s *sql.Selector) {
+			s.Where(sql.InValues(itenerary.FlightReservationsColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.itenerary_id
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "itenerary_id" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "itenerary_id" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.FlightReservations = append(node.Edges.FlightReservations, n)
+		}
+	}
+
+	if query := iq.withCustomer; query != nil {
+		ids := make([]uuid.UUID, 0, len(nodes))
+		nodeids := make(map[uuid.UUID][]*Itenerary)
+		for i := range nodes {
+			if nodes[i].customer_id == nil {
+				continue
+			}
+			fk := *nodes[i].customer_id
+			if _, ok := nodeids[fk]; !ok {
+				ids = append(ids, fk)
+			}
+			nodeids[fk] = append(nodeids[fk], nodes[i])
+		}
+		query.Where(customer.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "customer_id" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Customer = n
+			}
+		}
+	}
+
+	if query := iq.withOriginAirport; query != nil {
+		ids := make([]uuid.UUID, 0, len(nodes))
+		nodeids := make(map[uuid.UUID][]*Itenerary)
+		for i := range nodes {
+			if nodes[i].origin_airport_id == nil {
+				continue
+			}
+			fk := *nodes[i].origin_airport_id
+			if _, ok := nodeids[fk]; !ok {
+				ids = append(ids, fk)
+			}
+			nodeids[fk] = append(nodeids[fk], nodes[i])
+		}
+		query.Where(airport.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "origin_airport_id" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.OriginAirport = n
+			}
+		}
+	}
+
+	if query := iq.withDestinationAirport; query != nil {
+		ids := make([]uuid.UUID, 0, len(nodes))
+		nodeids := make(map[uuid.UUID][]*Itenerary)
+		for i := range nodes {
+			if nodes[i].destination_airport_id == nil {
+				continue
+			}
+			fk := *nodes[i].destination_airport_id
+			if _, ok := nodeids[fk]; !ok {
+				ids = append(ids, fk)
+			}
+			nodeids[fk] = append(nodeids[fk], nodes[i])
+		}
+		query.Where(airport.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "destination_airport_id" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.DestinationAirport = n
+			}
+		}
+	}
+
 	return nodes, nil
 }
 

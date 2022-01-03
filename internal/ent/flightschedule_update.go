@@ -5,6 +5,7 @@ package ent
 import (
 	"airbound/internal/ent/customtypes"
 	"airbound/internal/ent/enums"
+	"airbound/internal/ent/flight"
 	"airbound/internal/ent/flightschedule"
 	"airbound/internal/ent/predicate"
 	"context"
@@ -14,6 +15,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 )
 
 // FlightScheduleUpdate is the builder for updating FlightSchedule entities.
@@ -107,9 +109,34 @@ func (fsu *FlightScheduleUpdate) SetUpdatedAt(t time.Time) *FlightScheduleUpdate
 	return fsu
 }
 
+// SetFlightID sets the "flight" edge to the Flight entity by ID.
+func (fsu *FlightScheduleUpdate) SetFlightID(id uuid.UUID) *FlightScheduleUpdate {
+	fsu.mutation.SetFlightID(id)
+	return fsu
+}
+
+// SetNillableFlightID sets the "flight" edge to the Flight entity by ID if the given value is not nil.
+func (fsu *FlightScheduleUpdate) SetNillableFlightID(id *uuid.UUID) *FlightScheduleUpdate {
+	if id != nil {
+		fsu = fsu.SetFlightID(*id)
+	}
+	return fsu
+}
+
+// SetFlight sets the "flight" edge to the Flight entity.
+func (fsu *FlightScheduleUpdate) SetFlight(f *Flight) *FlightScheduleUpdate {
+	return fsu.SetFlightID(f.ID)
+}
+
 // Mutation returns the FlightScheduleMutation object of the builder.
 func (fsu *FlightScheduleUpdate) Mutation() *FlightScheduleMutation {
 	return fsu.mutation
+}
+
+// ClearFlight clears the "flight" edge to the Flight entity.
+func (fsu *FlightScheduleUpdate) ClearFlight() *FlightScheduleUpdate {
+	fsu.mutation.ClearFlight()
+	return fsu
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -275,6 +302,41 @@ func (fsu *FlightScheduleUpdate) sqlSave(ctx context.Context) (n int, err error)
 			Column: flightschedule.FieldUpdatedAt,
 		})
 	}
+	if fsu.mutation.FlightCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   flightschedule.FlightTable,
+			Columns: []string{flightschedule.FlightColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flight.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fsu.mutation.FlightIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   flightschedule.FlightTable,
+			Columns: []string{flightschedule.FlightColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flight.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, fsu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{flightschedule.Label}
@@ -372,9 +434,34 @@ func (fsuo *FlightScheduleUpdateOne) SetUpdatedAt(t time.Time) *FlightScheduleUp
 	return fsuo
 }
 
+// SetFlightID sets the "flight" edge to the Flight entity by ID.
+func (fsuo *FlightScheduleUpdateOne) SetFlightID(id uuid.UUID) *FlightScheduleUpdateOne {
+	fsuo.mutation.SetFlightID(id)
+	return fsuo
+}
+
+// SetNillableFlightID sets the "flight" edge to the Flight entity by ID if the given value is not nil.
+func (fsuo *FlightScheduleUpdateOne) SetNillableFlightID(id *uuid.UUID) *FlightScheduleUpdateOne {
+	if id != nil {
+		fsuo = fsuo.SetFlightID(*id)
+	}
+	return fsuo
+}
+
+// SetFlight sets the "flight" edge to the Flight entity.
+func (fsuo *FlightScheduleUpdateOne) SetFlight(f *Flight) *FlightScheduleUpdateOne {
+	return fsuo.SetFlightID(f.ID)
+}
+
 // Mutation returns the FlightScheduleMutation object of the builder.
 func (fsuo *FlightScheduleUpdateOne) Mutation() *FlightScheduleMutation {
 	return fsuo.mutation
+}
+
+// ClearFlight clears the "flight" edge to the Flight entity.
+func (fsuo *FlightScheduleUpdateOne) ClearFlight() *FlightScheduleUpdateOne {
+	fsuo.mutation.ClearFlight()
+	return fsuo
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -563,6 +650,41 @@ func (fsuo *FlightScheduleUpdateOne) sqlSave(ctx context.Context) (_node *Flight
 			Value:  value,
 			Column: flightschedule.FieldUpdatedAt,
 		})
+	}
+	if fsuo.mutation.FlightCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   flightschedule.FlightTable,
+			Columns: []string{flightschedule.FlightColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flight.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fsuo.mutation.FlightIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   flightschedule.FlightTable,
+			Columns: []string{flightschedule.FlightColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flight.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &FlightSchedule{config: fsuo.config}
 	_spec.Assign = _node.assignValues

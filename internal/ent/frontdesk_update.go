@@ -3,15 +3,19 @@
 package ent
 
 import (
+	"airbound/internal/ent/airport"
 	"airbound/internal/ent/frontdesk"
 	"airbound/internal/ent/predicate"
+	"airbound/internal/ent/user"
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 )
 
 // FrontDeskUpdate is the builder for updating FrontDesk entities.
@@ -53,9 +57,51 @@ func (fdu *FrontDeskUpdate) SetUpdatedAt(t time.Time) *FrontDeskUpdate {
 	return fdu
 }
 
+// SetUserID sets the "user" edge to the User entity by ID.
+func (fdu *FrontDeskUpdate) SetUserID(id uuid.UUID) *FrontDeskUpdate {
+	fdu.mutation.SetUserID(id)
+	return fdu
+}
+
+// SetUser sets the "user" edge to the User entity.
+func (fdu *FrontDeskUpdate) SetUser(u *User) *FrontDeskUpdate {
+	return fdu.SetUserID(u.ID)
+}
+
+// SetAirportID sets the "airport" edge to the Airport entity by ID.
+func (fdu *FrontDeskUpdate) SetAirportID(id uuid.UUID) *FrontDeskUpdate {
+	fdu.mutation.SetAirportID(id)
+	return fdu
+}
+
+// SetNillableAirportID sets the "airport" edge to the Airport entity by ID if the given value is not nil.
+func (fdu *FrontDeskUpdate) SetNillableAirportID(id *uuid.UUID) *FrontDeskUpdate {
+	if id != nil {
+		fdu = fdu.SetAirportID(*id)
+	}
+	return fdu
+}
+
+// SetAirport sets the "airport" edge to the Airport entity.
+func (fdu *FrontDeskUpdate) SetAirport(a *Airport) *FrontDeskUpdate {
+	return fdu.SetAirportID(a.ID)
+}
+
 // Mutation returns the FrontDeskMutation object of the builder.
 func (fdu *FrontDeskUpdate) Mutation() *FrontDeskMutation {
 	return fdu.mutation
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (fdu *FrontDeskUpdate) ClearUser() *FrontDeskUpdate {
+	fdu.mutation.ClearUser()
+	return fdu
+}
+
+// ClearAirport clears the "airport" edge to the Airport entity.
+func (fdu *FrontDeskUpdate) ClearAirport() *FrontDeskUpdate {
+	fdu.mutation.ClearAirport()
+	return fdu
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -134,6 +180,9 @@ func (fdu *FrontDeskUpdate) check() error {
 			return &ValidationError{Name: "employee_id", err: fmt.Errorf("ent: validator failed for field \"employee_id\": %w", err)}
 		}
 	}
+	if _, ok := fdu.mutation.UserID(); fdu.mutation.UserCleared() && !ok {
+		return errors.New("ent: clearing a required unique edge \"user\"")
+	}
 	return nil
 }
 
@@ -175,6 +224,76 @@ func (fdu *FrontDeskUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Value:  value,
 			Column: frontdesk.FieldUpdatedAt,
 		})
+	}
+	if fdu.mutation.UserCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   frontdesk.UserTable,
+			Columns: []string{frontdesk.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fdu.mutation.UserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   frontdesk.UserTable,
+			Columns: []string{frontdesk.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if fdu.mutation.AirportCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   frontdesk.AirportTable,
+			Columns: []string{frontdesk.AirportColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: airport.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fdu.mutation.AirportIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   frontdesk.AirportTable,
+			Columns: []string{frontdesk.AirportColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: airport.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, fdu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -221,9 +340,51 @@ func (fduo *FrontDeskUpdateOne) SetUpdatedAt(t time.Time) *FrontDeskUpdateOne {
 	return fduo
 }
 
+// SetUserID sets the "user" edge to the User entity by ID.
+func (fduo *FrontDeskUpdateOne) SetUserID(id uuid.UUID) *FrontDeskUpdateOne {
+	fduo.mutation.SetUserID(id)
+	return fduo
+}
+
+// SetUser sets the "user" edge to the User entity.
+func (fduo *FrontDeskUpdateOne) SetUser(u *User) *FrontDeskUpdateOne {
+	return fduo.SetUserID(u.ID)
+}
+
+// SetAirportID sets the "airport" edge to the Airport entity by ID.
+func (fduo *FrontDeskUpdateOne) SetAirportID(id uuid.UUID) *FrontDeskUpdateOne {
+	fduo.mutation.SetAirportID(id)
+	return fduo
+}
+
+// SetNillableAirportID sets the "airport" edge to the Airport entity by ID if the given value is not nil.
+func (fduo *FrontDeskUpdateOne) SetNillableAirportID(id *uuid.UUID) *FrontDeskUpdateOne {
+	if id != nil {
+		fduo = fduo.SetAirportID(*id)
+	}
+	return fduo
+}
+
+// SetAirport sets the "airport" edge to the Airport entity.
+func (fduo *FrontDeskUpdateOne) SetAirport(a *Airport) *FrontDeskUpdateOne {
+	return fduo.SetAirportID(a.ID)
+}
+
 // Mutation returns the FrontDeskMutation object of the builder.
 func (fduo *FrontDeskUpdateOne) Mutation() *FrontDeskMutation {
 	return fduo.mutation
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (fduo *FrontDeskUpdateOne) ClearUser() *FrontDeskUpdateOne {
+	fduo.mutation.ClearUser()
+	return fduo
+}
+
+// ClearAirport clears the "airport" edge to the Airport entity.
+func (fduo *FrontDeskUpdateOne) ClearAirport() *FrontDeskUpdateOne {
+	fduo.mutation.ClearAirport()
+	return fduo
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -309,6 +470,9 @@ func (fduo *FrontDeskUpdateOne) check() error {
 			return &ValidationError{Name: "employee_id", err: fmt.Errorf("ent: validator failed for field \"employee_id\": %w", err)}
 		}
 	}
+	if _, ok := fduo.mutation.UserID(); fduo.mutation.UserCleared() && !ok {
+		return errors.New("ent: clearing a required unique edge \"user\"")
+	}
 	return nil
 }
 
@@ -367,6 +531,76 @@ func (fduo *FrontDeskUpdateOne) sqlSave(ctx context.Context) (_node *FrontDesk, 
 			Value:  value,
 			Column: frontdesk.FieldUpdatedAt,
 		})
+	}
+	if fduo.mutation.UserCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   frontdesk.UserTable,
+			Columns: []string{frontdesk.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fduo.mutation.UserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   frontdesk.UserTable,
+			Columns: []string{frontdesk.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if fduo.mutation.AirportCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   frontdesk.AirportTable,
+			Columns: []string{frontdesk.AirportColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: airport.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fduo.mutation.AirportIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   frontdesk.AirportTable,
+			Columns: []string{frontdesk.AirportColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: airport.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &FrontDesk{config: fduo.config}
 	_spec.Assign = _node.assignValues

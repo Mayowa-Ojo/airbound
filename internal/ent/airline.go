@@ -25,6 +25,49 @@ type Airline struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the AirlineQuery when eager-loading is set.
+	Edges AirlineEdges `json:"edges"`
+}
+
+// AirlineEdges holds the relations/edges for other nodes in the graph.
+type AirlineEdges struct {
+	// Aircrafts holds the value of the aircrafts edge.
+	Aircrafts []*Aircraft `json:"aircrafts,omitempty"`
+	// Crews holds the value of the crews edge.
+	Crews []*Crew `json:"crews,omitempty"`
+	// Pilots holds the value of the pilots edge.
+	Pilots []*Pilot `json:"pilots,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [3]bool
+}
+
+// AircraftsOrErr returns the Aircrafts value or an error if the edge
+// was not loaded in eager-loading.
+func (e AirlineEdges) AircraftsOrErr() ([]*Aircraft, error) {
+	if e.loadedTypes[0] {
+		return e.Aircrafts, nil
+	}
+	return nil, &NotLoadedError{edge: "aircrafts"}
+}
+
+// CrewsOrErr returns the Crews value or an error if the edge
+// was not loaded in eager-loading.
+func (e AirlineEdges) CrewsOrErr() ([]*Crew, error) {
+	if e.loadedTypes[1] {
+		return e.Crews, nil
+	}
+	return nil, &NotLoadedError{edge: "crews"}
+}
+
+// PilotsOrErr returns the Pilots value or an error if the edge
+// was not loaded in eager-loading.
+func (e AirlineEdges) PilotsOrErr() ([]*Pilot, error) {
+	if e.loadedTypes[2] {
+		return e.Pilots, nil
+	}
+	return nil, &NotLoadedError{edge: "pilots"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -86,6 +129,21 @@ func (a *Airline) assignValues(columns []string, values []interface{}) error {
 		}
 	}
 	return nil
+}
+
+// QueryAircrafts queries the "aircrafts" edge of the Airline entity.
+func (a *Airline) QueryAircrafts() *AircraftQuery {
+	return (&AirlineClient{config: a.config}).QueryAircrafts(a)
+}
+
+// QueryCrews queries the "crews" edge of the Airline entity.
+func (a *Airline) QueryCrews() *CrewQuery {
+	return (&AirlineClient{config: a.config}).QueryCrews(a)
+}
+
+// QueryPilots queries the "pilots" edge of the Airline entity.
+func (a *Airline) QueryPilots() *PilotQuery {
+	return (&AirlineClient{config: a.config}).QueryPilots(a)
 }
 
 // Update returns a builder for updating this Airline.

@@ -25,8 +25,44 @@ const (
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
+	// EdgeFlight holds the string denoting the flight edge name in mutations.
+	EdgeFlight = "flight"
+	// EdgeAircraft holds the string denoting the aircraft edge name in mutations.
+	EdgeAircraft = "aircraft"
+	// EdgeFlightReservations holds the string denoting the flight_reservations edge name in mutations.
+	EdgeFlightReservations = "flight_reservations"
+	// EdgeFlightSeats holds the string denoting the flight_seats edge name in mutations.
+	EdgeFlightSeats = "flight_seats"
 	// Table holds the table name of the flightinstance in the database.
 	Table = "flight_instances"
+	// FlightTable is the table that holds the flight relation/edge.
+	FlightTable = "flight_instances"
+	// FlightInverseTable is the table name for the Flight entity.
+	// It exists in this package in order to avoid circular dependency with the "flight" package.
+	FlightInverseTable = "flights"
+	// FlightColumn is the table column denoting the flight relation/edge.
+	FlightColumn = "flight_id"
+	// AircraftTable is the table that holds the aircraft relation/edge.
+	AircraftTable = "aircrafts"
+	// AircraftInverseTable is the table name for the Aircraft entity.
+	// It exists in this package in order to avoid circular dependency with the "aircraft" package.
+	AircraftInverseTable = "aircrafts"
+	// AircraftColumn is the table column denoting the aircraft relation/edge.
+	AircraftColumn = "flight_instance_aircraft"
+	// FlightReservationsTable is the table that holds the flight_reservations relation/edge.
+	FlightReservationsTable = "flight_reservations"
+	// FlightReservationsInverseTable is the table name for the FlightReservation entity.
+	// It exists in this package in order to avoid circular dependency with the "flightreservation" package.
+	FlightReservationsInverseTable = "flight_reservations"
+	// FlightReservationsColumn is the table column denoting the flight_reservations relation/edge.
+	FlightReservationsColumn = "flight_instance_id"
+	// FlightSeatsTable is the table that holds the flight_seats relation/edge.
+	FlightSeatsTable = "flight_seats"
+	// FlightSeatsInverseTable is the table name for the FlightSeat entity.
+	// It exists in this package in order to avoid circular dependency with the "flightseat" package.
+	FlightSeatsInverseTable = "flight_seats"
+	// FlightSeatsColumn is the table column denoting the flight_seats relation/edge.
+	FlightSeatsColumn = "flight_instance_id"
 )
 
 // Columns holds all SQL columns for flightinstance fields.
@@ -39,10 +75,21 @@ var Columns = []string{
 	FieldUpdatedAt,
 }
 
+// ForeignKeys holds the SQL foreign-keys that are owned by the "flight_instances"
+// table and are not defined as standalone fields in the schema.
+var ForeignKeys = []string{
+	"flight_id",
+}
+
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
 	for i := range Columns {
 		if column == Columns[i] {
+			return true
+		}
+	}
+	for i := range ForeignKeys {
+		if column == ForeignKeys[i] {
 			return true
 		}
 	}

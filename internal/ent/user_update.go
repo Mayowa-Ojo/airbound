@@ -3,7 +3,15 @@
 package ent
 
 import (
+	"airbound/internal/ent/account"
+	"airbound/internal/ent/address"
+	"airbound/internal/ent/admin"
+	"airbound/internal/ent/crew"
+	"airbound/internal/ent/customer"
+	"airbound/internal/ent/frontdesk"
+	"airbound/internal/ent/pilot"
 	"airbound/internal/ent/predicate"
+	"airbound/internal/ent/role"
 	"airbound/internal/ent/user"
 	"context"
 	"fmt"
@@ -12,6 +20,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 )
 
 // UserUpdate is the builder for updating User entities.
@@ -71,9 +80,209 @@ func (uu *UserUpdate) SetUpdatedAt(t time.Time) *UserUpdate {
 	return uu
 }
 
+// SetAccountID sets the "account" edge to the Account entity by ID.
+func (uu *UserUpdate) SetAccountID(id uuid.UUID) *UserUpdate {
+	uu.mutation.SetAccountID(id)
+	return uu
+}
+
+// SetNillableAccountID sets the "account" edge to the Account entity by ID if the given value is not nil.
+func (uu *UserUpdate) SetNillableAccountID(id *uuid.UUID) *UserUpdate {
+	if id != nil {
+		uu = uu.SetAccountID(*id)
+	}
+	return uu
+}
+
+// SetAccount sets the "account" edge to the Account entity.
+func (uu *UserUpdate) SetAccount(a *Account) *UserUpdate {
+	return uu.SetAccountID(a.ID)
+}
+
+// SetAdminID sets the "admin" edge to the Admin entity by ID.
+func (uu *UserUpdate) SetAdminID(id uuid.UUID) *UserUpdate {
+	uu.mutation.SetAdminID(id)
+	return uu
+}
+
+// SetNillableAdminID sets the "admin" edge to the Admin entity by ID if the given value is not nil.
+func (uu *UserUpdate) SetNillableAdminID(id *uuid.UUID) *UserUpdate {
+	if id != nil {
+		uu = uu.SetAdminID(*id)
+	}
+	return uu
+}
+
+// SetAdmin sets the "admin" edge to the Admin entity.
+func (uu *UserUpdate) SetAdmin(a *Admin) *UserUpdate {
+	return uu.SetAdminID(a.ID)
+}
+
+// SetCrewID sets the "crew" edge to the Crew entity by ID.
+func (uu *UserUpdate) SetCrewID(id uuid.UUID) *UserUpdate {
+	uu.mutation.SetCrewID(id)
+	return uu
+}
+
+// SetNillableCrewID sets the "crew" edge to the Crew entity by ID if the given value is not nil.
+func (uu *UserUpdate) SetNillableCrewID(id *uuid.UUID) *UserUpdate {
+	if id != nil {
+		uu = uu.SetCrewID(*id)
+	}
+	return uu
+}
+
+// SetCrew sets the "crew" edge to the Crew entity.
+func (uu *UserUpdate) SetCrew(c *Crew) *UserUpdate {
+	return uu.SetCrewID(c.ID)
+}
+
+// SetPilotID sets the "pilot" edge to the Pilot entity by ID.
+func (uu *UserUpdate) SetPilotID(id uuid.UUID) *UserUpdate {
+	uu.mutation.SetPilotID(id)
+	return uu
+}
+
+// SetNillablePilotID sets the "pilot" edge to the Pilot entity by ID if the given value is not nil.
+func (uu *UserUpdate) SetNillablePilotID(id *uuid.UUID) *UserUpdate {
+	if id != nil {
+		uu = uu.SetPilotID(*id)
+	}
+	return uu
+}
+
+// SetPilot sets the "pilot" edge to the Pilot entity.
+func (uu *UserUpdate) SetPilot(p *Pilot) *UserUpdate {
+	return uu.SetPilotID(p.ID)
+}
+
+// SetFrontDeskID sets the "front_desk" edge to the FrontDesk entity by ID.
+func (uu *UserUpdate) SetFrontDeskID(id uuid.UUID) *UserUpdate {
+	uu.mutation.SetFrontDeskID(id)
+	return uu
+}
+
+// SetNillableFrontDeskID sets the "front_desk" edge to the FrontDesk entity by ID if the given value is not nil.
+func (uu *UserUpdate) SetNillableFrontDeskID(id *uuid.UUID) *UserUpdate {
+	if id != nil {
+		uu = uu.SetFrontDeskID(*id)
+	}
+	return uu
+}
+
+// SetFrontDesk sets the "front_desk" edge to the FrontDesk entity.
+func (uu *UserUpdate) SetFrontDesk(f *FrontDesk) *UserUpdate {
+	return uu.SetFrontDeskID(f.ID)
+}
+
+// SetCustomerID sets the "customer" edge to the Customer entity by ID.
+func (uu *UserUpdate) SetCustomerID(id uuid.UUID) *UserUpdate {
+	uu.mutation.SetCustomerID(id)
+	return uu
+}
+
+// SetNillableCustomerID sets the "customer" edge to the Customer entity by ID if the given value is not nil.
+func (uu *UserUpdate) SetNillableCustomerID(id *uuid.UUID) *UserUpdate {
+	if id != nil {
+		uu = uu.SetCustomerID(*id)
+	}
+	return uu
+}
+
+// SetCustomer sets the "customer" edge to the Customer entity.
+func (uu *UserUpdate) SetCustomer(c *Customer) *UserUpdate {
+	return uu.SetCustomerID(c.ID)
+}
+
+// SetAddressID sets the "address" edge to the Address entity by ID.
+func (uu *UserUpdate) SetAddressID(id uuid.UUID) *UserUpdate {
+	uu.mutation.SetAddressID(id)
+	return uu
+}
+
+// SetNillableAddressID sets the "address" edge to the Address entity by ID if the given value is not nil.
+func (uu *UserUpdate) SetNillableAddressID(id *uuid.UUID) *UserUpdate {
+	if id != nil {
+		uu = uu.SetAddressID(*id)
+	}
+	return uu
+}
+
+// SetAddress sets the "address" edge to the Address entity.
+func (uu *UserUpdate) SetAddress(a *Address) *UserUpdate {
+	return uu.SetAddressID(a.ID)
+}
+
+// SetRoleID sets the "role" edge to the Role entity by ID.
+func (uu *UserUpdate) SetRoleID(id uuid.UUID) *UserUpdate {
+	uu.mutation.SetRoleID(id)
+	return uu
+}
+
+// SetNillableRoleID sets the "role" edge to the Role entity by ID if the given value is not nil.
+func (uu *UserUpdate) SetNillableRoleID(id *uuid.UUID) *UserUpdate {
+	if id != nil {
+		uu = uu.SetRoleID(*id)
+	}
+	return uu
+}
+
+// SetRole sets the "role" edge to the Role entity.
+func (uu *UserUpdate) SetRole(r *Role) *UserUpdate {
+	return uu.SetRoleID(r.ID)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uu *UserUpdate) Mutation() *UserMutation {
 	return uu.mutation
+}
+
+// ClearAccount clears the "account" edge to the Account entity.
+func (uu *UserUpdate) ClearAccount() *UserUpdate {
+	uu.mutation.ClearAccount()
+	return uu
+}
+
+// ClearAdmin clears the "admin" edge to the Admin entity.
+func (uu *UserUpdate) ClearAdmin() *UserUpdate {
+	uu.mutation.ClearAdmin()
+	return uu
+}
+
+// ClearCrew clears the "crew" edge to the Crew entity.
+func (uu *UserUpdate) ClearCrew() *UserUpdate {
+	uu.mutation.ClearCrew()
+	return uu
+}
+
+// ClearPilot clears the "pilot" edge to the Pilot entity.
+func (uu *UserUpdate) ClearPilot() *UserUpdate {
+	uu.mutation.ClearPilot()
+	return uu
+}
+
+// ClearFrontDesk clears the "front_desk" edge to the FrontDesk entity.
+func (uu *UserUpdate) ClearFrontDesk() *UserUpdate {
+	uu.mutation.ClearFrontDesk()
+	return uu
+}
+
+// ClearCustomer clears the "customer" edge to the Customer entity.
+func (uu *UserUpdate) ClearCustomer() *UserUpdate {
+	uu.mutation.ClearCustomer()
+	return uu
+}
+
+// ClearAddress clears the "address" edge to the Address entity.
+func (uu *UserUpdate) ClearAddress() *UserUpdate {
+	uu.mutation.ClearAddress()
+	return uu
+}
+
+// ClearRole clears the "role" edge to the Role entity.
+func (uu *UserUpdate) ClearRole() *UserUpdate {
+	uu.mutation.ClearRole()
+	return uu
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -230,6 +439,286 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: user.FieldUpdatedAt,
 		})
 	}
+	if uu.mutation.AccountCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.AccountTable,
+			Columns: []string{user.AccountColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: account.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.AccountIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.AccountTable,
+			Columns: []string{user.AccountColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: account.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uu.mutation.AdminCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.AdminTable,
+			Columns: []string{user.AdminColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: admin.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.AdminIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.AdminTable,
+			Columns: []string{user.AdminColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: admin.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uu.mutation.CrewCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.CrewTable,
+			Columns: []string{user.CrewColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: crew.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.CrewIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.CrewTable,
+			Columns: []string{user.CrewColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: crew.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uu.mutation.PilotCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.PilotTable,
+			Columns: []string{user.PilotColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: pilot.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.PilotIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.PilotTable,
+			Columns: []string{user.PilotColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: pilot.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uu.mutation.FrontDeskCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.FrontDeskTable,
+			Columns: []string{user.FrontDeskColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: frontdesk.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.FrontDeskIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.FrontDeskTable,
+			Columns: []string{user.FrontDeskColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: frontdesk.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uu.mutation.CustomerCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.CustomerTable,
+			Columns: []string{user.CustomerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: customer.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.CustomerIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.CustomerTable,
+			Columns: []string{user.CustomerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: customer.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uu.mutation.AddressCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.AddressTable,
+			Columns: []string{user.AddressColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: address.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.AddressIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.AddressTable,
+			Columns: []string{user.AddressColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: address.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uu.mutation.RoleCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   user.RoleTable,
+			Columns: []string{user.RoleColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: role.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.RoleIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   user.RoleTable,
+			Columns: []string{user.RoleColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: role.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, uu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{user.Label}
@@ -293,9 +782,209 @@ func (uuo *UserUpdateOne) SetUpdatedAt(t time.Time) *UserUpdateOne {
 	return uuo
 }
 
+// SetAccountID sets the "account" edge to the Account entity by ID.
+func (uuo *UserUpdateOne) SetAccountID(id uuid.UUID) *UserUpdateOne {
+	uuo.mutation.SetAccountID(id)
+	return uuo
+}
+
+// SetNillableAccountID sets the "account" edge to the Account entity by ID if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableAccountID(id *uuid.UUID) *UserUpdateOne {
+	if id != nil {
+		uuo = uuo.SetAccountID(*id)
+	}
+	return uuo
+}
+
+// SetAccount sets the "account" edge to the Account entity.
+func (uuo *UserUpdateOne) SetAccount(a *Account) *UserUpdateOne {
+	return uuo.SetAccountID(a.ID)
+}
+
+// SetAdminID sets the "admin" edge to the Admin entity by ID.
+func (uuo *UserUpdateOne) SetAdminID(id uuid.UUID) *UserUpdateOne {
+	uuo.mutation.SetAdminID(id)
+	return uuo
+}
+
+// SetNillableAdminID sets the "admin" edge to the Admin entity by ID if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableAdminID(id *uuid.UUID) *UserUpdateOne {
+	if id != nil {
+		uuo = uuo.SetAdminID(*id)
+	}
+	return uuo
+}
+
+// SetAdmin sets the "admin" edge to the Admin entity.
+func (uuo *UserUpdateOne) SetAdmin(a *Admin) *UserUpdateOne {
+	return uuo.SetAdminID(a.ID)
+}
+
+// SetCrewID sets the "crew" edge to the Crew entity by ID.
+func (uuo *UserUpdateOne) SetCrewID(id uuid.UUID) *UserUpdateOne {
+	uuo.mutation.SetCrewID(id)
+	return uuo
+}
+
+// SetNillableCrewID sets the "crew" edge to the Crew entity by ID if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableCrewID(id *uuid.UUID) *UserUpdateOne {
+	if id != nil {
+		uuo = uuo.SetCrewID(*id)
+	}
+	return uuo
+}
+
+// SetCrew sets the "crew" edge to the Crew entity.
+func (uuo *UserUpdateOne) SetCrew(c *Crew) *UserUpdateOne {
+	return uuo.SetCrewID(c.ID)
+}
+
+// SetPilotID sets the "pilot" edge to the Pilot entity by ID.
+func (uuo *UserUpdateOne) SetPilotID(id uuid.UUID) *UserUpdateOne {
+	uuo.mutation.SetPilotID(id)
+	return uuo
+}
+
+// SetNillablePilotID sets the "pilot" edge to the Pilot entity by ID if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillablePilotID(id *uuid.UUID) *UserUpdateOne {
+	if id != nil {
+		uuo = uuo.SetPilotID(*id)
+	}
+	return uuo
+}
+
+// SetPilot sets the "pilot" edge to the Pilot entity.
+func (uuo *UserUpdateOne) SetPilot(p *Pilot) *UserUpdateOne {
+	return uuo.SetPilotID(p.ID)
+}
+
+// SetFrontDeskID sets the "front_desk" edge to the FrontDesk entity by ID.
+func (uuo *UserUpdateOne) SetFrontDeskID(id uuid.UUID) *UserUpdateOne {
+	uuo.mutation.SetFrontDeskID(id)
+	return uuo
+}
+
+// SetNillableFrontDeskID sets the "front_desk" edge to the FrontDesk entity by ID if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableFrontDeskID(id *uuid.UUID) *UserUpdateOne {
+	if id != nil {
+		uuo = uuo.SetFrontDeskID(*id)
+	}
+	return uuo
+}
+
+// SetFrontDesk sets the "front_desk" edge to the FrontDesk entity.
+func (uuo *UserUpdateOne) SetFrontDesk(f *FrontDesk) *UserUpdateOne {
+	return uuo.SetFrontDeskID(f.ID)
+}
+
+// SetCustomerID sets the "customer" edge to the Customer entity by ID.
+func (uuo *UserUpdateOne) SetCustomerID(id uuid.UUID) *UserUpdateOne {
+	uuo.mutation.SetCustomerID(id)
+	return uuo
+}
+
+// SetNillableCustomerID sets the "customer" edge to the Customer entity by ID if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableCustomerID(id *uuid.UUID) *UserUpdateOne {
+	if id != nil {
+		uuo = uuo.SetCustomerID(*id)
+	}
+	return uuo
+}
+
+// SetCustomer sets the "customer" edge to the Customer entity.
+func (uuo *UserUpdateOne) SetCustomer(c *Customer) *UserUpdateOne {
+	return uuo.SetCustomerID(c.ID)
+}
+
+// SetAddressID sets the "address" edge to the Address entity by ID.
+func (uuo *UserUpdateOne) SetAddressID(id uuid.UUID) *UserUpdateOne {
+	uuo.mutation.SetAddressID(id)
+	return uuo
+}
+
+// SetNillableAddressID sets the "address" edge to the Address entity by ID if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableAddressID(id *uuid.UUID) *UserUpdateOne {
+	if id != nil {
+		uuo = uuo.SetAddressID(*id)
+	}
+	return uuo
+}
+
+// SetAddress sets the "address" edge to the Address entity.
+func (uuo *UserUpdateOne) SetAddress(a *Address) *UserUpdateOne {
+	return uuo.SetAddressID(a.ID)
+}
+
+// SetRoleID sets the "role" edge to the Role entity by ID.
+func (uuo *UserUpdateOne) SetRoleID(id uuid.UUID) *UserUpdateOne {
+	uuo.mutation.SetRoleID(id)
+	return uuo
+}
+
+// SetNillableRoleID sets the "role" edge to the Role entity by ID if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableRoleID(id *uuid.UUID) *UserUpdateOne {
+	if id != nil {
+		uuo = uuo.SetRoleID(*id)
+	}
+	return uuo
+}
+
+// SetRole sets the "role" edge to the Role entity.
+func (uuo *UserUpdateOne) SetRole(r *Role) *UserUpdateOne {
+	return uuo.SetRoleID(r.ID)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uuo *UserUpdateOne) Mutation() *UserMutation {
 	return uuo.mutation
+}
+
+// ClearAccount clears the "account" edge to the Account entity.
+func (uuo *UserUpdateOne) ClearAccount() *UserUpdateOne {
+	uuo.mutation.ClearAccount()
+	return uuo
+}
+
+// ClearAdmin clears the "admin" edge to the Admin entity.
+func (uuo *UserUpdateOne) ClearAdmin() *UserUpdateOne {
+	uuo.mutation.ClearAdmin()
+	return uuo
+}
+
+// ClearCrew clears the "crew" edge to the Crew entity.
+func (uuo *UserUpdateOne) ClearCrew() *UserUpdateOne {
+	uuo.mutation.ClearCrew()
+	return uuo
+}
+
+// ClearPilot clears the "pilot" edge to the Pilot entity.
+func (uuo *UserUpdateOne) ClearPilot() *UserUpdateOne {
+	uuo.mutation.ClearPilot()
+	return uuo
+}
+
+// ClearFrontDesk clears the "front_desk" edge to the FrontDesk entity.
+func (uuo *UserUpdateOne) ClearFrontDesk() *UserUpdateOne {
+	uuo.mutation.ClearFrontDesk()
+	return uuo
+}
+
+// ClearCustomer clears the "customer" edge to the Customer entity.
+func (uuo *UserUpdateOne) ClearCustomer() *UserUpdateOne {
+	uuo.mutation.ClearCustomer()
+	return uuo
+}
+
+// ClearAddress clears the "address" edge to the Address entity.
+func (uuo *UserUpdateOne) ClearAddress() *UserUpdateOne {
+	uuo.mutation.ClearAddress()
+	return uuo
+}
+
+// ClearRole clears the "role" edge to the Role entity.
+func (uuo *UserUpdateOne) ClearRole() *UserUpdateOne {
+	uuo.mutation.ClearRole()
+	return uuo
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -475,6 +1164,286 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Value:  value,
 			Column: user.FieldUpdatedAt,
 		})
+	}
+	if uuo.mutation.AccountCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.AccountTable,
+			Columns: []string{user.AccountColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: account.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.AccountIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.AccountTable,
+			Columns: []string{user.AccountColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: account.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.AdminCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.AdminTable,
+			Columns: []string{user.AdminColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: admin.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.AdminIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.AdminTable,
+			Columns: []string{user.AdminColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: admin.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.CrewCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.CrewTable,
+			Columns: []string{user.CrewColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: crew.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.CrewIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.CrewTable,
+			Columns: []string{user.CrewColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: crew.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.PilotCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.PilotTable,
+			Columns: []string{user.PilotColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: pilot.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.PilotIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.PilotTable,
+			Columns: []string{user.PilotColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: pilot.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.FrontDeskCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.FrontDeskTable,
+			Columns: []string{user.FrontDeskColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: frontdesk.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.FrontDeskIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.FrontDeskTable,
+			Columns: []string{user.FrontDeskColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: frontdesk.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.CustomerCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.CustomerTable,
+			Columns: []string{user.CustomerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: customer.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.CustomerIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.CustomerTable,
+			Columns: []string{user.CustomerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: customer.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.AddressCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.AddressTable,
+			Columns: []string{user.AddressColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: address.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.AddressIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.AddressTable,
+			Columns: []string{user.AddressColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: address.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.RoleCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   user.RoleTable,
+			Columns: []string{user.RoleColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: role.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.RoleIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   user.RoleTable,
+			Columns: []string{user.RoleColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: role.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &User{config: uuo.config}
 	_spec.Assign = _node.assignValues

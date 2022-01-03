@@ -4,6 +4,9 @@ package ent
 
 import (
 	"airbound/internal/ent/aircraft"
+	"airbound/internal/ent/airline"
+	"airbound/internal/ent/flightinstance"
+	"airbound/internal/ent/seat"
 	"context"
 	"errors"
 	"fmt"
@@ -83,6 +86,59 @@ func (ac *AircraftCreate) SetNillableUpdatedAt(t *time.Time) *AircraftCreate {
 func (ac *AircraftCreate) SetID(u uuid.UUID) *AircraftCreate {
 	ac.mutation.SetID(u)
 	return ac
+}
+
+// SetAirlineID sets the "airline" edge to the Airline entity by ID.
+func (ac *AircraftCreate) SetAirlineID(id uuid.UUID) *AircraftCreate {
+	ac.mutation.SetAirlineID(id)
+	return ac
+}
+
+// SetNillableAirlineID sets the "airline" edge to the Airline entity by ID if the given value is not nil.
+func (ac *AircraftCreate) SetNillableAirlineID(id *uuid.UUID) *AircraftCreate {
+	if id != nil {
+		ac = ac.SetAirlineID(*id)
+	}
+	return ac
+}
+
+// SetAirline sets the "airline" edge to the Airline entity.
+func (ac *AircraftCreate) SetAirline(a *Airline) *AircraftCreate {
+	return ac.SetAirlineID(a.ID)
+}
+
+// SetFlightInstanceID sets the "flight_instance" edge to the FlightInstance entity by ID.
+func (ac *AircraftCreate) SetFlightInstanceID(id uuid.UUID) *AircraftCreate {
+	ac.mutation.SetFlightInstanceID(id)
+	return ac
+}
+
+// SetNillableFlightInstanceID sets the "flight_instance" edge to the FlightInstance entity by ID if the given value is not nil.
+func (ac *AircraftCreate) SetNillableFlightInstanceID(id *uuid.UUID) *AircraftCreate {
+	if id != nil {
+		ac = ac.SetFlightInstanceID(*id)
+	}
+	return ac
+}
+
+// SetFlightInstance sets the "flight_instance" edge to the FlightInstance entity.
+func (ac *AircraftCreate) SetFlightInstance(f *FlightInstance) *AircraftCreate {
+	return ac.SetFlightInstanceID(f.ID)
+}
+
+// AddSeatIDs adds the "seats" edge to the Seat entity by IDs.
+func (ac *AircraftCreate) AddSeatIDs(ids ...uuid.UUID) *AircraftCreate {
+	ac.mutation.AddSeatIDs(ids...)
+	return ac
+}
+
+// AddSeats adds the "seats" edges to the Seat entity.
+func (ac *AircraftCreate) AddSeats(s ...*Seat) *AircraftCreate {
+	ids := make([]uuid.UUID, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return ac.AddSeatIDs(ids...)
 }
 
 // Mutation returns the AircraftMutation object of the builder.
@@ -305,6 +361,65 @@ func (ac *AircraftCreate) createSpec() (*Aircraft, *sqlgraph.CreateSpec) {
 			Column: aircraft.FieldUpdatedAt,
 		})
 		_node.UpdatedAt = value
+	}
+	if nodes := ac.mutation.AirlineIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   aircraft.AirlineTable,
+			Columns: []string{aircraft.AirlineColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: airline.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.airline_id = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := ac.mutation.FlightInstanceIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   aircraft.FlightInstanceTable,
+			Columns: []string{aircraft.FlightInstanceColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flightinstance.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.flight_instance_aircraft = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := ac.mutation.SeatsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   aircraft.SeatsTable,
+			Columns: []string{aircraft.SeatsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: seat.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

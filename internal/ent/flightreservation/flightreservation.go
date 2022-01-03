@@ -23,8 +23,35 @@ const (
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
+	// EdgeFlightInstance holds the string denoting the flight_instance edge name in mutations.
+	EdgeFlightInstance = "flight_instance"
+	// EdgeItenerary holds the string denoting the itenerary edge name in mutations.
+	EdgeItenerary = "itenerary"
+	// EdgePassengers holds the string denoting the passengers edge name in mutations.
+	EdgePassengers = "passengers"
 	// Table holds the table name of the flightreservation in the database.
 	Table = "flight_reservations"
+	// FlightInstanceTable is the table that holds the flight_instance relation/edge.
+	FlightInstanceTable = "flight_reservations"
+	// FlightInstanceInverseTable is the table name for the FlightInstance entity.
+	// It exists in this package in order to avoid circular dependency with the "flightinstance" package.
+	FlightInstanceInverseTable = "flight_instances"
+	// FlightInstanceColumn is the table column denoting the flight_instance relation/edge.
+	FlightInstanceColumn = "flight_instance_id"
+	// IteneraryTable is the table that holds the itenerary relation/edge.
+	IteneraryTable = "flight_reservations"
+	// IteneraryInverseTable is the table name for the Itenerary entity.
+	// It exists in this package in order to avoid circular dependency with the "itenerary" package.
+	IteneraryInverseTable = "iteneraries"
+	// IteneraryColumn is the table column denoting the itenerary relation/edge.
+	IteneraryColumn = "itenerary_id"
+	// PassengersTable is the table that holds the passengers relation/edge.
+	PassengersTable = "passengers"
+	// PassengersInverseTable is the table name for the Passenger entity.
+	// It exists in this package in order to avoid circular dependency with the "passenger" package.
+	PassengersInverseTable = "passengers"
+	// PassengersColumn is the table column denoting the passengers relation/edge.
+	PassengersColumn = "flight_reservation_id"
 )
 
 // Columns holds all SQL columns for flightreservation fields.
@@ -36,10 +63,22 @@ var Columns = []string{
 	FieldUpdatedAt,
 }
 
+// ForeignKeys holds the SQL foreign-keys that are owned by the "flight_reservations"
+// table and are not defined as standalone fields in the schema.
+var ForeignKeys = []string{
+	"flight_instance_id",
+	"itenerary_id",
+}
+
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
 	for i := range Columns {
 		if column == Columns[i] {
+			return true
+		}
+	}
+	for i := range ForeignKeys {
+		if column == ForeignKeys[i] {
 			return true
 		}
 	}

@@ -3,7 +3,9 @@
 package ent
 
 import (
+	"airbound/internal/ent/airline"
 	"airbound/internal/ent/pilot"
+	"airbound/internal/ent/user"
 	"context"
 	"errors"
 	"fmt"
@@ -71,6 +73,36 @@ func (pc *PilotCreate) SetNillableUpdatedAt(t *time.Time) *PilotCreate {
 func (pc *PilotCreate) SetID(u uuid.UUID) *PilotCreate {
 	pc.mutation.SetID(u)
 	return pc
+}
+
+// SetUserID sets the "user" edge to the User entity by ID.
+func (pc *PilotCreate) SetUserID(id uuid.UUID) *PilotCreate {
+	pc.mutation.SetUserID(id)
+	return pc
+}
+
+// SetUser sets the "user" edge to the User entity.
+func (pc *PilotCreate) SetUser(u *User) *PilotCreate {
+	return pc.SetUserID(u.ID)
+}
+
+// SetAirlineID sets the "airline" edge to the Airline entity by ID.
+func (pc *PilotCreate) SetAirlineID(id uuid.UUID) *PilotCreate {
+	pc.mutation.SetAirlineID(id)
+	return pc
+}
+
+// SetNillableAirlineID sets the "airline" edge to the Airline entity by ID if the given value is not nil.
+func (pc *PilotCreate) SetNillableAirlineID(id *uuid.UUID) *PilotCreate {
+	if id != nil {
+		pc = pc.SetAirlineID(*id)
+	}
+	return pc
+}
+
+// SetAirline sets the "airline" edge to the Airline entity.
+func (pc *PilotCreate) SetAirline(a *Airline) *PilotCreate {
+	return pc.SetAirlineID(a.ID)
 }
 
 // Mutation returns the PilotMutation object of the builder.
@@ -190,6 +222,9 @@ func (pc *PilotCreate) check() error {
 	if _, ok := pc.mutation.UpdatedAt(); !ok {
 		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "updated_at"`)}
 	}
+	if _, ok := pc.mutation.UserID(); !ok {
+		return &ValidationError{Name: "user", err: errors.New("ent: missing required edge \"user\"")}
+	}
 	return nil
 }
 
@@ -261,6 +296,46 @@ func (pc *PilotCreate) createSpec() (*Pilot, *sqlgraph.CreateSpec) {
 			Column: pilot.FieldUpdatedAt,
 		})
 		_node.UpdatedAt = value
+	}
+	if nodes := pc.mutation.UserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   pilot.UserTable,
+			Columns: []string{pilot.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.user_pilot = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := pc.mutation.AirlineIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   pilot.AirlineTable,
+			Columns: []string{pilot.AirlineColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: airline.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.airline_id = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

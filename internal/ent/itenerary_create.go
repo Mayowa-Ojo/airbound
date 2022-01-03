@@ -3,6 +3,9 @@
 package ent
 
 import (
+	"airbound/internal/ent/airport"
+	"airbound/internal/ent/customer"
+	"airbound/internal/ent/flightreservation"
 	"airbound/internal/ent/itenerary"
 	"context"
 	"errors"
@@ -53,6 +56,78 @@ func (ic *IteneraryCreate) SetNillableUpdatedAt(t *time.Time) *IteneraryCreate {
 func (ic *IteneraryCreate) SetID(u uuid.UUID) *IteneraryCreate {
 	ic.mutation.SetID(u)
 	return ic
+}
+
+// AddFlightReservationIDs adds the "flight_reservations" edge to the FlightReservation entity by IDs.
+func (ic *IteneraryCreate) AddFlightReservationIDs(ids ...uuid.UUID) *IteneraryCreate {
+	ic.mutation.AddFlightReservationIDs(ids...)
+	return ic
+}
+
+// AddFlightReservations adds the "flight_reservations" edges to the FlightReservation entity.
+func (ic *IteneraryCreate) AddFlightReservations(f ...*FlightReservation) *IteneraryCreate {
+	ids := make([]uuid.UUID, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return ic.AddFlightReservationIDs(ids...)
+}
+
+// SetCustomerID sets the "customer" edge to the Customer entity by ID.
+func (ic *IteneraryCreate) SetCustomerID(id uuid.UUID) *IteneraryCreate {
+	ic.mutation.SetCustomerID(id)
+	return ic
+}
+
+// SetNillableCustomerID sets the "customer" edge to the Customer entity by ID if the given value is not nil.
+func (ic *IteneraryCreate) SetNillableCustomerID(id *uuid.UUID) *IteneraryCreate {
+	if id != nil {
+		ic = ic.SetCustomerID(*id)
+	}
+	return ic
+}
+
+// SetCustomer sets the "customer" edge to the Customer entity.
+func (ic *IteneraryCreate) SetCustomer(c *Customer) *IteneraryCreate {
+	return ic.SetCustomerID(c.ID)
+}
+
+// SetOriginAirportID sets the "origin_airport" edge to the Airport entity by ID.
+func (ic *IteneraryCreate) SetOriginAirportID(id uuid.UUID) *IteneraryCreate {
+	ic.mutation.SetOriginAirportID(id)
+	return ic
+}
+
+// SetNillableOriginAirportID sets the "origin_airport" edge to the Airport entity by ID if the given value is not nil.
+func (ic *IteneraryCreate) SetNillableOriginAirportID(id *uuid.UUID) *IteneraryCreate {
+	if id != nil {
+		ic = ic.SetOriginAirportID(*id)
+	}
+	return ic
+}
+
+// SetOriginAirport sets the "origin_airport" edge to the Airport entity.
+func (ic *IteneraryCreate) SetOriginAirport(a *Airport) *IteneraryCreate {
+	return ic.SetOriginAirportID(a.ID)
+}
+
+// SetDestinationAirportID sets the "destination_airport" edge to the Airport entity by ID.
+func (ic *IteneraryCreate) SetDestinationAirportID(id uuid.UUID) *IteneraryCreate {
+	ic.mutation.SetDestinationAirportID(id)
+	return ic
+}
+
+// SetNillableDestinationAirportID sets the "destination_airport" edge to the Airport entity by ID if the given value is not nil.
+func (ic *IteneraryCreate) SetNillableDestinationAirportID(id *uuid.UUID) *IteneraryCreate {
+	if id != nil {
+		ic = ic.SetDestinationAirportID(*id)
+	}
+	return ic
+}
+
+// SetDestinationAirport sets the "destination_airport" edge to the Airport entity.
+func (ic *IteneraryCreate) SetDestinationAirport(a *Airport) *IteneraryCreate {
+	return ic.SetDestinationAirportID(a.ID)
 }
 
 // Mutation returns the IteneraryMutation object of the builder.
@@ -195,6 +270,85 @@ func (ic *IteneraryCreate) createSpec() (*Itenerary, *sqlgraph.CreateSpec) {
 			Column: itenerary.FieldUpdatedAt,
 		})
 		_node.UpdatedAt = value
+	}
+	if nodes := ic.mutation.FlightReservationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   itenerary.FlightReservationsTable,
+			Columns: []string{itenerary.FlightReservationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flightreservation.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := ic.mutation.CustomerIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   itenerary.CustomerTable,
+			Columns: []string{itenerary.CustomerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: customer.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.customer_id = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := ic.mutation.OriginAirportIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   itenerary.OriginAirportTable,
+			Columns: []string{itenerary.OriginAirportColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: airport.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.origin_airport_id = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := ic.mutation.DestinationAirportIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   itenerary.DestinationAirportTable,
+			Columns: []string{itenerary.DestinationAirportColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: airport.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.destination_airport_id = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

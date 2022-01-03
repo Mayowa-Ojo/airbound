@@ -3,6 +3,8 @@
 package ent
 
 import (
+	"airbound/internal/ent/flightreservation"
+	"airbound/internal/ent/flightseat"
 	"airbound/internal/ent/passenger"
 	"context"
 	"errors"
@@ -77,6 +79,44 @@ func (pc *PassengerCreate) SetNillableUpdatedAt(t *time.Time) *PassengerCreate {
 func (pc *PassengerCreate) SetID(u uuid.UUID) *PassengerCreate {
 	pc.mutation.SetID(u)
 	return pc
+}
+
+// SetFlightReservationID sets the "flight_reservation" edge to the FlightReservation entity by ID.
+func (pc *PassengerCreate) SetFlightReservationID(id uuid.UUID) *PassengerCreate {
+	pc.mutation.SetFlightReservationID(id)
+	return pc
+}
+
+// SetNillableFlightReservationID sets the "flight_reservation" edge to the FlightReservation entity by ID if the given value is not nil.
+func (pc *PassengerCreate) SetNillableFlightReservationID(id *uuid.UUID) *PassengerCreate {
+	if id != nil {
+		pc = pc.SetFlightReservationID(*id)
+	}
+	return pc
+}
+
+// SetFlightReservation sets the "flight_reservation" edge to the FlightReservation entity.
+func (pc *PassengerCreate) SetFlightReservation(f *FlightReservation) *PassengerCreate {
+	return pc.SetFlightReservationID(f.ID)
+}
+
+// SetFlightSeatID sets the "flight_seat" edge to the FlightSeat entity by ID.
+func (pc *PassengerCreate) SetFlightSeatID(id uuid.UUID) *PassengerCreate {
+	pc.mutation.SetFlightSeatID(id)
+	return pc
+}
+
+// SetNillableFlightSeatID sets the "flight_seat" edge to the FlightSeat entity by ID if the given value is not nil.
+func (pc *PassengerCreate) SetNillableFlightSeatID(id *uuid.UUID) *PassengerCreate {
+	if id != nil {
+		pc = pc.SetFlightSeatID(*id)
+	}
+	return pc
+}
+
+// SetFlightSeat sets the "flight_seat" edge to the FlightSeat entity.
+func (pc *PassengerCreate) SetFlightSeat(f *FlightSeat) *PassengerCreate {
+	return pc.SetFlightSeatID(f.ID)
 }
 
 // Mutation returns the PassengerMutation object of the builder.
@@ -283,6 +323,45 @@ func (pc *PassengerCreate) createSpec() (*Passenger, *sqlgraph.CreateSpec) {
 			Column: passenger.FieldUpdatedAt,
 		})
 		_node.UpdatedAt = value
+	}
+	if nodes := pc.mutation.FlightReservationIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   passenger.FlightReservationTable,
+			Columns: []string{passenger.FlightReservationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flightreservation.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.flight_reservation_id = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := pc.mutation.FlightSeatIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   passenger.FlightSeatTable,
+			Columns: []string{passenger.FlightSeatColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flightseat.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"entgo.io/ent"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 )
@@ -25,5 +26,12 @@ func (Customer) Fields() []ent.Field {
 
 // Edges of the Customer.
 func (Customer) Edges() []ent.Edge {
-	return nil
+	return []ent.Edge{
+		edge.From("user", User.Type).
+			Ref("customer").
+			Unique().
+			Required(),
+		edge.To("iteneraries", Itenerary.Type).
+			StorageKey(edge.Column("customer_id")),
+	}
 }

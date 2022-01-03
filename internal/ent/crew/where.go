@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
 )
 
@@ -374,6 +375,90 @@ func UpdatedAtLT(v time.Time) predicate.Crew {
 func UpdatedAtLTE(v time.Time) predicate.Crew {
 	return predicate.Crew(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldUpdatedAt), v))
+	})
+}
+
+// HasUser applies the HasEdge predicate on the "user" edge.
+func HasUser() predicate.Crew {
+	return predicate.Crew(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(UserTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, UserTable, UserColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasUserWith applies the HasEdge predicate on the "user" edge with a given conditions (other predicates).
+func HasUserWith(preds ...predicate.User) predicate.Crew {
+	return predicate.Crew(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(UserInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, UserTable, UserColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasAirline applies the HasEdge predicate on the "airline" edge.
+func HasAirline() predicate.Crew {
+	return predicate.Crew(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(AirlineTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, AirlineTable, AirlineColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasAirlineWith applies the HasEdge predicate on the "airline" edge with a given conditions (other predicates).
+func HasAirlineWith(preds ...predicate.Airline) predicate.Crew {
+	return predicate.Crew(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(AirlineInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, AirlineTable, AirlineColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasFlights applies the HasEdge predicate on the "flights" edge.
+func HasFlights() predicate.Crew {
+	return predicate.Crew(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(FlightsTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, FlightsTable, FlightsPrimaryKey...),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasFlightsWith applies the HasEdge predicate on the "flights" edge with a given conditions (other predicates).
+func HasFlightsWith(preds ...predicate.Flight) predicate.Crew {
+	return predicate.Crew(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(FlightsInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, FlightsTable, FlightsPrimaryKey...),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
 	})
 }
 

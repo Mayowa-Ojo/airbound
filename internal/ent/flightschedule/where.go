@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
 )
 
@@ -753,6 +754,34 @@ func UpdatedAtLT(v time.Time) predicate.FlightSchedule {
 func UpdatedAtLTE(v time.Time) predicate.FlightSchedule {
 	return predicate.FlightSchedule(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldUpdatedAt), v))
+	})
+}
+
+// HasFlight applies the HasEdge predicate on the "flight" edge.
+func HasFlight() predicate.FlightSchedule {
+	return predicate.FlightSchedule(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(FlightTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, FlightTable, FlightColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasFlightWith applies the HasEdge predicate on the "flight" edge with a given conditions (other predicates).
+func HasFlightWith(preds ...predicate.Flight) predicate.FlightSchedule {
+	return predicate.FlightSchedule(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(FlightInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, FlightTable, FlightColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
 	})
 }
 

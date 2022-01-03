@@ -3,8 +3,10 @@
 package ent
 
 import (
+	"airbound/internal/ent/airport"
 	"airbound/internal/ent/frontdesk"
 	"airbound/internal/ent/predicate"
+	"airbound/internal/ent/user"
 	"context"
 	"errors"
 	"fmt"
@@ -25,6 +27,10 @@ type FrontDeskQuery struct {
 	order      []OrderFunc
 	fields     []string
 	predicates []predicate.FrontDesk
+	// eager-loading edges.
+	withUser    *UserQuery
+	withAirport *AirportQuery
+	withFKs     bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -59,6 +65,50 @@ func (fdq *FrontDeskQuery) Unique(unique bool) *FrontDeskQuery {
 func (fdq *FrontDeskQuery) Order(o ...OrderFunc) *FrontDeskQuery {
 	fdq.order = append(fdq.order, o...)
 	return fdq
+}
+
+// QueryUser chains the current query on the "user" edge.
+func (fdq *FrontDeskQuery) QueryUser() *UserQuery {
+	query := &UserQuery{config: fdq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := fdq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := fdq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(frontdesk.Table, frontdesk.FieldID, selector),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, frontdesk.UserTable, frontdesk.UserColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(fdq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryAirport chains the current query on the "airport" edge.
+func (fdq *FrontDeskQuery) QueryAirport() *AirportQuery {
+	query := &AirportQuery{config: fdq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := fdq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := fdq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(frontdesk.Table, frontdesk.FieldID, selector),
+			sqlgraph.To(airport.Table, airport.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, frontdesk.AirportTable, frontdesk.AirportColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(fdq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first FrontDesk entity from the query.
@@ -237,15 +287,39 @@ func (fdq *FrontDeskQuery) Clone() *FrontDeskQuery {
 		return nil
 	}
 	return &FrontDeskQuery{
-		config:     fdq.config,
-		limit:      fdq.limit,
-		offset:     fdq.offset,
-		order:      append([]OrderFunc{}, fdq.order...),
-		predicates: append([]predicate.FrontDesk{}, fdq.predicates...),
+		config:      fdq.config,
+		limit:       fdq.limit,
+		offset:      fdq.offset,
+		order:       append([]OrderFunc{}, fdq.order...),
+		predicates:  append([]predicate.FrontDesk{}, fdq.predicates...),
+		withUser:    fdq.withUser.Clone(),
+		withAirport: fdq.withAirport.Clone(),
 		// clone intermediate query.
 		sql:  fdq.sql.Clone(),
 		path: fdq.path,
 	}
+}
+
+// WithUser tells the query-builder to eager-load the nodes that are connected to
+// the "user" edge. The optional arguments are used to configure the query builder of the edge.
+func (fdq *FrontDeskQuery) WithUser(opts ...func(*UserQuery)) *FrontDeskQuery {
+	query := &UserQuery{config: fdq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	fdq.withUser = query
+	return fdq
+}
+
+// WithAirport tells the query-builder to eager-load the nodes that are connected to
+// the "airport" edge. The optional arguments are used to configure the query builder of the edge.
+func (fdq *FrontDeskQuery) WithAirport(opts ...func(*AirportQuery)) *FrontDeskQuery {
+	query := &AirportQuery{config: fdq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	fdq.withAirport = query
+	return fdq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -311,9 +385,20 @@ func (fdq *FrontDeskQuery) prepareQuery(ctx context.Context) error {
 
 func (fdq *FrontDeskQuery) sqlAll(ctx context.Context) ([]*FrontDesk, error) {
 	var (
-		nodes = []*FrontDesk{}
-		_spec = fdq.querySpec()
+		nodes       = []*FrontDesk{}
+		withFKs     = fdq.withFKs
+		_spec       = fdq.querySpec()
+		loadedTypes = [2]bool{
+			fdq.withUser != nil,
+			fdq.withAirport != nil,
+		}
 	)
+	if fdq.withUser != nil || fdq.withAirport != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, frontdesk.ForeignKeys...)
+	}
 	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
 		node := &FrontDesk{config: fdq.config}
 		nodes = append(nodes, node)
@@ -324,6 +409,7 @@ func (fdq *FrontDeskQuery) sqlAll(ctx context.Context) ([]*FrontDesk, error) {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	if err := sqlgraph.QueryNodes(ctx, fdq.driver, _spec); err != nil {
@@ -332,6 +418,65 @@ func (fdq *FrontDeskQuery) sqlAll(ctx context.Context) ([]*FrontDesk, error) {
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+
+	if query := fdq.withUser; query != nil {
+		ids := make([]uuid.UUID, 0, len(nodes))
+		nodeids := make(map[uuid.UUID][]*FrontDesk)
+		for i := range nodes {
+			if nodes[i].user_front_desk == nil {
+				continue
+			}
+			fk := *nodes[i].user_front_desk
+			if _, ok := nodeids[fk]; !ok {
+				ids = append(ids, fk)
+			}
+			nodeids[fk] = append(nodeids[fk], nodes[i])
+		}
+		query.Where(user.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "user_front_desk" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.User = n
+			}
+		}
+	}
+
+	if query := fdq.withAirport; query != nil {
+		ids := make([]uuid.UUID, 0, len(nodes))
+		nodeids := make(map[uuid.UUID][]*FrontDesk)
+		for i := range nodes {
+			if nodes[i].airport_id == nil {
+				continue
+			}
+			fk := *nodes[i].airport_id
+			if _, ok := nodeids[fk]; !ok {
+				ids = append(ids, fk)
+			}
+			nodeids[fk] = append(nodeids[fk], nodes[i])
+		}
+		query.Where(airport.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "airport_id" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Airport = n
+			}
+		}
+	}
+
 	return nodes, nil
 }
 

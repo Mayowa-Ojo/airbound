@@ -23,8 +23,62 @@ const (
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
+	// EdgeAddress holds the string denoting the address edge name in mutations.
+	EdgeAddress = "address"
+	// EdgeFrontDesks holds the string denoting the front_desks edge name in mutations.
+	EdgeFrontDesks = "front_desks"
+	// EdgeDepartureFlights holds the string denoting the departure_flights edge name in mutations.
+	EdgeDepartureFlights = "departure_flights"
+	// EdgeArrivalFlights holds the string denoting the arrival_flights edge name in mutations.
+	EdgeArrivalFlights = "arrival_flights"
+	// EdgeOriginIteneraries holds the string denoting the origin_iteneraries edge name in mutations.
+	EdgeOriginIteneraries = "origin_iteneraries"
+	// EdgeDestinationIteneraries holds the string denoting the destination_iteneraries edge name in mutations.
+	EdgeDestinationIteneraries = "destination_iteneraries"
 	// Table holds the table name of the airport in the database.
 	Table = "airports"
+	// AddressTable is the table that holds the address relation/edge.
+	AddressTable = "addresses"
+	// AddressInverseTable is the table name for the Address entity.
+	// It exists in this package in order to avoid circular dependency with the "address" package.
+	AddressInverseTable = "addresses"
+	// AddressColumn is the table column denoting the address relation/edge.
+	AddressColumn = "airport_address"
+	// FrontDesksTable is the table that holds the front_desks relation/edge.
+	FrontDesksTable = "front_desks"
+	// FrontDesksInverseTable is the table name for the FrontDesk entity.
+	// It exists in this package in order to avoid circular dependency with the "frontdesk" package.
+	FrontDesksInverseTable = "front_desks"
+	// FrontDesksColumn is the table column denoting the front_desks relation/edge.
+	FrontDesksColumn = "airport_id"
+	// DepartureFlightsTable is the table that holds the departure_flights relation/edge.
+	DepartureFlightsTable = "flights"
+	// DepartureFlightsInverseTable is the table name for the Flight entity.
+	// It exists in this package in order to avoid circular dependency with the "flight" package.
+	DepartureFlightsInverseTable = "flights"
+	// DepartureFlightsColumn is the table column denoting the departure_flights relation/edge.
+	DepartureFlightsColumn = "depature_airport_id"
+	// ArrivalFlightsTable is the table that holds the arrival_flights relation/edge.
+	ArrivalFlightsTable = "flights"
+	// ArrivalFlightsInverseTable is the table name for the Flight entity.
+	// It exists in this package in order to avoid circular dependency with the "flight" package.
+	ArrivalFlightsInverseTable = "flights"
+	// ArrivalFlightsColumn is the table column denoting the arrival_flights relation/edge.
+	ArrivalFlightsColumn = "arrival_airport_id"
+	// OriginItenerariesTable is the table that holds the origin_iteneraries relation/edge.
+	OriginItenerariesTable = "iteneraries"
+	// OriginItenerariesInverseTable is the table name for the Itenerary entity.
+	// It exists in this package in order to avoid circular dependency with the "itenerary" package.
+	OriginItenerariesInverseTable = "iteneraries"
+	// OriginItenerariesColumn is the table column denoting the origin_iteneraries relation/edge.
+	OriginItenerariesColumn = "origin_airport_id"
+	// DestinationItenerariesTable is the table that holds the destination_iteneraries relation/edge.
+	DestinationItenerariesTable = "iteneraries"
+	// DestinationItenerariesInverseTable is the table name for the Itenerary entity.
+	// It exists in this package in order to avoid circular dependency with the "itenerary" package.
+	DestinationItenerariesInverseTable = "iteneraries"
+	// DestinationItenerariesColumn is the table column denoting the destination_iteneraries relation/edge.
+	DestinationItenerariesColumn = "destination_airport_id"
 )
 
 // Columns holds all SQL columns for airport fields.

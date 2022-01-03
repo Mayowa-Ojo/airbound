@@ -4,7 +4,9 @@ package ent
 
 import (
 	"airbound/internal/ent/address"
+	"airbound/internal/ent/airport"
 	"airbound/internal/ent/predicate"
+	"airbound/internal/ent/user"
 	"context"
 	"errors"
 	"fmt"
@@ -25,6 +27,10 @@ type AddressQuery struct {
 	order      []OrderFunc
 	fields     []string
 	predicates []predicate.Address
+	// eager-loading edges.
+	withUser    *UserQuery
+	withAirport *AirportQuery
+	withFKs     bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -59,6 +65,50 @@ func (aq *AddressQuery) Unique(unique bool) *AddressQuery {
 func (aq *AddressQuery) Order(o ...OrderFunc) *AddressQuery {
 	aq.order = append(aq.order, o...)
 	return aq
+}
+
+// QueryUser chains the current query on the "user" edge.
+func (aq *AddressQuery) QueryUser() *UserQuery {
+	query := &UserQuery{config: aq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := aq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := aq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(address.Table, address.FieldID, selector),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, address.UserTable, address.UserColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(aq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryAirport chains the current query on the "airport" edge.
+func (aq *AddressQuery) QueryAirport() *AirportQuery {
+	query := &AirportQuery{config: aq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := aq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := aq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(address.Table, address.FieldID, selector),
+			sqlgraph.To(airport.Table, airport.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, address.AirportTable, address.AirportColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(aq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first Address entity from the query.
@@ -237,15 +287,39 @@ func (aq *AddressQuery) Clone() *AddressQuery {
 		return nil
 	}
 	return &AddressQuery{
-		config:     aq.config,
-		limit:      aq.limit,
-		offset:     aq.offset,
-		order:      append([]OrderFunc{}, aq.order...),
-		predicates: append([]predicate.Address{}, aq.predicates...),
+		config:      aq.config,
+		limit:       aq.limit,
+		offset:      aq.offset,
+		order:       append([]OrderFunc{}, aq.order...),
+		predicates:  append([]predicate.Address{}, aq.predicates...),
+		withUser:    aq.withUser.Clone(),
+		withAirport: aq.withAirport.Clone(),
 		// clone intermediate query.
 		sql:  aq.sql.Clone(),
 		path: aq.path,
 	}
+}
+
+// WithUser tells the query-builder to eager-load the nodes that are connected to
+// the "user" edge. The optional arguments are used to configure the query builder of the edge.
+func (aq *AddressQuery) WithUser(opts ...func(*UserQuery)) *AddressQuery {
+	query := &UserQuery{config: aq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	aq.withUser = query
+	return aq
+}
+
+// WithAirport tells the query-builder to eager-load the nodes that are connected to
+// the "airport" edge. The optional arguments are used to configure the query builder of the edge.
+func (aq *AddressQuery) WithAirport(opts ...func(*AirportQuery)) *AddressQuery {
+	query := &AirportQuery{config: aq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	aq.withAirport = query
+	return aq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -311,9 +385,20 @@ func (aq *AddressQuery) prepareQuery(ctx context.Context) error {
 
 func (aq *AddressQuery) sqlAll(ctx context.Context) ([]*Address, error) {
 	var (
-		nodes = []*Address{}
-		_spec = aq.querySpec()
+		nodes       = []*Address{}
+		withFKs     = aq.withFKs
+		_spec       = aq.querySpec()
+		loadedTypes = [2]bool{
+			aq.withUser != nil,
+			aq.withAirport != nil,
+		}
 	)
+	if aq.withUser != nil || aq.withAirport != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, address.ForeignKeys...)
+	}
 	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
 		node := &Address{config: aq.config}
 		nodes = append(nodes, node)
@@ -324,6 +409,7 @@ func (aq *AddressQuery) sqlAll(ctx context.Context) ([]*Address, error) {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	if err := sqlgraph.QueryNodes(ctx, aq.driver, _spec); err != nil {
@@ -332,6 +418,65 @@ func (aq *AddressQuery) sqlAll(ctx context.Context) ([]*Address, error) {
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+
+	if query := aq.withUser; query != nil {
+		ids := make([]uuid.UUID, 0, len(nodes))
+		nodeids := make(map[uuid.UUID][]*Address)
+		for i := range nodes {
+			if nodes[i].user_address == nil {
+				continue
+			}
+			fk := *nodes[i].user_address
+			if _, ok := nodeids[fk]; !ok {
+				ids = append(ids, fk)
+			}
+			nodeids[fk] = append(nodeids[fk], nodes[i])
+		}
+		query.Where(user.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "user_address" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.User = n
+			}
+		}
+	}
+
+	if query := aq.withAirport; query != nil {
+		ids := make([]uuid.UUID, 0, len(nodes))
+		nodeids := make(map[uuid.UUID][]*Address)
+		for i := range nodes {
+			if nodes[i].airport_address == nil {
+				continue
+			}
+			fk := *nodes[i].airport_address
+			if _, ok := nodeids[fk]; !ok {
+				ids = append(ids, fk)
+			}
+			nodeids[fk] = append(nodeids[fk], nodes[i])
+		}
+		query.Where(airport.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "airport_address" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Airport = n
+			}
+		}
+	}
+
 	return nodes, nil
 }
 

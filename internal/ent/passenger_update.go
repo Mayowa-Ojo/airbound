@@ -3,6 +3,8 @@
 package ent
 
 import (
+	"airbound/internal/ent/flightreservation"
+	"airbound/internal/ent/flightseat"
 	"airbound/internal/ent/passenger"
 	"airbound/internal/ent/predicate"
 	"context"
@@ -12,6 +14,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 )
 
 // PassengerUpdate is the builder for updating Passenger entities.
@@ -78,9 +81,59 @@ func (pu *PassengerUpdate) SetUpdatedAt(t time.Time) *PassengerUpdate {
 	return pu
 }
 
+// SetFlightReservationID sets the "flight_reservation" edge to the FlightReservation entity by ID.
+func (pu *PassengerUpdate) SetFlightReservationID(id uuid.UUID) *PassengerUpdate {
+	pu.mutation.SetFlightReservationID(id)
+	return pu
+}
+
+// SetNillableFlightReservationID sets the "flight_reservation" edge to the FlightReservation entity by ID if the given value is not nil.
+func (pu *PassengerUpdate) SetNillableFlightReservationID(id *uuid.UUID) *PassengerUpdate {
+	if id != nil {
+		pu = pu.SetFlightReservationID(*id)
+	}
+	return pu
+}
+
+// SetFlightReservation sets the "flight_reservation" edge to the FlightReservation entity.
+func (pu *PassengerUpdate) SetFlightReservation(f *FlightReservation) *PassengerUpdate {
+	return pu.SetFlightReservationID(f.ID)
+}
+
+// SetFlightSeatID sets the "flight_seat" edge to the FlightSeat entity by ID.
+func (pu *PassengerUpdate) SetFlightSeatID(id uuid.UUID) *PassengerUpdate {
+	pu.mutation.SetFlightSeatID(id)
+	return pu
+}
+
+// SetNillableFlightSeatID sets the "flight_seat" edge to the FlightSeat entity by ID if the given value is not nil.
+func (pu *PassengerUpdate) SetNillableFlightSeatID(id *uuid.UUID) *PassengerUpdate {
+	if id != nil {
+		pu = pu.SetFlightSeatID(*id)
+	}
+	return pu
+}
+
+// SetFlightSeat sets the "flight_seat" edge to the FlightSeat entity.
+func (pu *PassengerUpdate) SetFlightSeat(f *FlightSeat) *PassengerUpdate {
+	return pu.SetFlightSeatID(f.ID)
+}
+
 // Mutation returns the PassengerMutation object of the builder.
 func (pu *PassengerUpdate) Mutation() *PassengerMutation {
 	return pu.mutation
+}
+
+// ClearFlightReservation clears the "flight_reservation" edge to the FlightReservation entity.
+func (pu *PassengerUpdate) ClearFlightReservation() *PassengerUpdate {
+	pu.mutation.ClearFlightReservation()
+	return pu
+}
+
+// ClearFlightSeat clears the "flight_seat" edge to the FlightSeat entity.
+func (pu *PassengerUpdate) ClearFlightSeat() *PassengerUpdate {
+	pu.mutation.ClearFlightSeat()
+	return pu
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -244,6 +297,76 @@ func (pu *PassengerUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: passenger.FieldUpdatedAt,
 		})
 	}
+	if pu.mutation.FlightReservationCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   passenger.FlightReservationTable,
+			Columns: []string{passenger.FlightReservationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flightreservation.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.FlightReservationIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   passenger.FlightReservationTable,
+			Columns: []string{passenger.FlightReservationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flightreservation.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if pu.mutation.FlightSeatCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   passenger.FlightSeatTable,
+			Columns: []string{passenger.FlightSeatColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flightseat.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.FlightSeatIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   passenger.FlightSeatTable,
+			Columns: []string{passenger.FlightSeatColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flightseat.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, pu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{passenger.Label}
@@ -314,9 +437,59 @@ func (puo *PassengerUpdateOne) SetUpdatedAt(t time.Time) *PassengerUpdateOne {
 	return puo
 }
 
+// SetFlightReservationID sets the "flight_reservation" edge to the FlightReservation entity by ID.
+func (puo *PassengerUpdateOne) SetFlightReservationID(id uuid.UUID) *PassengerUpdateOne {
+	puo.mutation.SetFlightReservationID(id)
+	return puo
+}
+
+// SetNillableFlightReservationID sets the "flight_reservation" edge to the FlightReservation entity by ID if the given value is not nil.
+func (puo *PassengerUpdateOne) SetNillableFlightReservationID(id *uuid.UUID) *PassengerUpdateOne {
+	if id != nil {
+		puo = puo.SetFlightReservationID(*id)
+	}
+	return puo
+}
+
+// SetFlightReservation sets the "flight_reservation" edge to the FlightReservation entity.
+func (puo *PassengerUpdateOne) SetFlightReservation(f *FlightReservation) *PassengerUpdateOne {
+	return puo.SetFlightReservationID(f.ID)
+}
+
+// SetFlightSeatID sets the "flight_seat" edge to the FlightSeat entity by ID.
+func (puo *PassengerUpdateOne) SetFlightSeatID(id uuid.UUID) *PassengerUpdateOne {
+	puo.mutation.SetFlightSeatID(id)
+	return puo
+}
+
+// SetNillableFlightSeatID sets the "flight_seat" edge to the FlightSeat entity by ID if the given value is not nil.
+func (puo *PassengerUpdateOne) SetNillableFlightSeatID(id *uuid.UUID) *PassengerUpdateOne {
+	if id != nil {
+		puo = puo.SetFlightSeatID(*id)
+	}
+	return puo
+}
+
+// SetFlightSeat sets the "flight_seat" edge to the FlightSeat entity.
+func (puo *PassengerUpdateOne) SetFlightSeat(f *FlightSeat) *PassengerUpdateOne {
+	return puo.SetFlightSeatID(f.ID)
+}
+
 // Mutation returns the PassengerMutation object of the builder.
 func (puo *PassengerUpdateOne) Mutation() *PassengerMutation {
 	return puo.mutation
+}
+
+// ClearFlightReservation clears the "flight_reservation" edge to the FlightReservation entity.
+func (puo *PassengerUpdateOne) ClearFlightReservation() *PassengerUpdateOne {
+	puo.mutation.ClearFlightReservation()
+	return puo
+}
+
+// ClearFlightSeat clears the "flight_seat" edge to the FlightSeat entity.
+func (puo *PassengerUpdateOne) ClearFlightSeat() *PassengerUpdateOne {
+	puo.mutation.ClearFlightSeat()
+	return puo
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -503,6 +676,76 @@ func (puo *PassengerUpdateOne) sqlSave(ctx context.Context) (_node *Passenger, e
 			Value:  value,
 			Column: passenger.FieldUpdatedAt,
 		})
+	}
+	if puo.mutation.FlightReservationCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   passenger.FlightReservationTable,
+			Columns: []string{passenger.FlightReservationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flightreservation.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.FlightReservationIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   passenger.FlightReservationTable,
+			Columns: []string{passenger.FlightReservationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flightreservation.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if puo.mutation.FlightSeatCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   passenger.FlightSeatTable,
+			Columns: []string{passenger.FlightSeatColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flightseat.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.FlightSeatIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   passenger.FlightSeatTable,
+			Columns: []string{passenger.FlightSeatColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flightseat.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &Passenger{config: puo.config}
 	_spec.Assign = _node.assignValues

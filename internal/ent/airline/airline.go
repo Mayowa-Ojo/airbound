@@ -21,8 +21,35 @@ const (
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
+	// EdgeAircrafts holds the string denoting the aircrafts edge name in mutations.
+	EdgeAircrafts = "aircrafts"
+	// EdgeCrews holds the string denoting the crews edge name in mutations.
+	EdgeCrews = "crews"
+	// EdgePilots holds the string denoting the pilots edge name in mutations.
+	EdgePilots = "pilots"
 	// Table holds the table name of the airline in the database.
 	Table = "airlines"
+	// AircraftsTable is the table that holds the aircrafts relation/edge.
+	AircraftsTable = "aircrafts"
+	// AircraftsInverseTable is the table name for the Aircraft entity.
+	// It exists in this package in order to avoid circular dependency with the "aircraft" package.
+	AircraftsInverseTable = "aircrafts"
+	// AircraftsColumn is the table column denoting the aircrafts relation/edge.
+	AircraftsColumn = "airline_id"
+	// CrewsTable is the table that holds the crews relation/edge.
+	CrewsTable = "crews"
+	// CrewsInverseTable is the table name for the Crew entity.
+	// It exists in this package in order to avoid circular dependency with the "crew" package.
+	CrewsInverseTable = "crews"
+	// CrewsColumn is the table column denoting the crews relation/edge.
+	CrewsColumn = "airline_id"
+	// PilotsTable is the table that holds the pilots relation/edge.
+	PilotsTable = "pilots"
+	// PilotsInverseTable is the table name for the Pilot entity.
+	// It exists in this package in order to avoid circular dependency with the "pilot" package.
+	PilotsInverseTable = "pilots"
+	// PilotsColumn is the table column denoting the pilots relation/edge.
+	PilotsColumn = "airline_id"
 )
 
 // Columns holds all SQL columns for airline fields.

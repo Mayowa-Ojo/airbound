@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"entgo.io/ent"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 )
@@ -28,5 +29,21 @@ func (User) Fields() []ent.Field {
 
 // Edges of the User.
 func (User) Edges() []ent.Edge {
-	return nil
+	return []ent.Edge{
+		edge.To("account", Account.Type).
+			Unique(),
+		edge.To("admin", Admin.Type).
+			Unique(),
+		edge.To("crew", Crew.Type).
+			Unique(),
+		edge.To("pilot", Pilot.Type).
+			Unique(),
+		edge.To("front_desk", FrontDesk.Type).
+			Unique(),
+		edge.To("customer", Customer.Type).
+			Unique(),
+		edge.To("address", Address.Type).
+			Unique(),
+		edge.From("role", Role.Type).Ref("users").Unique(),
+	}
 }

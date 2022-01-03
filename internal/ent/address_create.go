@@ -4,6 +4,8 @@ package ent
 
 import (
 	"airbound/internal/ent/address"
+	"airbound/internal/ent/airport"
+	"airbound/internal/ent/user"
 	"context"
 	"errors"
 	"fmt"
@@ -77,6 +79,28 @@ func (ac *AddressCreate) SetNillableUpdatedAt(t *time.Time) *AddressCreate {
 func (ac *AddressCreate) SetID(u uuid.UUID) *AddressCreate {
 	ac.mutation.SetID(u)
 	return ac
+}
+
+// SetUserID sets the "user" edge to the User entity by ID.
+func (ac *AddressCreate) SetUserID(id uuid.UUID) *AddressCreate {
+	ac.mutation.SetUserID(id)
+	return ac
+}
+
+// SetUser sets the "user" edge to the User entity.
+func (ac *AddressCreate) SetUser(u *User) *AddressCreate {
+	return ac.SetUserID(u.ID)
+}
+
+// SetAirportID sets the "airport" edge to the Airport entity by ID.
+func (ac *AddressCreate) SetAirportID(id uuid.UUID) *AddressCreate {
+	ac.mutation.SetAirportID(id)
+	return ac
+}
+
+// SetAirport sets the "airport" edge to the Airport entity.
+func (ac *AddressCreate) SetAirport(a *Airport) *AddressCreate {
+	return ac.SetAirportID(a.ID)
 }
 
 // Mutation returns the AddressMutation object of the builder.
@@ -204,6 +228,12 @@ func (ac *AddressCreate) check() error {
 	if _, ok := ac.mutation.UpdatedAt(); !ok {
 		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "updated_at"`)}
 	}
+	if _, ok := ac.mutation.UserID(); !ok {
+		return &ValidationError{Name: "user", err: errors.New("ent: missing required edge \"user\"")}
+	}
+	if _, ok := ac.mutation.AirportID(); !ok {
+		return &ValidationError{Name: "airport", err: errors.New("ent: missing required edge \"airport\"")}
+	}
 	return nil
 }
 
@@ -283,6 +313,46 @@ func (ac *AddressCreate) createSpec() (*Address, *sqlgraph.CreateSpec) {
 			Column: address.FieldUpdatedAt,
 		})
 		_node.UpdatedAt = value
+	}
+	if nodes := ac.mutation.UserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   address.UserTable,
+			Columns: []string{address.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.user_address = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := ac.mutation.AirportIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   address.AirportTable,
+			Columns: []string{address.AirportColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: airport.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.airport_address = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

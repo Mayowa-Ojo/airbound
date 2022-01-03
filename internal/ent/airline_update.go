@@ -3,7 +3,10 @@
 package ent
 
 import (
+	"airbound/internal/ent/aircraft"
 	"airbound/internal/ent/airline"
+	"airbound/internal/ent/crew"
+	"airbound/internal/ent/pilot"
 	"airbound/internal/ent/predicate"
 	"context"
 	"fmt"
@@ -12,6 +15,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 )
 
 // AirlineUpdate is the builder for updating Airline entities.
@@ -59,9 +63,117 @@ func (au *AirlineUpdate) SetUpdatedAt(t time.Time) *AirlineUpdate {
 	return au
 }
 
+// AddAircraftIDs adds the "aircrafts" edge to the Aircraft entity by IDs.
+func (au *AirlineUpdate) AddAircraftIDs(ids ...uuid.UUID) *AirlineUpdate {
+	au.mutation.AddAircraftIDs(ids...)
+	return au
+}
+
+// AddAircrafts adds the "aircrafts" edges to the Aircraft entity.
+func (au *AirlineUpdate) AddAircrafts(a ...*Aircraft) *AirlineUpdate {
+	ids := make([]uuid.UUID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return au.AddAircraftIDs(ids...)
+}
+
+// AddCrewIDs adds the "crews" edge to the Crew entity by IDs.
+func (au *AirlineUpdate) AddCrewIDs(ids ...uuid.UUID) *AirlineUpdate {
+	au.mutation.AddCrewIDs(ids...)
+	return au
+}
+
+// AddCrews adds the "crews" edges to the Crew entity.
+func (au *AirlineUpdate) AddCrews(c ...*Crew) *AirlineUpdate {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return au.AddCrewIDs(ids...)
+}
+
+// AddPilotIDs adds the "pilots" edge to the Pilot entity by IDs.
+func (au *AirlineUpdate) AddPilotIDs(ids ...uuid.UUID) *AirlineUpdate {
+	au.mutation.AddPilotIDs(ids...)
+	return au
+}
+
+// AddPilots adds the "pilots" edges to the Pilot entity.
+func (au *AirlineUpdate) AddPilots(p ...*Pilot) *AirlineUpdate {
+	ids := make([]uuid.UUID, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return au.AddPilotIDs(ids...)
+}
+
 // Mutation returns the AirlineMutation object of the builder.
 func (au *AirlineUpdate) Mutation() *AirlineMutation {
 	return au.mutation
+}
+
+// ClearAircrafts clears all "aircrafts" edges to the Aircraft entity.
+func (au *AirlineUpdate) ClearAircrafts() *AirlineUpdate {
+	au.mutation.ClearAircrafts()
+	return au
+}
+
+// RemoveAircraftIDs removes the "aircrafts" edge to Aircraft entities by IDs.
+func (au *AirlineUpdate) RemoveAircraftIDs(ids ...uuid.UUID) *AirlineUpdate {
+	au.mutation.RemoveAircraftIDs(ids...)
+	return au
+}
+
+// RemoveAircrafts removes "aircrafts" edges to Aircraft entities.
+func (au *AirlineUpdate) RemoveAircrafts(a ...*Aircraft) *AirlineUpdate {
+	ids := make([]uuid.UUID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return au.RemoveAircraftIDs(ids...)
+}
+
+// ClearCrews clears all "crews" edges to the Crew entity.
+func (au *AirlineUpdate) ClearCrews() *AirlineUpdate {
+	au.mutation.ClearCrews()
+	return au
+}
+
+// RemoveCrewIDs removes the "crews" edge to Crew entities by IDs.
+func (au *AirlineUpdate) RemoveCrewIDs(ids ...uuid.UUID) *AirlineUpdate {
+	au.mutation.RemoveCrewIDs(ids...)
+	return au
+}
+
+// RemoveCrews removes "crews" edges to Crew entities.
+func (au *AirlineUpdate) RemoveCrews(c ...*Crew) *AirlineUpdate {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return au.RemoveCrewIDs(ids...)
+}
+
+// ClearPilots clears all "pilots" edges to the Pilot entity.
+func (au *AirlineUpdate) ClearPilots() *AirlineUpdate {
+	au.mutation.ClearPilots()
+	return au
+}
+
+// RemovePilotIDs removes the "pilots" edge to Pilot entities by IDs.
+func (au *AirlineUpdate) RemovePilotIDs(ids ...uuid.UUID) *AirlineUpdate {
+	au.mutation.RemovePilotIDs(ids...)
+	return au
+}
+
+// RemovePilots removes "pilots" edges to Pilot entities.
+func (au *AirlineUpdate) RemovePilots(p ...*Pilot) *AirlineUpdate {
+	ids := make([]uuid.UUID, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return au.RemovePilotIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -194,6 +306,168 @@ func (au *AirlineUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: airline.FieldUpdatedAt,
 		})
 	}
+	if au.mutation.AircraftsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   airline.AircraftsTable,
+			Columns: []string{airline.AircraftsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: aircraft.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := au.mutation.RemovedAircraftsIDs(); len(nodes) > 0 && !au.mutation.AircraftsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   airline.AircraftsTable,
+			Columns: []string{airline.AircraftsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: aircraft.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := au.mutation.AircraftsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   airline.AircraftsTable,
+			Columns: []string{airline.AircraftsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: aircraft.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if au.mutation.CrewsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   airline.CrewsTable,
+			Columns: []string{airline.CrewsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: crew.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := au.mutation.RemovedCrewsIDs(); len(nodes) > 0 && !au.mutation.CrewsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   airline.CrewsTable,
+			Columns: []string{airline.CrewsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: crew.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := au.mutation.CrewsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   airline.CrewsTable,
+			Columns: []string{airline.CrewsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: crew.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if au.mutation.PilotsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   airline.PilotsTable,
+			Columns: []string{airline.PilotsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: pilot.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := au.mutation.RemovedPilotsIDs(); len(nodes) > 0 && !au.mutation.PilotsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   airline.PilotsTable,
+			Columns: []string{airline.PilotsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: pilot.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := au.mutation.PilotsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   airline.PilotsTable,
+			Columns: []string{airline.PilotsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: pilot.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, au.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{airline.Label}
@@ -245,9 +519,117 @@ func (auo *AirlineUpdateOne) SetUpdatedAt(t time.Time) *AirlineUpdateOne {
 	return auo
 }
 
+// AddAircraftIDs adds the "aircrafts" edge to the Aircraft entity by IDs.
+func (auo *AirlineUpdateOne) AddAircraftIDs(ids ...uuid.UUID) *AirlineUpdateOne {
+	auo.mutation.AddAircraftIDs(ids...)
+	return auo
+}
+
+// AddAircrafts adds the "aircrafts" edges to the Aircraft entity.
+func (auo *AirlineUpdateOne) AddAircrafts(a ...*Aircraft) *AirlineUpdateOne {
+	ids := make([]uuid.UUID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return auo.AddAircraftIDs(ids...)
+}
+
+// AddCrewIDs adds the "crews" edge to the Crew entity by IDs.
+func (auo *AirlineUpdateOne) AddCrewIDs(ids ...uuid.UUID) *AirlineUpdateOne {
+	auo.mutation.AddCrewIDs(ids...)
+	return auo
+}
+
+// AddCrews adds the "crews" edges to the Crew entity.
+func (auo *AirlineUpdateOne) AddCrews(c ...*Crew) *AirlineUpdateOne {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return auo.AddCrewIDs(ids...)
+}
+
+// AddPilotIDs adds the "pilots" edge to the Pilot entity by IDs.
+func (auo *AirlineUpdateOne) AddPilotIDs(ids ...uuid.UUID) *AirlineUpdateOne {
+	auo.mutation.AddPilotIDs(ids...)
+	return auo
+}
+
+// AddPilots adds the "pilots" edges to the Pilot entity.
+func (auo *AirlineUpdateOne) AddPilots(p ...*Pilot) *AirlineUpdateOne {
+	ids := make([]uuid.UUID, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return auo.AddPilotIDs(ids...)
+}
+
 // Mutation returns the AirlineMutation object of the builder.
 func (auo *AirlineUpdateOne) Mutation() *AirlineMutation {
 	return auo.mutation
+}
+
+// ClearAircrafts clears all "aircrafts" edges to the Aircraft entity.
+func (auo *AirlineUpdateOne) ClearAircrafts() *AirlineUpdateOne {
+	auo.mutation.ClearAircrafts()
+	return auo
+}
+
+// RemoveAircraftIDs removes the "aircrafts" edge to Aircraft entities by IDs.
+func (auo *AirlineUpdateOne) RemoveAircraftIDs(ids ...uuid.UUID) *AirlineUpdateOne {
+	auo.mutation.RemoveAircraftIDs(ids...)
+	return auo
+}
+
+// RemoveAircrafts removes "aircrafts" edges to Aircraft entities.
+func (auo *AirlineUpdateOne) RemoveAircrafts(a ...*Aircraft) *AirlineUpdateOne {
+	ids := make([]uuid.UUID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return auo.RemoveAircraftIDs(ids...)
+}
+
+// ClearCrews clears all "crews" edges to the Crew entity.
+func (auo *AirlineUpdateOne) ClearCrews() *AirlineUpdateOne {
+	auo.mutation.ClearCrews()
+	return auo
+}
+
+// RemoveCrewIDs removes the "crews" edge to Crew entities by IDs.
+func (auo *AirlineUpdateOne) RemoveCrewIDs(ids ...uuid.UUID) *AirlineUpdateOne {
+	auo.mutation.RemoveCrewIDs(ids...)
+	return auo
+}
+
+// RemoveCrews removes "crews" edges to Crew entities.
+func (auo *AirlineUpdateOne) RemoveCrews(c ...*Crew) *AirlineUpdateOne {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return auo.RemoveCrewIDs(ids...)
+}
+
+// ClearPilots clears all "pilots" edges to the Pilot entity.
+func (auo *AirlineUpdateOne) ClearPilots() *AirlineUpdateOne {
+	auo.mutation.ClearPilots()
+	return auo
+}
+
+// RemovePilotIDs removes the "pilots" edge to Pilot entities by IDs.
+func (auo *AirlineUpdateOne) RemovePilotIDs(ids ...uuid.UUID) *AirlineUpdateOne {
+	auo.mutation.RemovePilotIDs(ids...)
+	return auo
+}
+
+// RemovePilots removes "pilots" edges to Pilot entities.
+func (auo *AirlineUpdateOne) RemovePilots(p ...*Pilot) *AirlineUpdateOne {
+	ids := make([]uuid.UUID, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return auo.RemovePilotIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -403,6 +785,168 @@ func (auo *AirlineUpdateOne) sqlSave(ctx context.Context) (_node *Airline, err e
 			Value:  value,
 			Column: airline.FieldUpdatedAt,
 		})
+	}
+	if auo.mutation.AircraftsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   airline.AircraftsTable,
+			Columns: []string{airline.AircraftsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: aircraft.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := auo.mutation.RemovedAircraftsIDs(); len(nodes) > 0 && !auo.mutation.AircraftsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   airline.AircraftsTable,
+			Columns: []string{airline.AircraftsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: aircraft.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := auo.mutation.AircraftsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   airline.AircraftsTable,
+			Columns: []string{airline.AircraftsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: aircraft.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if auo.mutation.CrewsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   airline.CrewsTable,
+			Columns: []string{airline.CrewsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: crew.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := auo.mutation.RemovedCrewsIDs(); len(nodes) > 0 && !auo.mutation.CrewsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   airline.CrewsTable,
+			Columns: []string{airline.CrewsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: crew.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := auo.mutation.CrewsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   airline.CrewsTable,
+			Columns: []string{airline.CrewsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: crew.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if auo.mutation.PilotsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   airline.PilotsTable,
+			Columns: []string{airline.PilotsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: pilot.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := auo.mutation.RemovedPilotsIDs(); len(nodes) > 0 && !auo.mutation.PilotsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   airline.PilotsTable,
+			Columns: []string{airline.PilotsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: pilot.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := auo.mutation.PilotsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   airline.PilotsTable,
+			Columns: []string{airline.PilotsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: pilot.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &Airline{config: auo.config}
 	_spec.Assign = _node.assignValues

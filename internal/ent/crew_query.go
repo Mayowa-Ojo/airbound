@@ -3,9 +3,13 @@
 package ent
 
 import (
+	"airbound/internal/ent/airline"
 	"airbound/internal/ent/crew"
+	"airbound/internal/ent/flight"
 	"airbound/internal/ent/predicate"
+	"airbound/internal/ent/user"
 	"context"
+	"database/sql/driver"
 	"errors"
 	"fmt"
 	"math"
@@ -25,6 +29,11 @@ type CrewQuery struct {
 	order      []OrderFunc
 	fields     []string
 	predicates []predicate.Crew
+	// eager-loading edges.
+	withUser    *UserQuery
+	withAirline *AirlineQuery
+	withFlights *FlightQuery
+	withFKs     bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -59,6 +68,72 @@ func (cq *CrewQuery) Unique(unique bool) *CrewQuery {
 func (cq *CrewQuery) Order(o ...OrderFunc) *CrewQuery {
 	cq.order = append(cq.order, o...)
 	return cq
+}
+
+// QueryUser chains the current query on the "user" edge.
+func (cq *CrewQuery) QueryUser() *UserQuery {
+	query := &UserQuery{config: cq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := cq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := cq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(crew.Table, crew.FieldID, selector),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, crew.UserTable, crew.UserColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(cq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryAirline chains the current query on the "airline" edge.
+func (cq *CrewQuery) QueryAirline() *AirlineQuery {
+	query := &AirlineQuery{config: cq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := cq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := cq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(crew.Table, crew.FieldID, selector),
+			sqlgraph.To(airline.Table, airline.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, crew.AirlineTable, crew.AirlineColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(cq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryFlights chains the current query on the "flights" edge.
+func (cq *CrewQuery) QueryFlights() *FlightQuery {
+	query := &FlightQuery{config: cq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := cq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := cq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(crew.Table, crew.FieldID, selector),
+			sqlgraph.To(flight.Table, flight.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, crew.FlightsTable, crew.FlightsPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(cq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first Crew entity from the query.
@@ -237,15 +312,51 @@ func (cq *CrewQuery) Clone() *CrewQuery {
 		return nil
 	}
 	return &CrewQuery{
-		config:     cq.config,
-		limit:      cq.limit,
-		offset:     cq.offset,
-		order:      append([]OrderFunc{}, cq.order...),
-		predicates: append([]predicate.Crew{}, cq.predicates...),
+		config:      cq.config,
+		limit:       cq.limit,
+		offset:      cq.offset,
+		order:       append([]OrderFunc{}, cq.order...),
+		predicates:  append([]predicate.Crew{}, cq.predicates...),
+		withUser:    cq.withUser.Clone(),
+		withAirline: cq.withAirline.Clone(),
+		withFlights: cq.withFlights.Clone(),
 		// clone intermediate query.
 		sql:  cq.sql.Clone(),
 		path: cq.path,
 	}
+}
+
+// WithUser tells the query-builder to eager-load the nodes that are connected to
+// the "user" edge. The optional arguments are used to configure the query builder of the edge.
+func (cq *CrewQuery) WithUser(opts ...func(*UserQuery)) *CrewQuery {
+	query := &UserQuery{config: cq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	cq.withUser = query
+	return cq
+}
+
+// WithAirline tells the query-builder to eager-load the nodes that are connected to
+// the "airline" edge. The optional arguments are used to configure the query builder of the edge.
+func (cq *CrewQuery) WithAirline(opts ...func(*AirlineQuery)) *CrewQuery {
+	query := &AirlineQuery{config: cq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	cq.withAirline = query
+	return cq
+}
+
+// WithFlights tells the query-builder to eager-load the nodes that are connected to
+// the "flights" edge. The optional arguments are used to configure the query builder of the edge.
+func (cq *CrewQuery) WithFlights(opts ...func(*FlightQuery)) *CrewQuery {
+	query := &FlightQuery{config: cq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	cq.withFlights = query
+	return cq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -311,9 +422,21 @@ func (cq *CrewQuery) prepareQuery(ctx context.Context) error {
 
 func (cq *CrewQuery) sqlAll(ctx context.Context) ([]*Crew, error) {
 	var (
-		nodes = []*Crew{}
-		_spec = cq.querySpec()
+		nodes       = []*Crew{}
+		withFKs     = cq.withFKs
+		_spec       = cq.querySpec()
+		loadedTypes = [3]bool{
+			cq.withUser != nil,
+			cq.withAirline != nil,
+			cq.withFlights != nil,
+		}
 	)
+	if cq.withUser != nil || cq.withAirline != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, crew.ForeignKeys...)
+	}
 	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
 		node := &Crew{config: cq.config}
 		nodes = append(nodes, node)
@@ -324,6 +447,7 @@ func (cq *CrewQuery) sqlAll(ctx context.Context) ([]*Crew, error) {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	if err := sqlgraph.QueryNodes(ctx, cq.driver, _spec); err != nil {
@@ -332,6 +456,130 @@ func (cq *CrewQuery) sqlAll(ctx context.Context) ([]*Crew, error) {
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+
+	if query := cq.withUser; query != nil {
+		ids := make([]uuid.UUID, 0, len(nodes))
+		nodeids := make(map[uuid.UUID][]*Crew)
+		for i := range nodes {
+			if nodes[i].user_crew == nil {
+				continue
+			}
+			fk := *nodes[i].user_crew
+			if _, ok := nodeids[fk]; !ok {
+				ids = append(ids, fk)
+			}
+			nodeids[fk] = append(nodeids[fk], nodes[i])
+		}
+		query.Where(user.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "user_crew" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.User = n
+			}
+		}
+	}
+
+	if query := cq.withAirline; query != nil {
+		ids := make([]uuid.UUID, 0, len(nodes))
+		nodeids := make(map[uuid.UUID][]*Crew)
+		for i := range nodes {
+			if nodes[i].airline_id == nil {
+				continue
+			}
+			fk := *nodes[i].airline_id
+			if _, ok := nodeids[fk]; !ok {
+				ids = append(ids, fk)
+			}
+			nodeids[fk] = append(nodeids[fk], nodes[i])
+		}
+		query.Where(airline.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "airline_id" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Airline = n
+			}
+		}
+	}
+
+	if query := cq.withFlights; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		ids := make(map[uuid.UUID]*Crew, len(nodes))
+		for _, node := range nodes {
+			ids[node.ID] = node
+			fks = append(fks, node.ID)
+			node.Edges.Flights = []*Flight{}
+		}
+		var (
+			edgeids []uuid.UUID
+			edges   = make(map[uuid.UUID][]*Crew)
+		)
+		_spec := &sqlgraph.EdgeQuerySpec{
+			Edge: &sqlgraph.EdgeSpec{
+				Inverse: true,
+				Table:   crew.FlightsTable,
+				Columns: crew.FlightsPrimaryKey,
+			},
+			Predicate: func(s *sql.Selector) {
+				s.Where(sql.InValues(crew.FlightsPrimaryKey[1], fks...))
+			},
+			ScanValues: func() [2]interface{} {
+				return [2]interface{}{new(uuid.UUID), new(uuid.UUID)}
+			},
+			Assign: func(out, in interface{}) error {
+				eout, ok := out.(*uuid.UUID)
+				if !ok || eout == nil {
+					return fmt.Errorf("unexpected id value for edge-out")
+				}
+				ein, ok := in.(*uuid.UUID)
+				if !ok || ein == nil {
+					return fmt.Errorf("unexpected id value for edge-in")
+				}
+				outValue := *eout
+				inValue := *ein
+				node, ok := ids[outValue]
+				if !ok {
+					return fmt.Errorf("unexpected node id in edges: %v", outValue)
+				}
+				if _, ok := edges[inValue]; !ok {
+					edgeids = append(edgeids, inValue)
+				}
+				edges[inValue] = append(edges[inValue], node)
+				return nil
+			},
+		}
+		if err := sqlgraph.QueryEdges(ctx, cq.driver, _spec); err != nil {
+			return nil, fmt.Errorf(`query edges "flights": %w`, err)
+		}
+		query.Where(flight.IDIn(edgeids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := edges[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected "flights" node returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Flights = append(nodes[i].Edges.Flights, n)
+			}
+		}
+	}
+
 	return nodes, nil
 }
 

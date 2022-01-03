@@ -3,7 +3,11 @@
 package ent
 
 import (
+	"airbound/internal/ent/address"
 	"airbound/internal/ent/airport"
+	"airbound/internal/ent/flight"
+	"airbound/internal/ent/frontdesk"
+	"airbound/internal/ent/itenerary"
 	"context"
 	"errors"
 	"fmt"
@@ -71,6 +75,100 @@ func (ac *AirportCreate) SetNillableUpdatedAt(t *time.Time) *AirportCreate {
 func (ac *AirportCreate) SetID(u uuid.UUID) *AirportCreate {
 	ac.mutation.SetID(u)
 	return ac
+}
+
+// SetAddressID sets the "address" edge to the Address entity by ID.
+func (ac *AirportCreate) SetAddressID(id uuid.UUID) *AirportCreate {
+	ac.mutation.SetAddressID(id)
+	return ac
+}
+
+// SetNillableAddressID sets the "address" edge to the Address entity by ID if the given value is not nil.
+func (ac *AirportCreate) SetNillableAddressID(id *uuid.UUID) *AirportCreate {
+	if id != nil {
+		ac = ac.SetAddressID(*id)
+	}
+	return ac
+}
+
+// SetAddress sets the "address" edge to the Address entity.
+func (ac *AirportCreate) SetAddress(a *Address) *AirportCreate {
+	return ac.SetAddressID(a.ID)
+}
+
+// AddFrontDeskIDs adds the "front_desks" edge to the FrontDesk entity by IDs.
+func (ac *AirportCreate) AddFrontDeskIDs(ids ...uuid.UUID) *AirportCreate {
+	ac.mutation.AddFrontDeskIDs(ids...)
+	return ac
+}
+
+// AddFrontDesks adds the "front_desks" edges to the FrontDesk entity.
+func (ac *AirportCreate) AddFrontDesks(f ...*FrontDesk) *AirportCreate {
+	ids := make([]uuid.UUID, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return ac.AddFrontDeskIDs(ids...)
+}
+
+// AddDepartureFlightIDs adds the "departure_flights" edge to the Flight entity by IDs.
+func (ac *AirportCreate) AddDepartureFlightIDs(ids ...uuid.UUID) *AirportCreate {
+	ac.mutation.AddDepartureFlightIDs(ids...)
+	return ac
+}
+
+// AddDepartureFlights adds the "departure_flights" edges to the Flight entity.
+func (ac *AirportCreate) AddDepartureFlights(f ...*Flight) *AirportCreate {
+	ids := make([]uuid.UUID, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return ac.AddDepartureFlightIDs(ids...)
+}
+
+// AddArrivalFlightIDs adds the "arrival_flights" edge to the Flight entity by IDs.
+func (ac *AirportCreate) AddArrivalFlightIDs(ids ...uuid.UUID) *AirportCreate {
+	ac.mutation.AddArrivalFlightIDs(ids...)
+	return ac
+}
+
+// AddArrivalFlights adds the "arrival_flights" edges to the Flight entity.
+func (ac *AirportCreate) AddArrivalFlights(f ...*Flight) *AirportCreate {
+	ids := make([]uuid.UUID, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return ac.AddArrivalFlightIDs(ids...)
+}
+
+// AddOriginIteneraryIDs adds the "origin_iteneraries" edge to the Itenerary entity by IDs.
+func (ac *AirportCreate) AddOriginIteneraryIDs(ids ...uuid.UUID) *AirportCreate {
+	ac.mutation.AddOriginIteneraryIDs(ids...)
+	return ac
+}
+
+// AddOriginIteneraries adds the "origin_iteneraries" edges to the Itenerary entity.
+func (ac *AirportCreate) AddOriginIteneraries(i ...*Itenerary) *AirportCreate {
+	ids := make([]uuid.UUID, len(i))
+	for j := range i {
+		ids[j] = i[j].ID
+	}
+	return ac.AddOriginIteneraryIDs(ids...)
+}
+
+// AddDestinationIteneraryIDs adds the "destination_iteneraries" edge to the Itenerary entity by IDs.
+func (ac *AirportCreate) AddDestinationIteneraryIDs(ids ...uuid.UUID) *AirportCreate {
+	ac.mutation.AddDestinationIteneraryIDs(ids...)
+	return ac
+}
+
+// AddDestinationIteneraries adds the "destination_iteneraries" edges to the Itenerary entity.
+func (ac *AirportCreate) AddDestinationIteneraries(i ...*Itenerary) *AirportCreate {
+	ids := make([]uuid.UUID, len(i))
+	for j := range i {
+		ids[j] = i[j].ID
+	}
+	return ac.AddDestinationIteneraryIDs(ids...)
 }
 
 // Mutation returns the AirportMutation object of the builder.
@@ -261,6 +359,120 @@ func (ac *AirportCreate) createSpec() (*Airport, *sqlgraph.CreateSpec) {
 			Column: airport.FieldUpdatedAt,
 		})
 		_node.UpdatedAt = value
+	}
+	if nodes := ac.mutation.AddressIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   airport.AddressTable,
+			Columns: []string{airport.AddressColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: address.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := ac.mutation.FrontDesksIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   airport.FrontDesksTable,
+			Columns: []string{airport.FrontDesksColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: frontdesk.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := ac.mutation.DepartureFlightsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   airport.DepartureFlightsTable,
+			Columns: []string{airport.DepartureFlightsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flight.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := ac.mutation.ArrivalFlightsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   airport.ArrivalFlightsTable,
+			Columns: []string{airport.ArrivalFlightsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flight.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := ac.mutation.OriginItenerariesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   airport.OriginItenerariesTable,
+			Columns: []string{airport.OriginItenerariesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: itenerary.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := ac.mutation.DestinationItenerariesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   airport.DestinationItenerariesTable,
+			Columns: []string{airport.DestinationItenerariesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: itenerary.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

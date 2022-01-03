@@ -27,8 +27,35 @@ const (
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
+	// EdgeAirline holds the string denoting the airline edge name in mutations.
+	EdgeAirline = "airline"
+	// EdgeFlightInstance holds the string denoting the flight_instance edge name in mutations.
+	EdgeFlightInstance = "flight_instance"
+	// EdgeSeats holds the string denoting the seats edge name in mutations.
+	EdgeSeats = "seats"
 	// Table holds the table name of the aircraft in the database.
 	Table = "aircrafts"
+	// AirlineTable is the table that holds the airline relation/edge.
+	AirlineTable = "aircrafts"
+	// AirlineInverseTable is the table name for the Airline entity.
+	// It exists in this package in order to avoid circular dependency with the "airline" package.
+	AirlineInverseTable = "airlines"
+	// AirlineColumn is the table column denoting the airline relation/edge.
+	AirlineColumn = "airline_id"
+	// FlightInstanceTable is the table that holds the flight_instance relation/edge.
+	FlightInstanceTable = "aircrafts"
+	// FlightInstanceInverseTable is the table name for the FlightInstance entity.
+	// It exists in this package in order to avoid circular dependency with the "flightinstance" package.
+	FlightInstanceInverseTable = "flight_instances"
+	// FlightInstanceColumn is the table column denoting the flight_instance relation/edge.
+	FlightInstanceColumn = "flight_instance_aircraft"
+	// SeatsTable is the table that holds the seats relation/edge.
+	SeatsTable = "seats"
+	// SeatsInverseTable is the table name for the Seat entity.
+	// It exists in this package in order to avoid circular dependency with the "seat" package.
+	SeatsInverseTable = "seats"
+	// SeatsColumn is the table column denoting the seats relation/edge.
+	SeatsColumn = "aircraft_id"
 )
 
 // Columns holds all SQL columns for aircraft fields.
@@ -43,10 +70,22 @@ var Columns = []string{
 	FieldUpdatedAt,
 }
 
+// ForeignKeys holds the SQL foreign-keys that are owned by the "aircrafts"
+// table and are not defined as standalone fields in the schema.
+var ForeignKeys = []string{
+	"airline_id",
+	"flight_instance_aircraft",
+}
+
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
 	for i := range Columns {
 		if column == Columns[i] {
+			return true
+		}
+	}
+	for i := range ForeignKeys {
+		if column == ForeignKeys[i] {
 			return true
 		}
 	}

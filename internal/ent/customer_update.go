@@ -4,14 +4,18 @@ package ent
 
 import (
 	"airbound/internal/ent/customer"
+	"airbound/internal/ent/itenerary"
 	"airbound/internal/ent/predicate"
+	"airbound/internal/ent/user"
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 )
 
 // CustomerUpdate is the builder for updating Customer entities.
@@ -53,9 +57,62 @@ func (cu *CustomerUpdate) SetUpdatedAt(t time.Time) *CustomerUpdate {
 	return cu
 }
 
+// SetUserID sets the "user" edge to the User entity by ID.
+func (cu *CustomerUpdate) SetUserID(id uuid.UUID) *CustomerUpdate {
+	cu.mutation.SetUserID(id)
+	return cu
+}
+
+// SetUser sets the "user" edge to the User entity.
+func (cu *CustomerUpdate) SetUser(u *User) *CustomerUpdate {
+	return cu.SetUserID(u.ID)
+}
+
+// AddIteneraryIDs adds the "iteneraries" edge to the Itenerary entity by IDs.
+func (cu *CustomerUpdate) AddIteneraryIDs(ids ...uuid.UUID) *CustomerUpdate {
+	cu.mutation.AddIteneraryIDs(ids...)
+	return cu
+}
+
+// AddIteneraries adds the "iteneraries" edges to the Itenerary entity.
+func (cu *CustomerUpdate) AddIteneraries(i ...*Itenerary) *CustomerUpdate {
+	ids := make([]uuid.UUID, len(i))
+	for j := range i {
+		ids[j] = i[j].ID
+	}
+	return cu.AddIteneraryIDs(ids...)
+}
+
 // Mutation returns the CustomerMutation object of the builder.
 func (cu *CustomerUpdate) Mutation() *CustomerMutation {
 	return cu.mutation
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (cu *CustomerUpdate) ClearUser() *CustomerUpdate {
+	cu.mutation.ClearUser()
+	return cu
+}
+
+// ClearIteneraries clears all "iteneraries" edges to the Itenerary entity.
+func (cu *CustomerUpdate) ClearIteneraries() *CustomerUpdate {
+	cu.mutation.ClearIteneraries()
+	return cu
+}
+
+// RemoveIteneraryIDs removes the "iteneraries" edge to Itenerary entities by IDs.
+func (cu *CustomerUpdate) RemoveIteneraryIDs(ids ...uuid.UUID) *CustomerUpdate {
+	cu.mutation.RemoveIteneraryIDs(ids...)
+	return cu
+}
+
+// RemoveIteneraries removes "iteneraries" edges to Itenerary entities.
+func (cu *CustomerUpdate) RemoveIteneraries(i ...*Itenerary) *CustomerUpdate {
+	ids := make([]uuid.UUID, len(i))
+	for j := range i {
+		ids[j] = i[j].ID
+	}
+	return cu.RemoveIteneraryIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -134,6 +191,9 @@ func (cu *CustomerUpdate) check() error {
 			return &ValidationError{Name: "frequent_flyer_number", err: fmt.Errorf("ent: validator failed for field \"frequent_flyer_number\": %w", err)}
 		}
 	}
+	if _, ok := cu.mutation.UserID(); cu.mutation.UserCleared() && !ok {
+		return errors.New("ent: clearing a required unique edge \"user\"")
+	}
 	return nil
 }
 
@@ -175,6 +235,95 @@ func (cu *CustomerUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Value:  value,
 			Column: customer.FieldUpdatedAt,
 		})
+	}
+	if cu.mutation.UserCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   customer.UserTable,
+			Columns: []string{customer.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cu.mutation.UserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   customer.UserTable,
+			Columns: []string{customer.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if cu.mutation.ItenerariesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   customer.ItenerariesTable,
+			Columns: []string{customer.ItenerariesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: itenerary.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cu.mutation.RemovedItenerariesIDs(); len(nodes) > 0 && !cu.mutation.ItenerariesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   customer.ItenerariesTable,
+			Columns: []string{customer.ItenerariesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: itenerary.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cu.mutation.ItenerariesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   customer.ItenerariesTable,
+			Columns: []string{customer.ItenerariesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: itenerary.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, cu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -221,9 +370,62 @@ func (cuo *CustomerUpdateOne) SetUpdatedAt(t time.Time) *CustomerUpdateOne {
 	return cuo
 }
 
+// SetUserID sets the "user" edge to the User entity by ID.
+func (cuo *CustomerUpdateOne) SetUserID(id uuid.UUID) *CustomerUpdateOne {
+	cuo.mutation.SetUserID(id)
+	return cuo
+}
+
+// SetUser sets the "user" edge to the User entity.
+func (cuo *CustomerUpdateOne) SetUser(u *User) *CustomerUpdateOne {
+	return cuo.SetUserID(u.ID)
+}
+
+// AddIteneraryIDs adds the "iteneraries" edge to the Itenerary entity by IDs.
+func (cuo *CustomerUpdateOne) AddIteneraryIDs(ids ...uuid.UUID) *CustomerUpdateOne {
+	cuo.mutation.AddIteneraryIDs(ids...)
+	return cuo
+}
+
+// AddIteneraries adds the "iteneraries" edges to the Itenerary entity.
+func (cuo *CustomerUpdateOne) AddIteneraries(i ...*Itenerary) *CustomerUpdateOne {
+	ids := make([]uuid.UUID, len(i))
+	for j := range i {
+		ids[j] = i[j].ID
+	}
+	return cuo.AddIteneraryIDs(ids...)
+}
+
 // Mutation returns the CustomerMutation object of the builder.
 func (cuo *CustomerUpdateOne) Mutation() *CustomerMutation {
 	return cuo.mutation
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (cuo *CustomerUpdateOne) ClearUser() *CustomerUpdateOne {
+	cuo.mutation.ClearUser()
+	return cuo
+}
+
+// ClearIteneraries clears all "iteneraries" edges to the Itenerary entity.
+func (cuo *CustomerUpdateOne) ClearIteneraries() *CustomerUpdateOne {
+	cuo.mutation.ClearIteneraries()
+	return cuo
+}
+
+// RemoveIteneraryIDs removes the "iteneraries" edge to Itenerary entities by IDs.
+func (cuo *CustomerUpdateOne) RemoveIteneraryIDs(ids ...uuid.UUID) *CustomerUpdateOne {
+	cuo.mutation.RemoveIteneraryIDs(ids...)
+	return cuo
+}
+
+// RemoveIteneraries removes "iteneraries" edges to Itenerary entities.
+func (cuo *CustomerUpdateOne) RemoveIteneraries(i ...*Itenerary) *CustomerUpdateOne {
+	ids := make([]uuid.UUID, len(i))
+	for j := range i {
+		ids[j] = i[j].ID
+	}
+	return cuo.RemoveIteneraryIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -309,6 +511,9 @@ func (cuo *CustomerUpdateOne) check() error {
 			return &ValidationError{Name: "frequent_flyer_number", err: fmt.Errorf("ent: validator failed for field \"frequent_flyer_number\": %w", err)}
 		}
 	}
+	if _, ok := cuo.mutation.UserID(); cuo.mutation.UserCleared() && !ok {
+		return errors.New("ent: clearing a required unique edge \"user\"")
+	}
 	return nil
 }
 
@@ -367,6 +572,95 @@ func (cuo *CustomerUpdateOne) sqlSave(ctx context.Context) (_node *Customer, err
 			Value:  value,
 			Column: customer.FieldUpdatedAt,
 		})
+	}
+	if cuo.mutation.UserCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   customer.UserTable,
+			Columns: []string{customer.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cuo.mutation.UserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   customer.UserTable,
+			Columns: []string{customer.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if cuo.mutation.ItenerariesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   customer.ItenerariesTable,
+			Columns: []string{customer.ItenerariesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: itenerary.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cuo.mutation.RemovedItenerariesIDs(); len(nodes) > 0 && !cuo.mutation.ItenerariesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   customer.ItenerariesTable,
+			Columns: []string{customer.ItenerariesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: itenerary.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cuo.mutation.ItenerariesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   customer.ItenerariesTable,
+			Columns: []string{customer.ItenerariesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: itenerary.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &Customer{config: cuo.config}
 	_spec.Assign = _node.assignValues

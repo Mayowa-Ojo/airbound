@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"airbound/internal/ent/airport"
 	"airbound/internal/ent/enums"
 	"airbound/internal/ent/flight"
 	"fmt"
@@ -30,6 +31,83 @@ type Flight struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the FlightQuery when eager-loading is set.
+	Edges               FlightEdges `json:"edges"`
+	depature_airport_id *uuid.UUID
+	arrival_airport_id  *uuid.UUID
+}
+
+// FlightEdges holds the relations/edges for other nodes in the graph.
+type FlightEdges struct {
+	// FlightInstances holds the value of the flight_instances edge.
+	FlightInstances []*FlightInstance `json:"flight_instances,omitempty"`
+	// FlightSchedules holds the value of the flight_schedules edge.
+	FlightSchedules []*FlightSchedule `json:"flight_schedules,omitempty"`
+	// Crews holds the value of the crews edge.
+	Crews []*Crew `json:"crews,omitempty"`
+	// DepartureAirport holds the value of the departure_airport edge.
+	DepartureAirport *Airport `json:"departure_airport,omitempty"`
+	// ArrivalAirport holds the value of the arrival_airport edge.
+	ArrivalAirport *Airport `json:"arrival_airport,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [5]bool
+}
+
+// FlightInstancesOrErr returns the FlightInstances value or an error if the edge
+// was not loaded in eager-loading.
+func (e FlightEdges) FlightInstancesOrErr() ([]*FlightInstance, error) {
+	if e.loadedTypes[0] {
+		return e.FlightInstances, nil
+	}
+	return nil, &NotLoadedError{edge: "flight_instances"}
+}
+
+// FlightSchedulesOrErr returns the FlightSchedules value or an error if the edge
+// was not loaded in eager-loading.
+func (e FlightEdges) FlightSchedulesOrErr() ([]*FlightSchedule, error) {
+	if e.loadedTypes[1] {
+		return e.FlightSchedules, nil
+	}
+	return nil, &NotLoadedError{edge: "flight_schedules"}
+}
+
+// CrewsOrErr returns the Crews value or an error if the edge
+// was not loaded in eager-loading.
+func (e FlightEdges) CrewsOrErr() ([]*Crew, error) {
+	if e.loadedTypes[2] {
+		return e.Crews, nil
+	}
+	return nil, &NotLoadedError{edge: "crews"}
+}
+
+// DepartureAirportOrErr returns the DepartureAirport value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e FlightEdges) DepartureAirportOrErr() (*Airport, error) {
+	if e.loadedTypes[3] {
+		if e.DepartureAirport == nil {
+			// The edge departure_airport was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: airport.Label}
+		}
+		return e.DepartureAirport, nil
+	}
+	return nil, &NotLoadedError{edge: "departure_airport"}
+}
+
+// ArrivalAirportOrErr returns the ArrivalAirport value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e FlightEdges) ArrivalAirportOrErr() (*Airport, error) {
+	if e.loadedTypes[4] {
+		if e.ArrivalAirport == nil {
+			// The edge arrival_airport was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: airport.Label}
+		}
+		return e.ArrivalAirport, nil
+	}
+	return nil, &NotLoadedError{edge: "arrival_airport"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -45,6 +123,10 @@ func (*Flight) scanValues(columns []string) ([]interface{}, error) {
 			values[i] = new(sql.NullTime)
 		case flight.FieldID:
 			values[i] = new(uuid.UUID)
+		case flight.ForeignKeys[0]: // depature_airport_id
+			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
+		case flight.ForeignKeys[1]: // arrival_airport_id
+			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Flight", columns[i])
 		}
@@ -102,9 +184,48 @@ func (f *Flight) assignValues(columns []string, values []interface{}) error {
 			} else if value.Valid {
 				f.UpdatedAt = value.Time
 			}
+		case flight.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field depature_airport_id", values[i])
+			} else if value.Valid {
+				f.depature_airport_id = new(uuid.UUID)
+				*f.depature_airport_id = *value.S.(*uuid.UUID)
+			}
+		case flight.ForeignKeys[1]:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field arrival_airport_id", values[i])
+			} else if value.Valid {
+				f.arrival_airport_id = new(uuid.UUID)
+				*f.arrival_airport_id = *value.S.(*uuid.UUID)
+			}
 		}
 	}
 	return nil
+}
+
+// QueryFlightInstances queries the "flight_instances" edge of the Flight entity.
+func (f *Flight) QueryFlightInstances() *FlightInstanceQuery {
+	return (&FlightClient{config: f.config}).QueryFlightInstances(f)
+}
+
+// QueryFlightSchedules queries the "flight_schedules" edge of the Flight entity.
+func (f *Flight) QueryFlightSchedules() *FlightScheduleQuery {
+	return (&FlightClient{config: f.config}).QueryFlightSchedules(f)
+}
+
+// QueryCrews queries the "crews" edge of the Flight entity.
+func (f *Flight) QueryCrews() *CrewQuery {
+	return (&FlightClient{config: f.config}).QueryCrews(f)
+}
+
+// QueryDepartureAirport queries the "departure_airport" edge of the Flight entity.
+func (f *Flight) QueryDepartureAirport() *AirportQuery {
+	return (&FlightClient{config: f.config}).QueryDepartureAirport(f)
+}
+
+// QueryArrivalAirport queries the "arrival_airport" edge of the Flight entity.
+func (f *Flight) QueryArrivalAirport() *AirportQuery {
+	return (&FlightClient{config: f.config}).QueryArrivalAirport(f)
 }
 
 // Update returns a builder for updating this Flight.

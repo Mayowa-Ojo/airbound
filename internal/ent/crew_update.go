@@ -3,15 +3,20 @@
 package ent
 
 import (
+	"airbound/internal/ent/airline"
 	"airbound/internal/ent/crew"
+	"airbound/internal/ent/flight"
 	"airbound/internal/ent/predicate"
+	"airbound/internal/ent/user"
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 )
 
 // CrewUpdate is the builder for updating Crew entities.
@@ -53,9 +58,87 @@ func (cu *CrewUpdate) SetUpdatedAt(t time.Time) *CrewUpdate {
 	return cu
 }
 
+// SetUserID sets the "user" edge to the User entity by ID.
+func (cu *CrewUpdate) SetUserID(id uuid.UUID) *CrewUpdate {
+	cu.mutation.SetUserID(id)
+	return cu
+}
+
+// SetUser sets the "user" edge to the User entity.
+func (cu *CrewUpdate) SetUser(u *User) *CrewUpdate {
+	return cu.SetUserID(u.ID)
+}
+
+// SetAirlineID sets the "airline" edge to the Airline entity by ID.
+func (cu *CrewUpdate) SetAirlineID(id uuid.UUID) *CrewUpdate {
+	cu.mutation.SetAirlineID(id)
+	return cu
+}
+
+// SetNillableAirlineID sets the "airline" edge to the Airline entity by ID if the given value is not nil.
+func (cu *CrewUpdate) SetNillableAirlineID(id *uuid.UUID) *CrewUpdate {
+	if id != nil {
+		cu = cu.SetAirlineID(*id)
+	}
+	return cu
+}
+
+// SetAirline sets the "airline" edge to the Airline entity.
+func (cu *CrewUpdate) SetAirline(a *Airline) *CrewUpdate {
+	return cu.SetAirlineID(a.ID)
+}
+
+// AddFlightIDs adds the "flights" edge to the Flight entity by IDs.
+func (cu *CrewUpdate) AddFlightIDs(ids ...uuid.UUID) *CrewUpdate {
+	cu.mutation.AddFlightIDs(ids...)
+	return cu
+}
+
+// AddFlights adds the "flights" edges to the Flight entity.
+func (cu *CrewUpdate) AddFlights(f ...*Flight) *CrewUpdate {
+	ids := make([]uuid.UUID, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return cu.AddFlightIDs(ids...)
+}
+
 // Mutation returns the CrewMutation object of the builder.
 func (cu *CrewUpdate) Mutation() *CrewMutation {
 	return cu.mutation
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (cu *CrewUpdate) ClearUser() *CrewUpdate {
+	cu.mutation.ClearUser()
+	return cu
+}
+
+// ClearAirline clears the "airline" edge to the Airline entity.
+func (cu *CrewUpdate) ClearAirline() *CrewUpdate {
+	cu.mutation.ClearAirline()
+	return cu
+}
+
+// ClearFlights clears all "flights" edges to the Flight entity.
+func (cu *CrewUpdate) ClearFlights() *CrewUpdate {
+	cu.mutation.ClearFlights()
+	return cu
+}
+
+// RemoveFlightIDs removes the "flights" edge to Flight entities by IDs.
+func (cu *CrewUpdate) RemoveFlightIDs(ids ...uuid.UUID) *CrewUpdate {
+	cu.mutation.RemoveFlightIDs(ids...)
+	return cu
+}
+
+// RemoveFlights removes "flights" edges to Flight entities.
+func (cu *CrewUpdate) RemoveFlights(f ...*Flight) *CrewUpdate {
+	ids := make([]uuid.UUID, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return cu.RemoveFlightIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -134,6 +217,9 @@ func (cu *CrewUpdate) check() error {
 			return &ValidationError{Name: "employee_id", err: fmt.Errorf("ent: validator failed for field \"employee_id\": %w", err)}
 		}
 	}
+	if _, ok := cu.mutation.UserID(); cu.mutation.UserCleared() && !ok {
+		return errors.New("ent: clearing a required unique edge \"user\"")
+	}
 	return nil
 }
 
@@ -175,6 +261,130 @@ func (cu *CrewUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Value:  value,
 			Column: crew.FieldUpdatedAt,
 		})
+	}
+	if cu.mutation.UserCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   crew.UserTable,
+			Columns: []string{crew.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cu.mutation.UserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   crew.UserTable,
+			Columns: []string{crew.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if cu.mutation.AirlineCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   crew.AirlineTable,
+			Columns: []string{crew.AirlineColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: airline.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cu.mutation.AirlineIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   crew.AirlineTable,
+			Columns: []string{crew.AirlineColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: airline.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if cu.mutation.FlightsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   crew.FlightsTable,
+			Columns: crew.FlightsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flight.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cu.mutation.RemovedFlightsIDs(); len(nodes) > 0 && !cu.mutation.FlightsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   crew.FlightsTable,
+			Columns: crew.FlightsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flight.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cu.mutation.FlightsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   crew.FlightsTable,
+			Columns: crew.FlightsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flight.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, cu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -221,9 +431,87 @@ func (cuo *CrewUpdateOne) SetUpdatedAt(t time.Time) *CrewUpdateOne {
 	return cuo
 }
 
+// SetUserID sets the "user" edge to the User entity by ID.
+func (cuo *CrewUpdateOne) SetUserID(id uuid.UUID) *CrewUpdateOne {
+	cuo.mutation.SetUserID(id)
+	return cuo
+}
+
+// SetUser sets the "user" edge to the User entity.
+func (cuo *CrewUpdateOne) SetUser(u *User) *CrewUpdateOne {
+	return cuo.SetUserID(u.ID)
+}
+
+// SetAirlineID sets the "airline" edge to the Airline entity by ID.
+func (cuo *CrewUpdateOne) SetAirlineID(id uuid.UUID) *CrewUpdateOne {
+	cuo.mutation.SetAirlineID(id)
+	return cuo
+}
+
+// SetNillableAirlineID sets the "airline" edge to the Airline entity by ID if the given value is not nil.
+func (cuo *CrewUpdateOne) SetNillableAirlineID(id *uuid.UUID) *CrewUpdateOne {
+	if id != nil {
+		cuo = cuo.SetAirlineID(*id)
+	}
+	return cuo
+}
+
+// SetAirline sets the "airline" edge to the Airline entity.
+func (cuo *CrewUpdateOne) SetAirline(a *Airline) *CrewUpdateOne {
+	return cuo.SetAirlineID(a.ID)
+}
+
+// AddFlightIDs adds the "flights" edge to the Flight entity by IDs.
+func (cuo *CrewUpdateOne) AddFlightIDs(ids ...uuid.UUID) *CrewUpdateOne {
+	cuo.mutation.AddFlightIDs(ids...)
+	return cuo
+}
+
+// AddFlights adds the "flights" edges to the Flight entity.
+func (cuo *CrewUpdateOne) AddFlights(f ...*Flight) *CrewUpdateOne {
+	ids := make([]uuid.UUID, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return cuo.AddFlightIDs(ids...)
+}
+
 // Mutation returns the CrewMutation object of the builder.
 func (cuo *CrewUpdateOne) Mutation() *CrewMutation {
 	return cuo.mutation
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (cuo *CrewUpdateOne) ClearUser() *CrewUpdateOne {
+	cuo.mutation.ClearUser()
+	return cuo
+}
+
+// ClearAirline clears the "airline" edge to the Airline entity.
+func (cuo *CrewUpdateOne) ClearAirline() *CrewUpdateOne {
+	cuo.mutation.ClearAirline()
+	return cuo
+}
+
+// ClearFlights clears all "flights" edges to the Flight entity.
+func (cuo *CrewUpdateOne) ClearFlights() *CrewUpdateOne {
+	cuo.mutation.ClearFlights()
+	return cuo
+}
+
+// RemoveFlightIDs removes the "flights" edge to Flight entities by IDs.
+func (cuo *CrewUpdateOne) RemoveFlightIDs(ids ...uuid.UUID) *CrewUpdateOne {
+	cuo.mutation.RemoveFlightIDs(ids...)
+	return cuo
+}
+
+// RemoveFlights removes "flights" edges to Flight entities.
+func (cuo *CrewUpdateOne) RemoveFlights(f ...*Flight) *CrewUpdateOne {
+	ids := make([]uuid.UUID, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return cuo.RemoveFlightIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -309,6 +597,9 @@ func (cuo *CrewUpdateOne) check() error {
 			return &ValidationError{Name: "employee_id", err: fmt.Errorf("ent: validator failed for field \"employee_id\": %w", err)}
 		}
 	}
+	if _, ok := cuo.mutation.UserID(); cuo.mutation.UserCleared() && !ok {
+		return errors.New("ent: clearing a required unique edge \"user\"")
+	}
 	return nil
 }
 
@@ -367,6 +658,130 @@ func (cuo *CrewUpdateOne) sqlSave(ctx context.Context) (_node *Crew, err error) 
 			Value:  value,
 			Column: crew.FieldUpdatedAt,
 		})
+	}
+	if cuo.mutation.UserCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   crew.UserTable,
+			Columns: []string{crew.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cuo.mutation.UserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   crew.UserTable,
+			Columns: []string{crew.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if cuo.mutation.AirlineCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   crew.AirlineTable,
+			Columns: []string{crew.AirlineColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: airline.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cuo.mutation.AirlineIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   crew.AirlineTable,
+			Columns: []string{crew.AirlineColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: airline.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if cuo.mutation.FlightsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   crew.FlightsTable,
+			Columns: crew.FlightsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flight.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cuo.mutation.RemovedFlightsIDs(); len(nodes) > 0 && !cuo.mutation.FlightsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   crew.FlightsTable,
+			Columns: crew.FlightsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flight.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cuo.mutation.FlightsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   crew.FlightsTable,
+			Columns: crew.FlightsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flight.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &Crew{config: cuo.config}
 	_spec.Assign = _node.assignValues

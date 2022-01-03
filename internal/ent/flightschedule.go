@@ -5,6 +5,7 @@ package ent
 import (
 	"airbound/internal/ent/customtypes"
 	"airbound/internal/ent/enums"
+	"airbound/internal/ent/flight"
 	"airbound/internal/ent/flightschedule"
 	"fmt"
 	"strings"
@@ -33,6 +34,33 @@ type FlightSchedule struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the FlightScheduleQuery when eager-loading is set.
+	Edges     FlightScheduleEdges `json:"edges"`
+	flight_id *uuid.UUID
+}
+
+// FlightScheduleEdges holds the relations/edges for other nodes in the graph.
+type FlightScheduleEdges struct {
+	// Flight holds the value of the flight edge.
+	Flight *Flight `json:"flight,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+}
+
+// FlightOrErr returns the Flight value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e FlightScheduleEdges) FlightOrErr() (*Flight, error) {
+	if e.loadedTypes[0] {
+		if e.Flight == nil {
+			// The edge flight was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: flight.Label}
+		}
+		return e.Flight, nil
+	}
+	return nil, &NotLoadedError{edge: "flight"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -52,6 +80,8 @@ func (*FlightSchedule) scanValues(columns []string) ([]interface{}, error) {
 			values[i] = new(sql.NullTime)
 		case flightschedule.FieldID:
 			values[i] = new(uuid.UUID)
+		case flightschedule.ForeignKeys[0]: // flight_id
+			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type FlightSchedule", columns[i])
 		}
@@ -115,9 +145,21 @@ func (fs *FlightSchedule) assignValues(columns []string, values []interface{}) e
 			} else if value.Valid {
 				fs.UpdatedAt = value.Time
 			}
+		case flightschedule.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field flight_id", values[i])
+			} else if value.Valid {
+				fs.flight_id = new(uuid.UUID)
+				*fs.flight_id = *value.S.(*uuid.UUID)
+			}
 		}
 	}
 	return nil
+}
+
+// QueryFlight queries the "flight" edge of the FlightSchedule entity.
+func (fs *FlightSchedule) QueryFlight() *FlightQuery {
+	return (&FlightScheduleClient{config: fs.config}).QueryFlight(fs)
 }
 
 // Update returns a builder for updating this FlightSchedule.

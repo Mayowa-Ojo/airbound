@@ -3,6 +3,7 @@ package customtypes
 import (
 	"database/sql/driver"
 	"fmt"
+	"time"
 
 	"cloud.google.com/go/civil"
 )
@@ -20,7 +21,7 @@ func (t Time) String() string {
 }
 
 func (t Time) Value() (driver.Value, error) {
-	return t.String, nil
+	return t.String(), nil
 }
 
 func (t Time) Scan(value interface{}) error {
@@ -33,6 +34,13 @@ func (t Time) Scan(value interface{}) error {
 		s = string(v)
 	case string:
 		s = v
+	case time.Time:
+		tt := civil.TimeOf(v)
+		t.Hour = tt.Hour
+		t.Minute = tt.Minute
+		t.Second = tt.Second
+		t.Nanosecond = tt.Hour
+		return nil
 	default:
 		return fmt.Errorf("unexpected type %T", v)
 	}
@@ -57,7 +65,7 @@ func (d Date) String() string {
 }
 
 func (d Date) Value() (driver.Value, error) {
-	return d.String, nil
+	return d.String(), nil
 }
 
 func (d Date) Scan(value interface{}) error {
@@ -70,6 +78,12 @@ func (d Date) Scan(value interface{}) error {
 		s = string(v)
 	case string:
 		s = v
+	case time.Time:
+		dt := civil.DateOf(v)
+		d.Year = dt.Year
+		d.Month = dt.Month
+		d.Day = dt.Day
+		return nil
 	default:
 		return fmt.Errorf("unexpected type %T", v)
 	}

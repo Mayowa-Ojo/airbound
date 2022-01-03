@@ -4,7 +4,10 @@ package ent
 
 import (
 	"airbound/internal/ent/enums"
+	"airbound/internal/ent/flightinstance"
 	"airbound/internal/ent/flightreservation"
+	"airbound/internal/ent/itenerary"
+	"airbound/internal/ent/passenger"
 	"airbound/internal/ent/predicate"
 	"context"
 	"fmt"
@@ -13,6 +16,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 )
 
 // FlightReservationUpdate is the builder for updating FlightReservation entities.
@@ -60,9 +64,95 @@ func (fru *FlightReservationUpdate) SetUpdatedAt(t time.Time) *FlightReservation
 	return fru
 }
 
+// SetFlightInstanceID sets the "flight_instance" edge to the FlightInstance entity by ID.
+func (fru *FlightReservationUpdate) SetFlightInstanceID(id uuid.UUID) *FlightReservationUpdate {
+	fru.mutation.SetFlightInstanceID(id)
+	return fru
+}
+
+// SetNillableFlightInstanceID sets the "flight_instance" edge to the FlightInstance entity by ID if the given value is not nil.
+func (fru *FlightReservationUpdate) SetNillableFlightInstanceID(id *uuid.UUID) *FlightReservationUpdate {
+	if id != nil {
+		fru = fru.SetFlightInstanceID(*id)
+	}
+	return fru
+}
+
+// SetFlightInstance sets the "flight_instance" edge to the FlightInstance entity.
+func (fru *FlightReservationUpdate) SetFlightInstance(f *FlightInstance) *FlightReservationUpdate {
+	return fru.SetFlightInstanceID(f.ID)
+}
+
+// SetIteneraryID sets the "itenerary" edge to the Itenerary entity by ID.
+func (fru *FlightReservationUpdate) SetIteneraryID(id uuid.UUID) *FlightReservationUpdate {
+	fru.mutation.SetIteneraryID(id)
+	return fru
+}
+
+// SetNillableIteneraryID sets the "itenerary" edge to the Itenerary entity by ID if the given value is not nil.
+func (fru *FlightReservationUpdate) SetNillableIteneraryID(id *uuid.UUID) *FlightReservationUpdate {
+	if id != nil {
+		fru = fru.SetIteneraryID(*id)
+	}
+	return fru
+}
+
+// SetItenerary sets the "itenerary" edge to the Itenerary entity.
+func (fru *FlightReservationUpdate) SetItenerary(i *Itenerary) *FlightReservationUpdate {
+	return fru.SetIteneraryID(i.ID)
+}
+
+// AddPassengerIDs adds the "passengers" edge to the Passenger entity by IDs.
+func (fru *FlightReservationUpdate) AddPassengerIDs(ids ...uuid.UUID) *FlightReservationUpdate {
+	fru.mutation.AddPassengerIDs(ids...)
+	return fru
+}
+
+// AddPassengers adds the "passengers" edges to the Passenger entity.
+func (fru *FlightReservationUpdate) AddPassengers(p ...*Passenger) *FlightReservationUpdate {
+	ids := make([]uuid.UUID, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return fru.AddPassengerIDs(ids...)
+}
+
 // Mutation returns the FlightReservationMutation object of the builder.
 func (fru *FlightReservationUpdate) Mutation() *FlightReservationMutation {
 	return fru.mutation
+}
+
+// ClearFlightInstance clears the "flight_instance" edge to the FlightInstance entity.
+func (fru *FlightReservationUpdate) ClearFlightInstance() *FlightReservationUpdate {
+	fru.mutation.ClearFlightInstance()
+	return fru
+}
+
+// ClearItenerary clears the "itenerary" edge to the Itenerary entity.
+func (fru *FlightReservationUpdate) ClearItenerary() *FlightReservationUpdate {
+	fru.mutation.ClearItenerary()
+	return fru
+}
+
+// ClearPassengers clears all "passengers" edges to the Passenger entity.
+func (fru *FlightReservationUpdate) ClearPassengers() *FlightReservationUpdate {
+	fru.mutation.ClearPassengers()
+	return fru
+}
+
+// RemovePassengerIDs removes the "passengers" edge to Passenger entities by IDs.
+func (fru *FlightReservationUpdate) RemovePassengerIDs(ids ...uuid.UUID) *FlightReservationUpdate {
+	fru.mutation.RemovePassengerIDs(ids...)
+	return fru
+}
+
+// RemovePassengers removes "passengers" edges to Passenger entities.
+func (fru *FlightReservationUpdate) RemovePassengers(p ...*Passenger) *FlightReservationUpdate {
+	ids := make([]uuid.UUID, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return fru.RemovePassengerIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -195,6 +285,130 @@ func (fru *FlightReservationUpdate) sqlSave(ctx context.Context) (n int, err err
 			Column: flightreservation.FieldUpdatedAt,
 		})
 	}
+	if fru.mutation.FlightInstanceCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   flightreservation.FlightInstanceTable,
+			Columns: []string{flightreservation.FlightInstanceColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flightinstance.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fru.mutation.FlightInstanceIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   flightreservation.FlightInstanceTable,
+			Columns: []string{flightreservation.FlightInstanceColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flightinstance.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if fru.mutation.IteneraryCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   flightreservation.IteneraryTable,
+			Columns: []string{flightreservation.IteneraryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: itenerary.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fru.mutation.IteneraryIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   flightreservation.IteneraryTable,
+			Columns: []string{flightreservation.IteneraryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: itenerary.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if fru.mutation.PassengersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   flightreservation.PassengersTable,
+			Columns: []string{flightreservation.PassengersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: passenger.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fru.mutation.RemovedPassengersIDs(); len(nodes) > 0 && !fru.mutation.PassengersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   flightreservation.PassengersTable,
+			Columns: []string{flightreservation.PassengersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: passenger.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fru.mutation.PassengersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   flightreservation.PassengersTable,
+			Columns: []string{flightreservation.PassengersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: passenger.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, fru.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{flightreservation.Label}
@@ -246,9 +460,95 @@ func (fruo *FlightReservationUpdateOne) SetUpdatedAt(t time.Time) *FlightReserva
 	return fruo
 }
 
+// SetFlightInstanceID sets the "flight_instance" edge to the FlightInstance entity by ID.
+func (fruo *FlightReservationUpdateOne) SetFlightInstanceID(id uuid.UUID) *FlightReservationUpdateOne {
+	fruo.mutation.SetFlightInstanceID(id)
+	return fruo
+}
+
+// SetNillableFlightInstanceID sets the "flight_instance" edge to the FlightInstance entity by ID if the given value is not nil.
+func (fruo *FlightReservationUpdateOne) SetNillableFlightInstanceID(id *uuid.UUID) *FlightReservationUpdateOne {
+	if id != nil {
+		fruo = fruo.SetFlightInstanceID(*id)
+	}
+	return fruo
+}
+
+// SetFlightInstance sets the "flight_instance" edge to the FlightInstance entity.
+func (fruo *FlightReservationUpdateOne) SetFlightInstance(f *FlightInstance) *FlightReservationUpdateOne {
+	return fruo.SetFlightInstanceID(f.ID)
+}
+
+// SetIteneraryID sets the "itenerary" edge to the Itenerary entity by ID.
+func (fruo *FlightReservationUpdateOne) SetIteneraryID(id uuid.UUID) *FlightReservationUpdateOne {
+	fruo.mutation.SetIteneraryID(id)
+	return fruo
+}
+
+// SetNillableIteneraryID sets the "itenerary" edge to the Itenerary entity by ID if the given value is not nil.
+func (fruo *FlightReservationUpdateOne) SetNillableIteneraryID(id *uuid.UUID) *FlightReservationUpdateOne {
+	if id != nil {
+		fruo = fruo.SetIteneraryID(*id)
+	}
+	return fruo
+}
+
+// SetItenerary sets the "itenerary" edge to the Itenerary entity.
+func (fruo *FlightReservationUpdateOne) SetItenerary(i *Itenerary) *FlightReservationUpdateOne {
+	return fruo.SetIteneraryID(i.ID)
+}
+
+// AddPassengerIDs adds the "passengers" edge to the Passenger entity by IDs.
+func (fruo *FlightReservationUpdateOne) AddPassengerIDs(ids ...uuid.UUID) *FlightReservationUpdateOne {
+	fruo.mutation.AddPassengerIDs(ids...)
+	return fruo
+}
+
+// AddPassengers adds the "passengers" edges to the Passenger entity.
+func (fruo *FlightReservationUpdateOne) AddPassengers(p ...*Passenger) *FlightReservationUpdateOne {
+	ids := make([]uuid.UUID, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return fruo.AddPassengerIDs(ids...)
+}
+
 // Mutation returns the FlightReservationMutation object of the builder.
 func (fruo *FlightReservationUpdateOne) Mutation() *FlightReservationMutation {
 	return fruo.mutation
+}
+
+// ClearFlightInstance clears the "flight_instance" edge to the FlightInstance entity.
+func (fruo *FlightReservationUpdateOne) ClearFlightInstance() *FlightReservationUpdateOne {
+	fruo.mutation.ClearFlightInstance()
+	return fruo
+}
+
+// ClearItenerary clears the "itenerary" edge to the Itenerary entity.
+func (fruo *FlightReservationUpdateOne) ClearItenerary() *FlightReservationUpdateOne {
+	fruo.mutation.ClearItenerary()
+	return fruo
+}
+
+// ClearPassengers clears all "passengers" edges to the Passenger entity.
+func (fruo *FlightReservationUpdateOne) ClearPassengers() *FlightReservationUpdateOne {
+	fruo.mutation.ClearPassengers()
+	return fruo
+}
+
+// RemovePassengerIDs removes the "passengers" edge to Passenger entities by IDs.
+func (fruo *FlightReservationUpdateOne) RemovePassengerIDs(ids ...uuid.UUID) *FlightReservationUpdateOne {
+	fruo.mutation.RemovePassengerIDs(ids...)
+	return fruo
+}
+
+// RemovePassengers removes "passengers" edges to Passenger entities.
+func (fruo *FlightReservationUpdateOne) RemovePassengers(p ...*Passenger) *FlightReservationUpdateOne {
+	ids := make([]uuid.UUID, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return fruo.RemovePassengerIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -404,6 +704,130 @@ func (fruo *FlightReservationUpdateOne) sqlSave(ctx context.Context) (_node *Fli
 			Value:  value,
 			Column: flightreservation.FieldUpdatedAt,
 		})
+	}
+	if fruo.mutation.FlightInstanceCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   flightreservation.FlightInstanceTable,
+			Columns: []string{flightreservation.FlightInstanceColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flightinstance.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fruo.mutation.FlightInstanceIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   flightreservation.FlightInstanceTable,
+			Columns: []string{flightreservation.FlightInstanceColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flightinstance.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if fruo.mutation.IteneraryCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   flightreservation.IteneraryTable,
+			Columns: []string{flightreservation.IteneraryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: itenerary.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fruo.mutation.IteneraryIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   flightreservation.IteneraryTable,
+			Columns: []string{flightreservation.IteneraryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: itenerary.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if fruo.mutation.PassengersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   flightreservation.PassengersTable,
+			Columns: []string{flightreservation.PassengersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: passenger.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fruo.mutation.RemovedPassengersIDs(); len(nodes) > 0 && !fruo.mutation.PassengersCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   flightreservation.PassengersTable,
+			Columns: []string{flightreservation.PassengersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: passenger.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fruo.mutation.PassengersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   flightreservation.PassengersTable,
+			Columns: []string{flightreservation.PassengersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: passenger.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &FlightReservation{config: fruo.config}
 	_spec.Assign = _node.assignValues

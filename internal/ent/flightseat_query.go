@@ -3,8 +3,11 @@
 package ent
 
 import (
+	"airbound/internal/ent/flightinstance"
 	"airbound/internal/ent/flightseat"
+	"airbound/internal/ent/passenger"
 	"airbound/internal/ent/predicate"
+	"airbound/internal/ent/seat"
 	"context"
 	"errors"
 	"fmt"
@@ -25,6 +28,11 @@ type FlightSeatQuery struct {
 	order      []OrderFunc
 	fields     []string
 	predicates []predicate.FlightSeat
+	// eager-loading edges.
+	withFlightInstance *FlightInstanceQuery
+	withSeat           *SeatQuery
+	withPassenger      *PassengerQuery
+	withFKs            bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -59,6 +67,72 @@ func (fsq *FlightSeatQuery) Unique(unique bool) *FlightSeatQuery {
 func (fsq *FlightSeatQuery) Order(o ...OrderFunc) *FlightSeatQuery {
 	fsq.order = append(fsq.order, o...)
 	return fsq
+}
+
+// QueryFlightInstance chains the current query on the "flight_instance" edge.
+func (fsq *FlightSeatQuery) QueryFlightInstance() *FlightInstanceQuery {
+	query := &FlightInstanceQuery{config: fsq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := fsq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := fsq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(flightseat.Table, flightseat.FieldID, selector),
+			sqlgraph.To(flightinstance.Table, flightinstance.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, flightseat.FlightInstanceTable, flightseat.FlightInstanceColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(fsq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QuerySeat chains the current query on the "seat" edge.
+func (fsq *FlightSeatQuery) QuerySeat() *SeatQuery {
+	query := &SeatQuery{config: fsq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := fsq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := fsq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(flightseat.Table, flightseat.FieldID, selector),
+			sqlgraph.To(seat.Table, seat.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, flightseat.SeatTable, flightseat.SeatColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(fsq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryPassenger chains the current query on the "passenger" edge.
+func (fsq *FlightSeatQuery) QueryPassenger() *PassengerQuery {
+	query := &PassengerQuery{config: fsq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := fsq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := fsq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(flightseat.Table, flightseat.FieldID, selector),
+			sqlgraph.To(passenger.Table, passenger.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, flightseat.PassengerTable, flightseat.PassengerColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(fsq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first FlightSeat entity from the query.
@@ -237,15 +311,51 @@ func (fsq *FlightSeatQuery) Clone() *FlightSeatQuery {
 		return nil
 	}
 	return &FlightSeatQuery{
-		config:     fsq.config,
-		limit:      fsq.limit,
-		offset:     fsq.offset,
-		order:      append([]OrderFunc{}, fsq.order...),
-		predicates: append([]predicate.FlightSeat{}, fsq.predicates...),
+		config:             fsq.config,
+		limit:              fsq.limit,
+		offset:             fsq.offset,
+		order:              append([]OrderFunc{}, fsq.order...),
+		predicates:         append([]predicate.FlightSeat{}, fsq.predicates...),
+		withFlightInstance: fsq.withFlightInstance.Clone(),
+		withSeat:           fsq.withSeat.Clone(),
+		withPassenger:      fsq.withPassenger.Clone(),
 		// clone intermediate query.
 		sql:  fsq.sql.Clone(),
 		path: fsq.path,
 	}
+}
+
+// WithFlightInstance tells the query-builder to eager-load the nodes that are connected to
+// the "flight_instance" edge. The optional arguments are used to configure the query builder of the edge.
+func (fsq *FlightSeatQuery) WithFlightInstance(opts ...func(*FlightInstanceQuery)) *FlightSeatQuery {
+	query := &FlightInstanceQuery{config: fsq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	fsq.withFlightInstance = query
+	return fsq
+}
+
+// WithSeat tells the query-builder to eager-load the nodes that are connected to
+// the "seat" edge. The optional arguments are used to configure the query builder of the edge.
+func (fsq *FlightSeatQuery) WithSeat(opts ...func(*SeatQuery)) *FlightSeatQuery {
+	query := &SeatQuery{config: fsq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	fsq.withSeat = query
+	return fsq
+}
+
+// WithPassenger tells the query-builder to eager-load the nodes that are connected to
+// the "passenger" edge. The optional arguments are used to configure the query builder of the edge.
+func (fsq *FlightSeatQuery) WithPassenger(opts ...func(*PassengerQuery)) *FlightSeatQuery {
+	query := &PassengerQuery{config: fsq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	fsq.withPassenger = query
+	return fsq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -311,9 +421,21 @@ func (fsq *FlightSeatQuery) prepareQuery(ctx context.Context) error {
 
 func (fsq *FlightSeatQuery) sqlAll(ctx context.Context) ([]*FlightSeat, error) {
 	var (
-		nodes = []*FlightSeat{}
-		_spec = fsq.querySpec()
+		nodes       = []*FlightSeat{}
+		withFKs     = fsq.withFKs
+		_spec       = fsq.querySpec()
+		loadedTypes = [3]bool{
+			fsq.withFlightInstance != nil,
+			fsq.withSeat != nil,
+			fsq.withPassenger != nil,
+		}
 	)
+	if fsq.withFlightInstance != nil || fsq.withSeat != nil || fsq.withPassenger != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, flightseat.ForeignKeys...)
+	}
 	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
 		node := &FlightSeat{config: fsq.config}
 		nodes = append(nodes, node)
@@ -324,6 +446,7 @@ func (fsq *FlightSeatQuery) sqlAll(ctx context.Context) ([]*FlightSeat, error) {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	if err := sqlgraph.QueryNodes(ctx, fsq.driver, _spec); err != nil {
@@ -332,6 +455,94 @@ func (fsq *FlightSeatQuery) sqlAll(ctx context.Context) ([]*FlightSeat, error) {
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+
+	if query := fsq.withFlightInstance; query != nil {
+		ids := make([]uuid.UUID, 0, len(nodes))
+		nodeids := make(map[uuid.UUID][]*FlightSeat)
+		for i := range nodes {
+			if nodes[i].flight_instance_id == nil {
+				continue
+			}
+			fk := *nodes[i].flight_instance_id
+			if _, ok := nodeids[fk]; !ok {
+				ids = append(ids, fk)
+			}
+			nodeids[fk] = append(nodeids[fk], nodes[i])
+		}
+		query.Where(flightinstance.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "flight_instance_id" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.FlightInstance = n
+			}
+		}
+	}
+
+	if query := fsq.withSeat; query != nil {
+		ids := make([]uuid.UUID, 0, len(nodes))
+		nodeids := make(map[uuid.UUID][]*FlightSeat)
+		for i := range nodes {
+			if nodes[i].seat_flight_seat == nil {
+				continue
+			}
+			fk := *nodes[i].seat_flight_seat
+			if _, ok := nodeids[fk]; !ok {
+				ids = append(ids, fk)
+			}
+			nodeids[fk] = append(nodeids[fk], nodes[i])
+		}
+		query.Where(seat.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "seat_flight_seat" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Seat = n
+			}
+		}
+	}
+
+	if query := fsq.withPassenger; query != nil {
+		ids := make([]uuid.UUID, 0, len(nodes))
+		nodeids := make(map[uuid.UUID][]*FlightSeat)
+		for i := range nodes {
+			if nodes[i].passenger_flight_seat == nil {
+				continue
+			}
+			fk := *nodes[i].passenger_flight_seat
+			if _, ok := nodeids[fk]; !ok {
+				ids = append(ids, fk)
+			}
+			nodeids[fk] = append(nodeids[fk], nodes[i])
+		}
+		query.Where(passenger.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "passenger_flight_seat" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Passenger = n
+			}
+		}
+	}
+
 	return nodes, nil
 }
 

@@ -3,8 +3,10 @@
 package ent
 
 import (
+	"airbound/internal/ent/airline"
 	"airbound/internal/ent/pilot"
 	"airbound/internal/ent/predicate"
+	"airbound/internal/ent/user"
 	"context"
 	"errors"
 	"fmt"
@@ -25,6 +27,10 @@ type PilotQuery struct {
 	order      []OrderFunc
 	fields     []string
 	predicates []predicate.Pilot
+	// eager-loading edges.
+	withUser    *UserQuery
+	withAirline *AirlineQuery
+	withFKs     bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -59,6 +65,50 @@ func (pq *PilotQuery) Unique(unique bool) *PilotQuery {
 func (pq *PilotQuery) Order(o ...OrderFunc) *PilotQuery {
 	pq.order = append(pq.order, o...)
 	return pq
+}
+
+// QueryUser chains the current query on the "user" edge.
+func (pq *PilotQuery) QueryUser() *UserQuery {
+	query := &UserQuery{config: pq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := pq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := pq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(pilot.Table, pilot.FieldID, selector),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, pilot.UserTable, pilot.UserColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryAirline chains the current query on the "airline" edge.
+func (pq *PilotQuery) QueryAirline() *AirlineQuery {
+	query := &AirlineQuery{config: pq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := pq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := pq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(pilot.Table, pilot.FieldID, selector),
+			sqlgraph.To(airline.Table, airline.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, pilot.AirlineTable, pilot.AirlineColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first Pilot entity from the query.
@@ -237,15 +287,39 @@ func (pq *PilotQuery) Clone() *PilotQuery {
 		return nil
 	}
 	return &PilotQuery{
-		config:     pq.config,
-		limit:      pq.limit,
-		offset:     pq.offset,
-		order:      append([]OrderFunc{}, pq.order...),
-		predicates: append([]predicate.Pilot{}, pq.predicates...),
+		config:      pq.config,
+		limit:       pq.limit,
+		offset:      pq.offset,
+		order:       append([]OrderFunc{}, pq.order...),
+		predicates:  append([]predicate.Pilot{}, pq.predicates...),
+		withUser:    pq.withUser.Clone(),
+		withAirline: pq.withAirline.Clone(),
 		// clone intermediate query.
 		sql:  pq.sql.Clone(),
 		path: pq.path,
 	}
+}
+
+// WithUser tells the query-builder to eager-load the nodes that are connected to
+// the "user" edge. The optional arguments are used to configure the query builder of the edge.
+func (pq *PilotQuery) WithUser(opts ...func(*UserQuery)) *PilotQuery {
+	query := &UserQuery{config: pq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	pq.withUser = query
+	return pq
+}
+
+// WithAirline tells the query-builder to eager-load the nodes that are connected to
+// the "airline" edge. The optional arguments are used to configure the query builder of the edge.
+func (pq *PilotQuery) WithAirline(opts ...func(*AirlineQuery)) *PilotQuery {
+	query := &AirlineQuery{config: pq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	pq.withAirline = query
+	return pq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -311,9 +385,20 @@ func (pq *PilotQuery) prepareQuery(ctx context.Context) error {
 
 func (pq *PilotQuery) sqlAll(ctx context.Context) ([]*Pilot, error) {
 	var (
-		nodes = []*Pilot{}
-		_spec = pq.querySpec()
+		nodes       = []*Pilot{}
+		withFKs     = pq.withFKs
+		_spec       = pq.querySpec()
+		loadedTypes = [2]bool{
+			pq.withUser != nil,
+			pq.withAirline != nil,
+		}
 	)
+	if pq.withUser != nil || pq.withAirline != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, pilot.ForeignKeys...)
+	}
 	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
 		node := &Pilot{config: pq.config}
 		nodes = append(nodes, node)
@@ -324,6 +409,7 @@ func (pq *PilotQuery) sqlAll(ctx context.Context) ([]*Pilot, error) {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	if err := sqlgraph.QueryNodes(ctx, pq.driver, _spec); err != nil {
@@ -332,6 +418,65 @@ func (pq *PilotQuery) sqlAll(ctx context.Context) ([]*Pilot, error) {
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+
+	if query := pq.withUser; query != nil {
+		ids := make([]uuid.UUID, 0, len(nodes))
+		nodeids := make(map[uuid.UUID][]*Pilot)
+		for i := range nodes {
+			if nodes[i].user_pilot == nil {
+				continue
+			}
+			fk := *nodes[i].user_pilot
+			if _, ok := nodeids[fk]; !ok {
+				ids = append(ids, fk)
+			}
+			nodeids[fk] = append(nodeids[fk], nodes[i])
+		}
+		query.Where(user.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "user_pilot" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.User = n
+			}
+		}
+	}
+
+	if query := pq.withAirline; query != nil {
+		ids := make([]uuid.UUID, 0, len(nodes))
+		nodeids := make(map[uuid.UUID][]*Pilot)
+		for i := range nodes {
+			if nodes[i].airline_id == nil {
+				continue
+			}
+			fk := *nodes[i].airline_id
+			if _, ok := nodeids[fk]; !ok {
+				ids = append(ids, fk)
+			}
+			nodeids[fk] = append(nodeids[fk], nodes[i])
+		}
+		query.Where(airline.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "airline_id" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Airline = n
+			}
+		}
+	}
+
 	return nodes, nil
 }
 

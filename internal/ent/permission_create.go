@@ -4,6 +4,7 @@ package ent
 
 import (
 	"airbound/internal/ent/permission"
+	"airbound/internal/ent/role"
 	"context"
 	"errors"
 	"fmt"
@@ -59,6 +60,21 @@ func (pc *PermissionCreate) SetNillableUpdatedAt(t *time.Time) *PermissionCreate
 func (pc *PermissionCreate) SetID(u uuid.UUID) *PermissionCreate {
 	pc.mutation.SetID(u)
 	return pc
+}
+
+// AddRoleIDs adds the "roles" edge to the Role entity by IDs.
+func (pc *PermissionCreate) AddRoleIDs(ids ...uuid.UUID) *PermissionCreate {
+	pc.mutation.AddRoleIDs(ids...)
+	return pc
+}
+
+// AddRoles adds the "roles" edges to the Role entity.
+func (pc *PermissionCreate) AddRoles(r ...*Role) *PermissionCreate {
+	ids := make([]uuid.UUID, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return pc.AddRoleIDs(ids...)
 }
 
 // Mutation returns the PermissionMutation object of the builder.
@@ -217,6 +233,25 @@ func (pc *PermissionCreate) createSpec() (*Permission, *sqlgraph.CreateSpec) {
 			Column: permission.FieldUpdatedAt,
 		})
 		_node.UpdatedAt = value
+	}
+	if nodes := pc.mutation.RolesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   permission.RolesTable,
+			Columns: permission.RolesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: role.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

@@ -3,9 +3,13 @@
 package ent
 
 import (
+	"airbound/internal/ent/aircraft"
 	"airbound/internal/ent/airline"
+	"airbound/internal/ent/crew"
+	"airbound/internal/ent/pilot"
 	"airbound/internal/ent/predicate"
 	"context"
+	"database/sql/driver"
 	"errors"
 	"fmt"
 	"math"
@@ -25,6 +29,10 @@ type AirlineQuery struct {
 	order      []OrderFunc
 	fields     []string
 	predicates []predicate.Airline
+	// eager-loading edges.
+	withAircrafts *AircraftQuery
+	withCrews     *CrewQuery
+	withPilots    *PilotQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -59,6 +67,72 @@ func (aq *AirlineQuery) Unique(unique bool) *AirlineQuery {
 func (aq *AirlineQuery) Order(o ...OrderFunc) *AirlineQuery {
 	aq.order = append(aq.order, o...)
 	return aq
+}
+
+// QueryAircrafts chains the current query on the "aircrafts" edge.
+func (aq *AirlineQuery) QueryAircrafts() *AircraftQuery {
+	query := &AircraftQuery{config: aq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := aq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := aq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(airline.Table, airline.FieldID, selector),
+			sqlgraph.To(aircraft.Table, aircraft.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, airline.AircraftsTable, airline.AircraftsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(aq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryCrews chains the current query on the "crews" edge.
+func (aq *AirlineQuery) QueryCrews() *CrewQuery {
+	query := &CrewQuery{config: aq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := aq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := aq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(airline.Table, airline.FieldID, selector),
+			sqlgraph.To(crew.Table, crew.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, airline.CrewsTable, airline.CrewsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(aq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryPilots chains the current query on the "pilots" edge.
+func (aq *AirlineQuery) QueryPilots() *PilotQuery {
+	query := &PilotQuery{config: aq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := aq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := aq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(airline.Table, airline.FieldID, selector),
+			sqlgraph.To(pilot.Table, pilot.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, airline.PilotsTable, airline.PilotsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(aq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first Airline entity from the query.
@@ -237,15 +311,51 @@ func (aq *AirlineQuery) Clone() *AirlineQuery {
 		return nil
 	}
 	return &AirlineQuery{
-		config:     aq.config,
-		limit:      aq.limit,
-		offset:     aq.offset,
-		order:      append([]OrderFunc{}, aq.order...),
-		predicates: append([]predicate.Airline{}, aq.predicates...),
+		config:        aq.config,
+		limit:         aq.limit,
+		offset:        aq.offset,
+		order:         append([]OrderFunc{}, aq.order...),
+		predicates:    append([]predicate.Airline{}, aq.predicates...),
+		withAircrafts: aq.withAircrafts.Clone(),
+		withCrews:     aq.withCrews.Clone(),
+		withPilots:    aq.withPilots.Clone(),
 		// clone intermediate query.
 		sql:  aq.sql.Clone(),
 		path: aq.path,
 	}
+}
+
+// WithAircrafts tells the query-builder to eager-load the nodes that are connected to
+// the "aircrafts" edge. The optional arguments are used to configure the query builder of the edge.
+func (aq *AirlineQuery) WithAircrafts(opts ...func(*AircraftQuery)) *AirlineQuery {
+	query := &AircraftQuery{config: aq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	aq.withAircrafts = query
+	return aq
+}
+
+// WithCrews tells the query-builder to eager-load the nodes that are connected to
+// the "crews" edge. The optional arguments are used to configure the query builder of the edge.
+func (aq *AirlineQuery) WithCrews(opts ...func(*CrewQuery)) *AirlineQuery {
+	query := &CrewQuery{config: aq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	aq.withCrews = query
+	return aq
+}
+
+// WithPilots tells the query-builder to eager-load the nodes that are connected to
+// the "pilots" edge. The optional arguments are used to configure the query builder of the edge.
+func (aq *AirlineQuery) WithPilots(opts ...func(*PilotQuery)) *AirlineQuery {
+	query := &PilotQuery{config: aq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	aq.withPilots = query
+	return aq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -311,8 +421,13 @@ func (aq *AirlineQuery) prepareQuery(ctx context.Context) error {
 
 func (aq *AirlineQuery) sqlAll(ctx context.Context) ([]*Airline, error) {
 	var (
-		nodes = []*Airline{}
-		_spec = aq.querySpec()
+		nodes       = []*Airline{}
+		_spec       = aq.querySpec()
+		loadedTypes = [3]bool{
+			aq.withAircrafts != nil,
+			aq.withCrews != nil,
+			aq.withPilots != nil,
+		}
 	)
 	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
 		node := &Airline{config: aq.config}
@@ -324,6 +439,7 @@ func (aq *AirlineQuery) sqlAll(ctx context.Context) ([]*Airline, error) {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	if err := sqlgraph.QueryNodes(ctx, aq.driver, _spec); err != nil {
@@ -332,6 +448,94 @@ func (aq *AirlineQuery) sqlAll(ctx context.Context) ([]*Airline, error) {
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+
+	if query := aq.withAircrafts; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[uuid.UUID]*Airline)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+			nodes[i].Edges.Aircrafts = []*Aircraft{}
+		}
+		query.withFKs = true
+		query.Where(predicate.Aircraft(func(s *sql.Selector) {
+			s.Where(sql.InValues(airline.AircraftsColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.airline_id
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "airline_id" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "airline_id" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.Aircrafts = append(node.Edges.Aircrafts, n)
+		}
+	}
+
+	if query := aq.withCrews; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[uuid.UUID]*Airline)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+			nodes[i].Edges.Crews = []*Crew{}
+		}
+		query.withFKs = true
+		query.Where(predicate.Crew(func(s *sql.Selector) {
+			s.Where(sql.InValues(airline.CrewsColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.airline_id
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "airline_id" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "airline_id" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.Crews = append(node.Edges.Crews, n)
+		}
+	}
+
+	if query := aq.withPilots; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[uuid.UUID]*Airline)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+			nodes[i].Edges.Pilots = []*Pilot{}
+		}
+		query.withFKs = true
+		query.Where(predicate.Pilot(func(s *sql.Selector) {
+			s.Where(sql.InValues(airline.PilotsColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.airline_id
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "airline_id" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "airline_id" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.Pilots = append(node.Edges.Pilots, n)
+		}
+	}
+
 	return nodes, nil
 }
 

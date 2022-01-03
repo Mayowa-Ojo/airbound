@@ -3,7 +3,9 @@
 package ent
 
 import (
+	"airbound/internal/ent/airline"
 	"airbound/internal/ent/pilot"
+	"airbound/internal/ent/user"
 	"fmt"
 	"strings"
 	"time"
@@ -27,6 +29,50 @@ type Pilot struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the PilotQuery when eager-loading is set.
+	Edges      PilotEdges `json:"edges"`
+	airline_id *uuid.UUID
+	user_pilot *uuid.UUID
+}
+
+// PilotEdges holds the relations/edges for other nodes in the graph.
+type PilotEdges struct {
+	// User holds the value of the user edge.
+	User *User `json:"user,omitempty"`
+	// Airline holds the value of the airline edge.
+	Airline *Airline `json:"airline,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [2]bool
+}
+
+// UserOrErr returns the User value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e PilotEdges) UserOrErr() (*User, error) {
+	if e.loadedTypes[0] {
+		if e.User == nil {
+			// The edge user was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: user.Label}
+		}
+		return e.User, nil
+	}
+	return nil, &NotLoadedError{edge: "user"}
+}
+
+// AirlineOrErr returns the Airline value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e PilotEdges) AirlineOrErr() (*Airline, error) {
+	if e.loadedTypes[1] {
+		if e.Airline == nil {
+			// The edge airline was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: airline.Label}
+		}
+		return e.Airline, nil
+	}
+	return nil, &NotLoadedError{edge: "airline"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -42,6 +88,10 @@ func (*Pilot) scanValues(columns []string) ([]interface{}, error) {
 			values[i] = new(sql.NullTime)
 		case pilot.FieldID:
 			values[i] = new(uuid.UUID)
+		case pilot.ForeignKeys[0]: // airline_id
+			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
+		case pilot.ForeignKeys[1]: // user_pilot
+			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Pilot", columns[i])
 		}
@@ -93,9 +143,33 @@ func (pi *Pilot) assignValues(columns []string, values []interface{}) error {
 			} else if value.Valid {
 				pi.UpdatedAt = value.Time
 			}
+		case pilot.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field airline_id", values[i])
+			} else if value.Valid {
+				pi.airline_id = new(uuid.UUID)
+				*pi.airline_id = *value.S.(*uuid.UUID)
+			}
+		case pilot.ForeignKeys[1]:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field user_pilot", values[i])
+			} else if value.Valid {
+				pi.user_pilot = new(uuid.UUID)
+				*pi.user_pilot = *value.S.(*uuid.UUID)
+			}
 		}
 	}
 	return nil
+}
+
+// QueryUser queries the "user" edge of the Pilot entity.
+func (pi *Pilot) QueryUser() *UserQuery {
+	return (&PilotClient{config: pi.config}).QueryUser(pi)
+}
+
+// QueryAirline queries the "airline" edge of the Pilot entity.
+func (pi *Pilot) QueryAirline() *AirlineQuery {
+	return (&PilotClient{config: pi.config}).QueryAirline(pi)
 }
 
 // Update returns a builder for updating this Pilot.

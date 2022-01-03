@@ -3,7 +3,9 @@
 package ent
 
 import (
+	"airbound/internal/ent/airport"
 	"airbound/internal/ent/frontdesk"
+	"airbound/internal/ent/user"
 	"context"
 	"errors"
 	"fmt"
@@ -59,6 +61,36 @@ func (fdc *FrontDeskCreate) SetNillableUpdatedAt(t *time.Time) *FrontDeskCreate 
 func (fdc *FrontDeskCreate) SetID(u uuid.UUID) *FrontDeskCreate {
 	fdc.mutation.SetID(u)
 	return fdc
+}
+
+// SetUserID sets the "user" edge to the User entity by ID.
+func (fdc *FrontDeskCreate) SetUserID(id uuid.UUID) *FrontDeskCreate {
+	fdc.mutation.SetUserID(id)
+	return fdc
+}
+
+// SetUser sets the "user" edge to the User entity.
+func (fdc *FrontDeskCreate) SetUser(u *User) *FrontDeskCreate {
+	return fdc.SetUserID(u.ID)
+}
+
+// SetAirportID sets the "airport" edge to the Airport entity by ID.
+func (fdc *FrontDeskCreate) SetAirportID(id uuid.UUID) *FrontDeskCreate {
+	fdc.mutation.SetAirportID(id)
+	return fdc
+}
+
+// SetNillableAirportID sets the "airport" edge to the Airport entity by ID if the given value is not nil.
+func (fdc *FrontDeskCreate) SetNillableAirportID(id *uuid.UUID) *FrontDeskCreate {
+	if id != nil {
+		fdc = fdc.SetAirportID(*id)
+	}
+	return fdc
+}
+
+// SetAirport sets the "airport" edge to the Airport entity.
+func (fdc *FrontDeskCreate) SetAirport(a *Airport) *FrontDeskCreate {
+	return fdc.SetAirportID(a.ID)
 }
 
 // Mutation returns the FrontDeskMutation object of the builder.
@@ -162,6 +194,9 @@ func (fdc *FrontDeskCreate) check() error {
 	if _, ok := fdc.mutation.UpdatedAt(); !ok {
 		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "updated_at"`)}
 	}
+	if _, ok := fdc.mutation.UserID(); !ok {
+		return &ValidationError{Name: "user", err: errors.New("ent: missing required edge \"user\"")}
+	}
 	return nil
 }
 
@@ -217,6 +252,46 @@ func (fdc *FrontDeskCreate) createSpec() (*FrontDesk, *sqlgraph.CreateSpec) {
 			Column: frontdesk.FieldUpdatedAt,
 		})
 		_node.UpdatedAt = value
+	}
+	if nodes := fdc.mutation.UserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   frontdesk.UserTable,
+			Columns: []string{frontdesk.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.user_front_desk = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := fdc.mutation.AirportIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   frontdesk.AirportTable,
+			Columns: []string{frontdesk.AirportColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: airport.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.airport_id = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"entgo.io/ent"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 )
@@ -25,5 +26,16 @@ func (FlightSeat) Fields() []ent.Field {
 
 // Edges of the FlightSeat.
 func (FlightSeat) Edges() []ent.Edge {
-	return nil
+	return []ent.Edge{
+		edge.From("flight_instance", FlightInstance.Type).
+			Ref("flight_seats").
+			Unique(),
+		edge.From("seat", Seat.Type).
+			Ref("flight_seat").
+			Unique().
+			Required(),
+		edge.From("passenger", Passenger.Type).
+			Ref("flight_seat").
+			Unique(),
+	}
 }

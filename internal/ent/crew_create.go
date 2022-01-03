@@ -3,7 +3,10 @@
 package ent
 
 import (
+	"airbound/internal/ent/airline"
 	"airbound/internal/ent/crew"
+	"airbound/internal/ent/flight"
+	"airbound/internal/ent/user"
 	"context"
 	"errors"
 	"fmt"
@@ -59,6 +62,51 @@ func (cc *CrewCreate) SetNillableUpdatedAt(t *time.Time) *CrewCreate {
 func (cc *CrewCreate) SetID(u uuid.UUID) *CrewCreate {
 	cc.mutation.SetID(u)
 	return cc
+}
+
+// SetUserID sets the "user" edge to the User entity by ID.
+func (cc *CrewCreate) SetUserID(id uuid.UUID) *CrewCreate {
+	cc.mutation.SetUserID(id)
+	return cc
+}
+
+// SetUser sets the "user" edge to the User entity.
+func (cc *CrewCreate) SetUser(u *User) *CrewCreate {
+	return cc.SetUserID(u.ID)
+}
+
+// SetAirlineID sets the "airline" edge to the Airline entity by ID.
+func (cc *CrewCreate) SetAirlineID(id uuid.UUID) *CrewCreate {
+	cc.mutation.SetAirlineID(id)
+	return cc
+}
+
+// SetNillableAirlineID sets the "airline" edge to the Airline entity by ID if the given value is not nil.
+func (cc *CrewCreate) SetNillableAirlineID(id *uuid.UUID) *CrewCreate {
+	if id != nil {
+		cc = cc.SetAirlineID(*id)
+	}
+	return cc
+}
+
+// SetAirline sets the "airline" edge to the Airline entity.
+func (cc *CrewCreate) SetAirline(a *Airline) *CrewCreate {
+	return cc.SetAirlineID(a.ID)
+}
+
+// AddFlightIDs adds the "flights" edge to the Flight entity by IDs.
+func (cc *CrewCreate) AddFlightIDs(ids ...uuid.UUID) *CrewCreate {
+	cc.mutation.AddFlightIDs(ids...)
+	return cc
+}
+
+// AddFlights adds the "flights" edges to the Flight entity.
+func (cc *CrewCreate) AddFlights(f ...*Flight) *CrewCreate {
+	ids := make([]uuid.UUID, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return cc.AddFlightIDs(ids...)
 }
 
 // Mutation returns the CrewMutation object of the builder.
@@ -162,6 +210,9 @@ func (cc *CrewCreate) check() error {
 	if _, ok := cc.mutation.UpdatedAt(); !ok {
 		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "updated_at"`)}
 	}
+	if _, ok := cc.mutation.UserID(); !ok {
+		return &ValidationError{Name: "user", err: errors.New("ent: missing required edge \"user\"")}
+	}
 	return nil
 }
 
@@ -217,6 +268,65 @@ func (cc *CrewCreate) createSpec() (*Crew, *sqlgraph.CreateSpec) {
 			Column: crew.FieldUpdatedAt,
 		})
 		_node.UpdatedAt = value
+	}
+	if nodes := cc.mutation.UserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   crew.UserTable,
+			Columns: []string{crew.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.user_crew = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := cc.mutation.AirlineIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   crew.AirlineTable,
+			Columns: []string{crew.AirlineColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: airline.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.airline_id = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := cc.mutation.FlightsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   crew.FlightsTable,
+			Columns: crew.FlightsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flight.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"entgo.io/ent"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 )
@@ -27,5 +28,18 @@ func (Airport) Fields() []ent.Field {
 
 // Edges of the Airport.
 func (Airport) Edges() []ent.Edge {
-	return nil
+	return []ent.Edge{
+		edge.To("address", Address.Type).
+			Unique(),
+		edge.To("front_desks", FrontDesk.Type).
+			StorageKey(edge.Column("airport_id")),
+		edge.To("departure_flights", Flight.Type).
+			StorageKey(edge.Column("depature_airport_id")),
+		edge.To("arrival_flights", Flight.Type).
+			StorageKey(edge.Column("arrival_airport_id")),
+		edge.To("origin_iteneraries", Itenerary.Type).
+			StorageKey(edge.Column("origin_airport_id")),
+		edge.To("destination_iteneraries", Itenerary.Type).
+			StorageKey(edge.Column("destination_airport_id")),
+	}
 }

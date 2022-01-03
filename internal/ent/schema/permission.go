@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"entgo.io/ent"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 )
@@ -25,5 +26,7 @@ func (Permission) Fields() []ent.Field {
 
 // Edges of the Permission.
 func (Permission) Edges() []ent.Edge {
-	return nil
+	return []ent.Edge{
+		edge.From("roles", Role.Type).Ref("permissions"),
+	}
 }

@@ -5,6 +5,7 @@ package ent
 import (
 	"airbound/internal/ent/customtypes"
 	"airbound/internal/ent/enums"
+	"airbound/internal/ent/flight"
 	"airbound/internal/ent/flightschedule"
 	"context"
 	"errors"
@@ -101,6 +102,25 @@ func (fsc *FlightScheduleCreate) SetNillableUpdatedAt(t *time.Time) *FlightSched
 func (fsc *FlightScheduleCreate) SetID(u uuid.UUID) *FlightScheduleCreate {
 	fsc.mutation.SetID(u)
 	return fsc
+}
+
+// SetFlightID sets the "flight" edge to the Flight entity by ID.
+func (fsc *FlightScheduleCreate) SetFlightID(id uuid.UUID) *FlightScheduleCreate {
+	fsc.mutation.SetFlightID(id)
+	return fsc
+}
+
+// SetNillableFlightID sets the "flight" edge to the Flight entity by ID if the given value is not nil.
+func (fsc *FlightScheduleCreate) SetNillableFlightID(id *uuid.UUID) *FlightScheduleCreate {
+	if id != nil {
+		fsc = fsc.SetFlightID(*id)
+	}
+	return fsc
+}
+
+// SetFlight sets the "flight" edge to the Flight entity.
+func (fsc *FlightScheduleCreate) SetFlight(f *Flight) *FlightScheduleCreate {
+	return fsc.SetFlightID(f.ID)
 }
 
 // Mutation returns the FlightScheduleMutation object of the builder.
@@ -302,6 +322,26 @@ func (fsc *FlightScheduleCreate) createSpec() (*FlightSchedule, *sqlgraph.Create
 			Column: flightschedule.FieldUpdatedAt,
 		})
 		_node.UpdatedAt = value
+	}
+	if nodes := fsc.mutation.FlightIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   flightschedule.FlightTable,
+			Columns: []string{flightschedule.FlightColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flight.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.flight_id = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

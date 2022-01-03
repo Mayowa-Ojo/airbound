@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"airbound/internal/ent/address"
 	"airbound/internal/ent/airport"
 	"fmt"
 	"strings"
@@ -27,6 +28,87 @@ type Airport struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the AirportQuery when eager-loading is set.
+	Edges AirportEdges `json:"edges"`
+}
+
+// AirportEdges holds the relations/edges for other nodes in the graph.
+type AirportEdges struct {
+	// Address holds the value of the address edge.
+	Address *Address `json:"address,omitempty"`
+	// FrontDesks holds the value of the front_desks edge.
+	FrontDesks []*FrontDesk `json:"front_desks,omitempty"`
+	// DepartureFlights holds the value of the departure_flights edge.
+	DepartureFlights []*Flight `json:"departure_flights,omitempty"`
+	// ArrivalFlights holds the value of the arrival_flights edge.
+	ArrivalFlights []*Flight `json:"arrival_flights,omitempty"`
+	// OriginIteneraries holds the value of the origin_iteneraries edge.
+	OriginIteneraries []*Itenerary `json:"origin_iteneraries,omitempty"`
+	// DestinationIteneraries holds the value of the destination_iteneraries edge.
+	DestinationIteneraries []*Itenerary `json:"destination_iteneraries,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [6]bool
+}
+
+// AddressOrErr returns the Address value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e AirportEdges) AddressOrErr() (*Address, error) {
+	if e.loadedTypes[0] {
+		if e.Address == nil {
+			// The edge address was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: address.Label}
+		}
+		return e.Address, nil
+	}
+	return nil, &NotLoadedError{edge: "address"}
+}
+
+// FrontDesksOrErr returns the FrontDesks value or an error if the edge
+// was not loaded in eager-loading.
+func (e AirportEdges) FrontDesksOrErr() ([]*FrontDesk, error) {
+	if e.loadedTypes[1] {
+		return e.FrontDesks, nil
+	}
+	return nil, &NotLoadedError{edge: "front_desks"}
+}
+
+// DepartureFlightsOrErr returns the DepartureFlights value or an error if the edge
+// was not loaded in eager-loading.
+func (e AirportEdges) DepartureFlightsOrErr() ([]*Flight, error) {
+	if e.loadedTypes[2] {
+		return e.DepartureFlights, nil
+	}
+	return nil, &NotLoadedError{edge: "departure_flights"}
+}
+
+// ArrivalFlightsOrErr returns the ArrivalFlights value or an error if the edge
+// was not loaded in eager-loading.
+func (e AirportEdges) ArrivalFlightsOrErr() ([]*Flight, error) {
+	if e.loadedTypes[3] {
+		return e.ArrivalFlights, nil
+	}
+	return nil, &NotLoadedError{edge: "arrival_flights"}
+}
+
+// OriginItenerariesOrErr returns the OriginIteneraries value or an error if the edge
+// was not loaded in eager-loading.
+func (e AirportEdges) OriginItenerariesOrErr() ([]*Itenerary, error) {
+	if e.loadedTypes[4] {
+		return e.OriginIteneraries, nil
+	}
+	return nil, &NotLoadedError{edge: "origin_iteneraries"}
+}
+
+// DestinationItenerariesOrErr returns the DestinationIteneraries value or an error if the edge
+// was not loaded in eager-loading.
+func (e AirportEdges) DestinationItenerariesOrErr() ([]*Itenerary, error) {
+	if e.loadedTypes[5] {
+		return e.DestinationIteneraries, nil
+	}
+	return nil, &NotLoadedError{edge: "destination_iteneraries"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -94,6 +176,36 @@ func (a *Airport) assignValues(columns []string, values []interface{}) error {
 		}
 	}
 	return nil
+}
+
+// QueryAddress queries the "address" edge of the Airport entity.
+func (a *Airport) QueryAddress() *AddressQuery {
+	return (&AirportClient{config: a.config}).QueryAddress(a)
+}
+
+// QueryFrontDesks queries the "front_desks" edge of the Airport entity.
+func (a *Airport) QueryFrontDesks() *FrontDeskQuery {
+	return (&AirportClient{config: a.config}).QueryFrontDesks(a)
+}
+
+// QueryDepartureFlights queries the "departure_flights" edge of the Airport entity.
+func (a *Airport) QueryDepartureFlights() *FlightQuery {
+	return (&AirportClient{config: a.config}).QueryDepartureFlights(a)
+}
+
+// QueryArrivalFlights queries the "arrival_flights" edge of the Airport entity.
+func (a *Airport) QueryArrivalFlights() *FlightQuery {
+	return (&AirportClient{config: a.config}).QueryArrivalFlights(a)
+}
+
+// QueryOriginIteneraries queries the "origin_iteneraries" edge of the Airport entity.
+func (a *Airport) QueryOriginIteneraries() *IteneraryQuery {
+	return (&AirportClient{config: a.config}).QueryOriginIteneraries(a)
+}
+
+// QueryDestinationIteneraries queries the "destination_iteneraries" edge of the Airport entity.
+func (a *Airport) QueryDestinationIteneraries() *IteneraryQuery {
+	return (&AirportClient{config: a.config}).QueryDestinationIteneraries(a)
 }
 
 // Update returns a builder for updating this Airport.

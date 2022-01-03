@@ -4,7 +4,10 @@ package ent
 
 import (
 	"airbound/internal/ent/enums"
+	"airbound/internal/ent/flightinstance"
 	"airbound/internal/ent/flightreservation"
+	"airbound/internal/ent/itenerary"
+	"airbound/internal/ent/passenger"
 	"context"
 	"errors"
 	"fmt"
@@ -66,6 +69,59 @@ func (frc *FlightReservationCreate) SetNillableUpdatedAt(t *time.Time) *FlightRe
 func (frc *FlightReservationCreate) SetID(u uuid.UUID) *FlightReservationCreate {
 	frc.mutation.SetID(u)
 	return frc
+}
+
+// SetFlightInstanceID sets the "flight_instance" edge to the FlightInstance entity by ID.
+func (frc *FlightReservationCreate) SetFlightInstanceID(id uuid.UUID) *FlightReservationCreate {
+	frc.mutation.SetFlightInstanceID(id)
+	return frc
+}
+
+// SetNillableFlightInstanceID sets the "flight_instance" edge to the FlightInstance entity by ID if the given value is not nil.
+func (frc *FlightReservationCreate) SetNillableFlightInstanceID(id *uuid.UUID) *FlightReservationCreate {
+	if id != nil {
+		frc = frc.SetFlightInstanceID(*id)
+	}
+	return frc
+}
+
+// SetFlightInstance sets the "flight_instance" edge to the FlightInstance entity.
+func (frc *FlightReservationCreate) SetFlightInstance(f *FlightInstance) *FlightReservationCreate {
+	return frc.SetFlightInstanceID(f.ID)
+}
+
+// SetIteneraryID sets the "itenerary" edge to the Itenerary entity by ID.
+func (frc *FlightReservationCreate) SetIteneraryID(id uuid.UUID) *FlightReservationCreate {
+	frc.mutation.SetIteneraryID(id)
+	return frc
+}
+
+// SetNillableIteneraryID sets the "itenerary" edge to the Itenerary entity by ID if the given value is not nil.
+func (frc *FlightReservationCreate) SetNillableIteneraryID(id *uuid.UUID) *FlightReservationCreate {
+	if id != nil {
+		frc = frc.SetIteneraryID(*id)
+	}
+	return frc
+}
+
+// SetItenerary sets the "itenerary" edge to the Itenerary entity.
+func (frc *FlightReservationCreate) SetItenerary(i *Itenerary) *FlightReservationCreate {
+	return frc.SetIteneraryID(i.ID)
+}
+
+// AddPassengerIDs adds the "passengers" edge to the Passenger entity by IDs.
+func (frc *FlightReservationCreate) AddPassengerIDs(ids ...uuid.UUID) *FlightReservationCreate {
+	frc.mutation.AddPassengerIDs(ids...)
+	return frc
+}
+
+// AddPassengers adds the "passengers" edges to the Passenger entity.
+func (frc *FlightReservationCreate) AddPassengers(p ...*Passenger) *FlightReservationCreate {
+	ids := make([]uuid.UUID, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return frc.AddPassengerIDs(ids...)
 }
 
 // Mutation returns the FlightReservationMutation object of the builder.
@@ -240,6 +296,65 @@ func (frc *FlightReservationCreate) createSpec() (*FlightReservation, *sqlgraph.
 			Column: flightreservation.FieldUpdatedAt,
 		})
 		_node.UpdatedAt = value
+	}
+	if nodes := frc.mutation.FlightInstanceIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   flightreservation.FlightInstanceTable,
+			Columns: []string{flightreservation.FlightInstanceColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flightinstance.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.flight_instance_id = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := frc.mutation.IteneraryIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   flightreservation.IteneraryTable,
+			Columns: []string{flightreservation.IteneraryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: itenerary.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.itenerary_id = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := frc.mutation.PassengersIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   flightreservation.PassengersTable,
+			Columns: []string{flightreservation.PassengersColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: passenger.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

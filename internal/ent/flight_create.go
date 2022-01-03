@@ -3,8 +3,12 @@
 package ent
 
 import (
+	"airbound/internal/ent/airport"
+	"airbound/internal/ent/crew"
 	"airbound/internal/ent/enums"
 	"airbound/internal/ent/flight"
+	"airbound/internal/ent/flightinstance"
+	"airbound/internal/ent/flightschedule"
 	"context"
 	"errors"
 	"fmt"
@@ -78,6 +82,89 @@ func (fc *FlightCreate) SetNillableUpdatedAt(t *time.Time) *FlightCreate {
 func (fc *FlightCreate) SetID(u uuid.UUID) *FlightCreate {
 	fc.mutation.SetID(u)
 	return fc
+}
+
+// AddFlightInstanceIDs adds the "flight_instances" edge to the FlightInstance entity by IDs.
+func (fc *FlightCreate) AddFlightInstanceIDs(ids ...uuid.UUID) *FlightCreate {
+	fc.mutation.AddFlightInstanceIDs(ids...)
+	return fc
+}
+
+// AddFlightInstances adds the "flight_instances" edges to the FlightInstance entity.
+func (fc *FlightCreate) AddFlightInstances(f ...*FlightInstance) *FlightCreate {
+	ids := make([]uuid.UUID, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return fc.AddFlightInstanceIDs(ids...)
+}
+
+// AddFlightScheduleIDs adds the "flight_schedules" edge to the FlightSchedule entity by IDs.
+func (fc *FlightCreate) AddFlightScheduleIDs(ids ...uuid.UUID) *FlightCreate {
+	fc.mutation.AddFlightScheduleIDs(ids...)
+	return fc
+}
+
+// AddFlightSchedules adds the "flight_schedules" edges to the FlightSchedule entity.
+func (fc *FlightCreate) AddFlightSchedules(f ...*FlightSchedule) *FlightCreate {
+	ids := make([]uuid.UUID, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return fc.AddFlightScheduleIDs(ids...)
+}
+
+// AddCrewIDs adds the "crews" edge to the Crew entity by IDs.
+func (fc *FlightCreate) AddCrewIDs(ids ...uuid.UUID) *FlightCreate {
+	fc.mutation.AddCrewIDs(ids...)
+	return fc
+}
+
+// AddCrews adds the "crews" edges to the Crew entity.
+func (fc *FlightCreate) AddCrews(c ...*Crew) *FlightCreate {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return fc.AddCrewIDs(ids...)
+}
+
+// SetDepartureAirportID sets the "departure_airport" edge to the Airport entity by ID.
+func (fc *FlightCreate) SetDepartureAirportID(id uuid.UUID) *FlightCreate {
+	fc.mutation.SetDepartureAirportID(id)
+	return fc
+}
+
+// SetNillableDepartureAirportID sets the "departure_airport" edge to the Airport entity by ID if the given value is not nil.
+func (fc *FlightCreate) SetNillableDepartureAirportID(id *uuid.UUID) *FlightCreate {
+	if id != nil {
+		fc = fc.SetDepartureAirportID(*id)
+	}
+	return fc
+}
+
+// SetDepartureAirport sets the "departure_airport" edge to the Airport entity.
+func (fc *FlightCreate) SetDepartureAirport(a *Airport) *FlightCreate {
+	return fc.SetDepartureAirportID(a.ID)
+}
+
+// SetArrivalAirportID sets the "arrival_airport" edge to the Airport entity by ID.
+func (fc *FlightCreate) SetArrivalAirportID(id uuid.UUID) *FlightCreate {
+	fc.mutation.SetArrivalAirportID(id)
+	return fc
+}
+
+// SetNillableArrivalAirportID sets the "arrival_airport" edge to the Airport entity by ID if the given value is not nil.
+func (fc *FlightCreate) SetNillableArrivalAirportID(id *uuid.UUID) *FlightCreate {
+	if id != nil {
+		fc = fc.SetArrivalAirportID(*id)
+	}
+	return fc
+}
+
+// SetArrivalAirport sets the "arrival_airport" edge to the Airport entity.
+func (fc *FlightCreate) SetArrivalAirport(a *Airport) *FlightCreate {
+	return fc.SetArrivalAirportID(a.ID)
 }
 
 // Mutation returns the FlightMutation object of the builder.
@@ -284,6 +371,103 @@ func (fc *FlightCreate) createSpec() (*Flight, *sqlgraph.CreateSpec) {
 			Column: flight.FieldUpdatedAt,
 		})
 		_node.UpdatedAt = value
+	}
+	if nodes := fc.mutation.FlightInstancesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   flight.FlightInstancesTable,
+			Columns: []string{flight.FlightInstancesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flightinstance.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := fc.mutation.FlightSchedulesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   flight.FlightSchedulesTable,
+			Columns: []string{flight.FlightSchedulesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flightschedule.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := fc.mutation.CrewsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   flight.CrewsTable,
+			Columns: flight.CrewsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: crew.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := fc.mutation.DepartureAirportIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   flight.DepartureAirportTable,
+			Columns: []string{flight.DepartureAirportColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: airport.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.depature_airport_id = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := fc.mutation.ArrivalAirportIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   flight.ArrivalAirportTable,
+			Columns: []string{flight.ArrivalAirportColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: airport.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.arrival_airport_id = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

@@ -3,8 +3,12 @@
 package ent
 
 import (
+	"airbound/internal/ent/aircraft"
 	"airbound/internal/ent/enums"
+	"airbound/internal/ent/flight"
 	"airbound/internal/ent/flightinstance"
+	"airbound/internal/ent/flightreservation"
+	"airbound/internal/ent/flightseat"
 	"airbound/internal/ent/predicate"
 	"context"
 	"fmt"
@@ -13,6 +17,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 )
 
 // FlightInstanceUpdate is the builder for updating FlightInstance entities.
@@ -80,9 +85,131 @@ func (fiu *FlightInstanceUpdate) SetUpdatedAt(t time.Time) *FlightInstanceUpdate
 	return fiu
 }
 
+// SetFlightID sets the "flight" edge to the Flight entity by ID.
+func (fiu *FlightInstanceUpdate) SetFlightID(id uuid.UUID) *FlightInstanceUpdate {
+	fiu.mutation.SetFlightID(id)
+	return fiu
+}
+
+// SetNillableFlightID sets the "flight" edge to the Flight entity by ID if the given value is not nil.
+func (fiu *FlightInstanceUpdate) SetNillableFlightID(id *uuid.UUID) *FlightInstanceUpdate {
+	if id != nil {
+		fiu = fiu.SetFlightID(*id)
+	}
+	return fiu
+}
+
+// SetFlight sets the "flight" edge to the Flight entity.
+func (fiu *FlightInstanceUpdate) SetFlight(f *Flight) *FlightInstanceUpdate {
+	return fiu.SetFlightID(f.ID)
+}
+
+// SetAircraftID sets the "aircraft" edge to the Aircraft entity by ID.
+func (fiu *FlightInstanceUpdate) SetAircraftID(id uuid.UUID) *FlightInstanceUpdate {
+	fiu.mutation.SetAircraftID(id)
+	return fiu
+}
+
+// SetNillableAircraftID sets the "aircraft" edge to the Aircraft entity by ID if the given value is not nil.
+func (fiu *FlightInstanceUpdate) SetNillableAircraftID(id *uuid.UUID) *FlightInstanceUpdate {
+	if id != nil {
+		fiu = fiu.SetAircraftID(*id)
+	}
+	return fiu
+}
+
+// SetAircraft sets the "aircraft" edge to the Aircraft entity.
+func (fiu *FlightInstanceUpdate) SetAircraft(a *Aircraft) *FlightInstanceUpdate {
+	return fiu.SetAircraftID(a.ID)
+}
+
+// AddFlightReservationIDs adds the "flight_reservations" edge to the FlightReservation entity by IDs.
+func (fiu *FlightInstanceUpdate) AddFlightReservationIDs(ids ...uuid.UUID) *FlightInstanceUpdate {
+	fiu.mutation.AddFlightReservationIDs(ids...)
+	return fiu
+}
+
+// AddFlightReservations adds the "flight_reservations" edges to the FlightReservation entity.
+func (fiu *FlightInstanceUpdate) AddFlightReservations(f ...*FlightReservation) *FlightInstanceUpdate {
+	ids := make([]uuid.UUID, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return fiu.AddFlightReservationIDs(ids...)
+}
+
+// AddFlightSeatIDs adds the "flight_seats" edge to the FlightSeat entity by IDs.
+func (fiu *FlightInstanceUpdate) AddFlightSeatIDs(ids ...uuid.UUID) *FlightInstanceUpdate {
+	fiu.mutation.AddFlightSeatIDs(ids...)
+	return fiu
+}
+
+// AddFlightSeats adds the "flight_seats" edges to the FlightSeat entity.
+func (fiu *FlightInstanceUpdate) AddFlightSeats(f ...*FlightSeat) *FlightInstanceUpdate {
+	ids := make([]uuid.UUID, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return fiu.AddFlightSeatIDs(ids...)
+}
+
 // Mutation returns the FlightInstanceMutation object of the builder.
 func (fiu *FlightInstanceUpdate) Mutation() *FlightInstanceMutation {
 	return fiu.mutation
+}
+
+// ClearFlight clears the "flight" edge to the Flight entity.
+func (fiu *FlightInstanceUpdate) ClearFlight() *FlightInstanceUpdate {
+	fiu.mutation.ClearFlight()
+	return fiu
+}
+
+// ClearAircraft clears the "aircraft" edge to the Aircraft entity.
+func (fiu *FlightInstanceUpdate) ClearAircraft() *FlightInstanceUpdate {
+	fiu.mutation.ClearAircraft()
+	return fiu
+}
+
+// ClearFlightReservations clears all "flight_reservations" edges to the FlightReservation entity.
+func (fiu *FlightInstanceUpdate) ClearFlightReservations() *FlightInstanceUpdate {
+	fiu.mutation.ClearFlightReservations()
+	return fiu
+}
+
+// RemoveFlightReservationIDs removes the "flight_reservations" edge to FlightReservation entities by IDs.
+func (fiu *FlightInstanceUpdate) RemoveFlightReservationIDs(ids ...uuid.UUID) *FlightInstanceUpdate {
+	fiu.mutation.RemoveFlightReservationIDs(ids...)
+	return fiu
+}
+
+// RemoveFlightReservations removes "flight_reservations" edges to FlightReservation entities.
+func (fiu *FlightInstanceUpdate) RemoveFlightReservations(f ...*FlightReservation) *FlightInstanceUpdate {
+	ids := make([]uuid.UUID, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return fiu.RemoveFlightReservationIDs(ids...)
+}
+
+// ClearFlightSeats clears all "flight_seats" edges to the FlightSeat entity.
+func (fiu *FlightInstanceUpdate) ClearFlightSeats() *FlightInstanceUpdate {
+	fiu.mutation.ClearFlightSeats()
+	return fiu
+}
+
+// RemoveFlightSeatIDs removes the "flight_seats" edge to FlightSeat entities by IDs.
+func (fiu *FlightInstanceUpdate) RemoveFlightSeatIDs(ids ...uuid.UUID) *FlightInstanceUpdate {
+	fiu.mutation.RemoveFlightSeatIDs(ids...)
+	return fiu
+}
+
+// RemoveFlightSeats removes "flight_seats" edges to FlightSeat entities.
+func (fiu *FlightInstanceUpdate) RemoveFlightSeats(f ...*FlightSeat) *FlightInstanceUpdate {
+	ids := make([]uuid.UUID, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return fiu.RemoveFlightSeatIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -241,6 +368,184 @@ func (fiu *FlightInstanceUpdate) sqlSave(ctx context.Context) (n int, err error)
 			Column: flightinstance.FieldUpdatedAt,
 		})
 	}
+	if fiu.mutation.FlightCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   flightinstance.FlightTable,
+			Columns: []string{flightinstance.FlightColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flight.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fiu.mutation.FlightIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   flightinstance.FlightTable,
+			Columns: []string{flightinstance.FlightColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flight.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if fiu.mutation.AircraftCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   flightinstance.AircraftTable,
+			Columns: []string{flightinstance.AircraftColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: aircraft.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fiu.mutation.AircraftIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   flightinstance.AircraftTable,
+			Columns: []string{flightinstance.AircraftColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: aircraft.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if fiu.mutation.FlightReservationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   flightinstance.FlightReservationsTable,
+			Columns: []string{flightinstance.FlightReservationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flightreservation.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fiu.mutation.RemovedFlightReservationsIDs(); len(nodes) > 0 && !fiu.mutation.FlightReservationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   flightinstance.FlightReservationsTable,
+			Columns: []string{flightinstance.FlightReservationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flightreservation.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fiu.mutation.FlightReservationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   flightinstance.FlightReservationsTable,
+			Columns: []string{flightinstance.FlightReservationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flightreservation.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if fiu.mutation.FlightSeatsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   flightinstance.FlightSeatsTable,
+			Columns: []string{flightinstance.FlightSeatsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flightseat.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fiu.mutation.RemovedFlightSeatsIDs(); len(nodes) > 0 && !fiu.mutation.FlightSeatsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   flightinstance.FlightSeatsTable,
+			Columns: []string{flightinstance.FlightSeatsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flightseat.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fiu.mutation.FlightSeatsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   flightinstance.FlightSeatsTable,
+			Columns: []string{flightinstance.FlightSeatsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flightseat.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, fiu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{flightinstance.Label}
@@ -312,9 +617,131 @@ func (fiuo *FlightInstanceUpdateOne) SetUpdatedAt(t time.Time) *FlightInstanceUp
 	return fiuo
 }
 
+// SetFlightID sets the "flight" edge to the Flight entity by ID.
+func (fiuo *FlightInstanceUpdateOne) SetFlightID(id uuid.UUID) *FlightInstanceUpdateOne {
+	fiuo.mutation.SetFlightID(id)
+	return fiuo
+}
+
+// SetNillableFlightID sets the "flight" edge to the Flight entity by ID if the given value is not nil.
+func (fiuo *FlightInstanceUpdateOne) SetNillableFlightID(id *uuid.UUID) *FlightInstanceUpdateOne {
+	if id != nil {
+		fiuo = fiuo.SetFlightID(*id)
+	}
+	return fiuo
+}
+
+// SetFlight sets the "flight" edge to the Flight entity.
+func (fiuo *FlightInstanceUpdateOne) SetFlight(f *Flight) *FlightInstanceUpdateOne {
+	return fiuo.SetFlightID(f.ID)
+}
+
+// SetAircraftID sets the "aircraft" edge to the Aircraft entity by ID.
+func (fiuo *FlightInstanceUpdateOne) SetAircraftID(id uuid.UUID) *FlightInstanceUpdateOne {
+	fiuo.mutation.SetAircraftID(id)
+	return fiuo
+}
+
+// SetNillableAircraftID sets the "aircraft" edge to the Aircraft entity by ID if the given value is not nil.
+func (fiuo *FlightInstanceUpdateOne) SetNillableAircraftID(id *uuid.UUID) *FlightInstanceUpdateOne {
+	if id != nil {
+		fiuo = fiuo.SetAircraftID(*id)
+	}
+	return fiuo
+}
+
+// SetAircraft sets the "aircraft" edge to the Aircraft entity.
+func (fiuo *FlightInstanceUpdateOne) SetAircraft(a *Aircraft) *FlightInstanceUpdateOne {
+	return fiuo.SetAircraftID(a.ID)
+}
+
+// AddFlightReservationIDs adds the "flight_reservations" edge to the FlightReservation entity by IDs.
+func (fiuo *FlightInstanceUpdateOne) AddFlightReservationIDs(ids ...uuid.UUID) *FlightInstanceUpdateOne {
+	fiuo.mutation.AddFlightReservationIDs(ids...)
+	return fiuo
+}
+
+// AddFlightReservations adds the "flight_reservations" edges to the FlightReservation entity.
+func (fiuo *FlightInstanceUpdateOne) AddFlightReservations(f ...*FlightReservation) *FlightInstanceUpdateOne {
+	ids := make([]uuid.UUID, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return fiuo.AddFlightReservationIDs(ids...)
+}
+
+// AddFlightSeatIDs adds the "flight_seats" edge to the FlightSeat entity by IDs.
+func (fiuo *FlightInstanceUpdateOne) AddFlightSeatIDs(ids ...uuid.UUID) *FlightInstanceUpdateOne {
+	fiuo.mutation.AddFlightSeatIDs(ids...)
+	return fiuo
+}
+
+// AddFlightSeats adds the "flight_seats" edges to the FlightSeat entity.
+func (fiuo *FlightInstanceUpdateOne) AddFlightSeats(f ...*FlightSeat) *FlightInstanceUpdateOne {
+	ids := make([]uuid.UUID, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return fiuo.AddFlightSeatIDs(ids...)
+}
+
 // Mutation returns the FlightInstanceMutation object of the builder.
 func (fiuo *FlightInstanceUpdateOne) Mutation() *FlightInstanceMutation {
 	return fiuo.mutation
+}
+
+// ClearFlight clears the "flight" edge to the Flight entity.
+func (fiuo *FlightInstanceUpdateOne) ClearFlight() *FlightInstanceUpdateOne {
+	fiuo.mutation.ClearFlight()
+	return fiuo
+}
+
+// ClearAircraft clears the "aircraft" edge to the Aircraft entity.
+func (fiuo *FlightInstanceUpdateOne) ClearAircraft() *FlightInstanceUpdateOne {
+	fiuo.mutation.ClearAircraft()
+	return fiuo
+}
+
+// ClearFlightReservations clears all "flight_reservations" edges to the FlightReservation entity.
+func (fiuo *FlightInstanceUpdateOne) ClearFlightReservations() *FlightInstanceUpdateOne {
+	fiuo.mutation.ClearFlightReservations()
+	return fiuo
+}
+
+// RemoveFlightReservationIDs removes the "flight_reservations" edge to FlightReservation entities by IDs.
+func (fiuo *FlightInstanceUpdateOne) RemoveFlightReservationIDs(ids ...uuid.UUID) *FlightInstanceUpdateOne {
+	fiuo.mutation.RemoveFlightReservationIDs(ids...)
+	return fiuo
+}
+
+// RemoveFlightReservations removes "flight_reservations" edges to FlightReservation entities.
+func (fiuo *FlightInstanceUpdateOne) RemoveFlightReservations(f ...*FlightReservation) *FlightInstanceUpdateOne {
+	ids := make([]uuid.UUID, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return fiuo.RemoveFlightReservationIDs(ids...)
+}
+
+// ClearFlightSeats clears all "flight_seats" edges to the FlightSeat entity.
+func (fiuo *FlightInstanceUpdateOne) ClearFlightSeats() *FlightInstanceUpdateOne {
+	fiuo.mutation.ClearFlightSeats()
+	return fiuo
+}
+
+// RemoveFlightSeatIDs removes the "flight_seats" edge to FlightSeat entities by IDs.
+func (fiuo *FlightInstanceUpdateOne) RemoveFlightSeatIDs(ids ...uuid.UUID) *FlightInstanceUpdateOne {
+	fiuo.mutation.RemoveFlightSeatIDs(ids...)
+	return fiuo
+}
+
+// RemoveFlightSeats removes "flight_seats" edges to FlightSeat entities.
+func (fiuo *FlightInstanceUpdateOne) RemoveFlightSeats(f ...*FlightSeat) *FlightInstanceUpdateOne {
+	ids := make([]uuid.UUID, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return fiuo.RemoveFlightSeatIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -496,6 +923,184 @@ func (fiuo *FlightInstanceUpdateOne) sqlSave(ctx context.Context) (_node *Flight
 			Value:  value,
 			Column: flightinstance.FieldUpdatedAt,
 		})
+	}
+	if fiuo.mutation.FlightCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   flightinstance.FlightTable,
+			Columns: []string{flightinstance.FlightColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flight.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fiuo.mutation.FlightIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   flightinstance.FlightTable,
+			Columns: []string{flightinstance.FlightColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flight.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if fiuo.mutation.AircraftCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   flightinstance.AircraftTable,
+			Columns: []string{flightinstance.AircraftColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: aircraft.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fiuo.mutation.AircraftIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   flightinstance.AircraftTable,
+			Columns: []string{flightinstance.AircraftColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: aircraft.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if fiuo.mutation.FlightReservationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   flightinstance.FlightReservationsTable,
+			Columns: []string{flightinstance.FlightReservationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flightreservation.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fiuo.mutation.RemovedFlightReservationsIDs(); len(nodes) > 0 && !fiuo.mutation.FlightReservationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   flightinstance.FlightReservationsTable,
+			Columns: []string{flightinstance.FlightReservationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flightreservation.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fiuo.mutation.FlightReservationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   flightinstance.FlightReservationsTable,
+			Columns: []string{flightinstance.FlightReservationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flightreservation.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if fiuo.mutation.FlightSeatsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   flightinstance.FlightSeatsTable,
+			Columns: []string{flightinstance.FlightSeatsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flightseat.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fiuo.mutation.RemovedFlightSeatsIDs(); len(nodes) > 0 && !fiuo.mutation.FlightSeatsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   flightinstance.FlightSeatsTable,
+			Columns: []string{flightinstance.FlightSeatsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flightseat.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fiuo.mutation.FlightSeatsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   flightinstance.FlightSeatsTable,
+			Columns: []string{flightinstance.FlightSeatsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flightseat.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &FlightInstance{config: fiuo.config}
 	_spec.Assign = _node.assignValues

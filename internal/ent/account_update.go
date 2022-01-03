@@ -6,13 +6,16 @@ import (
 	"airbound/internal/ent/account"
 	"airbound/internal/ent/enums"
 	"airbound/internal/ent/predicate"
+	"airbound/internal/ent/user"
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 )
 
 // AccountUpdate is the builder for updating Account entities.
@@ -66,9 +69,26 @@ func (au *AccountUpdate) SetUpdatedAt(t time.Time) *AccountUpdate {
 	return au
 }
 
+// SetUserID sets the "user" edge to the User entity by ID.
+func (au *AccountUpdate) SetUserID(id uuid.UUID) *AccountUpdate {
+	au.mutation.SetUserID(id)
+	return au
+}
+
+// SetUser sets the "user" edge to the User entity.
+func (au *AccountUpdate) SetUser(u *User) *AccountUpdate {
+	return au.SetUserID(u.ID)
+}
+
 // Mutation returns the AccountMutation object of the builder.
 func (au *AccountUpdate) Mutation() *AccountMutation {
 	return au.mutation
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (au *AccountUpdate) ClearUser() *AccountUpdate {
+	au.mutation.ClearUser()
+	return au
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -147,6 +167,9 @@ func (au *AccountUpdate) check() error {
 			return &ValidationError{Name: "account_status", err: fmt.Errorf("ent: validator failed for field \"account_status\": %w", err)}
 		}
 	}
+	if _, ok := au.mutation.UserID(); au.mutation.UserCleared() && !ok {
+		return errors.New("ent: clearing a required unique edge \"user\"")
+	}
 	return nil
 }
 
@@ -202,6 +225,41 @@ func (au *AccountUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Value:  value,
 			Column: account.FieldUpdatedAt,
 		})
+	}
+	if au.mutation.UserCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   account.UserTable,
+			Columns: []string{account.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := au.mutation.UserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   account.UserTable,
+			Columns: []string{account.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, au.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -260,9 +318,26 @@ func (auo *AccountUpdateOne) SetUpdatedAt(t time.Time) *AccountUpdateOne {
 	return auo
 }
 
+// SetUserID sets the "user" edge to the User entity by ID.
+func (auo *AccountUpdateOne) SetUserID(id uuid.UUID) *AccountUpdateOne {
+	auo.mutation.SetUserID(id)
+	return auo
+}
+
+// SetUser sets the "user" edge to the User entity.
+func (auo *AccountUpdateOne) SetUser(u *User) *AccountUpdateOne {
+	return auo.SetUserID(u.ID)
+}
+
 // Mutation returns the AccountMutation object of the builder.
 func (auo *AccountUpdateOne) Mutation() *AccountMutation {
 	return auo.mutation
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (auo *AccountUpdateOne) ClearUser() *AccountUpdateOne {
+	auo.mutation.ClearUser()
+	return auo
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -348,6 +423,9 @@ func (auo *AccountUpdateOne) check() error {
 			return &ValidationError{Name: "account_status", err: fmt.Errorf("ent: validator failed for field \"account_status\": %w", err)}
 		}
 	}
+	if _, ok := auo.mutation.UserID(); auo.mutation.UserCleared() && !ok {
+		return errors.New("ent: clearing a required unique edge \"user\"")
+	}
 	return nil
 }
 
@@ -420,6 +498,41 @@ func (auo *AccountUpdateOne) sqlSave(ctx context.Context) (_node *Account, err e
 			Value:  value,
 			Column: account.FieldUpdatedAt,
 		})
+	}
+	if auo.mutation.UserCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   account.UserTable,
+			Columns: []string{account.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := auo.mutation.UserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   account.UserTable,
+			Columns: []string{account.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &Account{config: auo.config}
 	_spec.Assign = _node.assignValues

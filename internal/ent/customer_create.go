@@ -4,6 +4,8 @@ package ent
 
 import (
 	"airbound/internal/ent/customer"
+	"airbound/internal/ent/itenerary"
+	"airbound/internal/ent/user"
 	"context"
 	"errors"
 	"fmt"
@@ -59,6 +61,32 @@ func (cc *CustomerCreate) SetNillableUpdatedAt(t *time.Time) *CustomerCreate {
 func (cc *CustomerCreate) SetID(u uuid.UUID) *CustomerCreate {
 	cc.mutation.SetID(u)
 	return cc
+}
+
+// SetUserID sets the "user" edge to the User entity by ID.
+func (cc *CustomerCreate) SetUserID(id uuid.UUID) *CustomerCreate {
+	cc.mutation.SetUserID(id)
+	return cc
+}
+
+// SetUser sets the "user" edge to the User entity.
+func (cc *CustomerCreate) SetUser(u *User) *CustomerCreate {
+	return cc.SetUserID(u.ID)
+}
+
+// AddIteneraryIDs adds the "iteneraries" edge to the Itenerary entity by IDs.
+func (cc *CustomerCreate) AddIteneraryIDs(ids ...uuid.UUID) *CustomerCreate {
+	cc.mutation.AddIteneraryIDs(ids...)
+	return cc
+}
+
+// AddIteneraries adds the "iteneraries" edges to the Itenerary entity.
+func (cc *CustomerCreate) AddIteneraries(i ...*Itenerary) *CustomerCreate {
+	ids := make([]uuid.UUID, len(i))
+	for j := range i {
+		ids[j] = i[j].ID
+	}
+	return cc.AddIteneraryIDs(ids...)
 }
 
 // Mutation returns the CustomerMutation object of the builder.
@@ -162,6 +190,9 @@ func (cc *CustomerCreate) check() error {
 	if _, ok := cc.mutation.UpdatedAt(); !ok {
 		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "updated_at"`)}
 	}
+	if _, ok := cc.mutation.UserID(); !ok {
+		return &ValidationError{Name: "user", err: errors.New("ent: missing required edge \"user\"")}
+	}
 	return nil
 }
 
@@ -217,6 +248,45 @@ func (cc *CustomerCreate) createSpec() (*Customer, *sqlgraph.CreateSpec) {
 			Column: customer.FieldUpdatedAt,
 		})
 		_node.UpdatedAt = value
+	}
+	if nodes := cc.mutation.UserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   customer.UserTable,
+			Columns: []string{customer.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.user_customer = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := cc.mutation.ItenerariesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   customer.ItenerariesTable,
+			Columns: []string{customer.ItenerariesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: itenerary.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

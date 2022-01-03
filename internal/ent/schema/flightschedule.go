@@ -7,6 +7,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 )
@@ -23,8 +24,11 @@ func (FlightSchedule) Fields() []ent.Field {
 		field.Enum("weekday").GoType(enums.WeekDay(0)).Optional(),
 		field.Enum("schedule_type").GoType(enums.FlightScheduleType("")),
 		field.String("custom_date").GoType(customtypes.Date{}).SchemaType(map[string]string{dialect.Postgres: "date"}).Optional(),
-		field.String("departs_at").GoType(customtypes.Time{}).SchemaType(map[string]string{dialect.Postgres: "time"}),
-		field.String("arrives_at").GoType(customtypes.Time{}).SchemaType(map[string]string{dialect.Postgres: "time"}),
+		// temporarily storing this as 'string' till 'time without timezone' is added to the scanColumns method - ref: https://github.com/ent/ent/issues/2244
+		field.String("departs_at").GoType(customtypes.Time{}),
+		// field.String("departs_at").GoType(customtypes.Time{}).SchemaType(map[string]string{dialect.Postgres: "time"}),
+		field.String("arrives_at").GoType(customtypes.Time{}),
+		// field.String("arrives_at").GoType(customtypes.Time{}).SchemaType(map[string]string{dialect.Postgres: "time"}),
 		field.Time("created_at").Default(time.Now),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 	}
@@ -32,5 +36,9 @@ func (FlightSchedule) Fields() []ent.Field {
 
 // Edges of the FlightSchedule.
 func (FlightSchedule) Edges() []ent.Edge {
-	return nil
+	return []ent.Edge{
+		edge.From("flight", Flight.Type).
+			Ref("flight_schedules").
+			Unique(),
+	}
 }

@@ -19,8 +19,33 @@ const (
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
+	// EdgeUser holds the string denoting the user edge name in mutations.
+	EdgeUser = "user"
+	// EdgeAirline holds the string denoting the airline edge name in mutations.
+	EdgeAirline = "airline"
+	// EdgeFlights holds the string denoting the flights edge name in mutations.
+	EdgeFlights = "flights"
 	// Table holds the table name of the crew in the database.
 	Table = "crews"
+	// UserTable is the table that holds the user relation/edge.
+	UserTable = "crews"
+	// UserInverseTable is the table name for the User entity.
+	// It exists in this package in order to avoid circular dependency with the "user" package.
+	UserInverseTable = "users"
+	// UserColumn is the table column denoting the user relation/edge.
+	UserColumn = "user_crew"
+	// AirlineTable is the table that holds the airline relation/edge.
+	AirlineTable = "crews"
+	// AirlineInverseTable is the table name for the Airline entity.
+	// It exists in this package in order to avoid circular dependency with the "airline" package.
+	AirlineInverseTable = "airlines"
+	// AirlineColumn is the table column denoting the airline relation/edge.
+	AirlineColumn = "airline_id"
+	// FlightsTable is the table that holds the flights relation/edge. The primary key declared below.
+	FlightsTable = "flight_crew"
+	// FlightsInverseTable is the table name for the Flight entity.
+	// It exists in this package in order to avoid circular dependency with the "flight" package.
+	FlightsInverseTable = "flights"
 )
 
 // Columns holds all SQL columns for crew fields.
@@ -31,10 +56,28 @@ var Columns = []string{
 	FieldUpdatedAt,
 }
 
+// ForeignKeys holds the SQL foreign-keys that are owned by the "crews"
+// table and are not defined as standalone fields in the schema.
+var ForeignKeys = []string{
+	"airline_id",
+	"user_crew",
+}
+
+var (
+	// FlightsPrimaryKey and FlightsColumn2 are the table columns denoting the
+	// primary key for the flights relation (M2M).
+	FlightsPrimaryKey = []string{"flight_id", "crew_id"}
+)
+
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
 	for i := range Columns {
 		if column == Columns[i] {
+			return true
+		}
+	}
+	for i := range ForeignKeys {
+		if column == ForeignKeys[i] {
 			return true
 		}
 	}

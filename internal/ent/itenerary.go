@@ -3,6 +3,8 @@
 package ent
 
 import (
+	"airbound/internal/ent/airport"
+	"airbound/internal/ent/customer"
 	"airbound/internal/ent/itenerary"
 	"fmt"
 	"strings"
@@ -21,6 +23,78 @@ type Itenerary struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the IteneraryQuery when eager-loading is set.
+	Edges                  IteneraryEdges `json:"edges"`
+	origin_airport_id      *uuid.UUID
+	destination_airport_id *uuid.UUID
+	customer_id            *uuid.UUID
+}
+
+// IteneraryEdges holds the relations/edges for other nodes in the graph.
+type IteneraryEdges struct {
+	// FlightReservations holds the value of the flight_reservations edge.
+	FlightReservations []*FlightReservation `json:"flight_reservations,omitempty"`
+	// Customer holds the value of the customer edge.
+	Customer *Customer `json:"customer,omitempty"`
+	// OriginAirport holds the value of the origin_airport edge.
+	OriginAirport *Airport `json:"origin_airport,omitempty"`
+	// DestinationAirport holds the value of the destination_airport edge.
+	DestinationAirport *Airport `json:"destination_airport,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [4]bool
+}
+
+// FlightReservationsOrErr returns the FlightReservations value or an error if the edge
+// was not loaded in eager-loading.
+func (e IteneraryEdges) FlightReservationsOrErr() ([]*FlightReservation, error) {
+	if e.loadedTypes[0] {
+		return e.FlightReservations, nil
+	}
+	return nil, &NotLoadedError{edge: "flight_reservations"}
+}
+
+// CustomerOrErr returns the Customer value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e IteneraryEdges) CustomerOrErr() (*Customer, error) {
+	if e.loadedTypes[1] {
+		if e.Customer == nil {
+			// The edge customer was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: customer.Label}
+		}
+		return e.Customer, nil
+	}
+	return nil, &NotLoadedError{edge: "customer"}
+}
+
+// OriginAirportOrErr returns the OriginAirport value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e IteneraryEdges) OriginAirportOrErr() (*Airport, error) {
+	if e.loadedTypes[2] {
+		if e.OriginAirport == nil {
+			// The edge origin_airport was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: airport.Label}
+		}
+		return e.OriginAirport, nil
+	}
+	return nil, &NotLoadedError{edge: "origin_airport"}
+}
+
+// DestinationAirportOrErr returns the DestinationAirport value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e IteneraryEdges) DestinationAirportOrErr() (*Airport, error) {
+	if e.loadedTypes[3] {
+		if e.DestinationAirport == nil {
+			// The edge destination_airport was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: airport.Label}
+		}
+		return e.DestinationAirport, nil
+	}
+	return nil, &NotLoadedError{edge: "destination_airport"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -32,6 +106,12 @@ func (*Itenerary) scanValues(columns []string) ([]interface{}, error) {
 			values[i] = new(sql.NullTime)
 		case itenerary.FieldID:
 			values[i] = new(uuid.UUID)
+		case itenerary.ForeignKeys[0]: // origin_airport_id
+			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
+		case itenerary.ForeignKeys[1]: // destination_airport_id
+			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
+		case itenerary.ForeignKeys[2]: // customer_id
+			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Itenerary", columns[i])
 		}
@@ -65,9 +145,50 @@ func (i *Itenerary) assignValues(columns []string, values []interface{}) error {
 			} else if value.Valid {
 				i.UpdatedAt = value.Time
 			}
+		case itenerary.ForeignKeys[0]:
+			if value, ok := values[j].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field origin_airport_id", values[j])
+			} else if value.Valid {
+				i.origin_airport_id = new(uuid.UUID)
+				*i.origin_airport_id = *value.S.(*uuid.UUID)
+			}
+		case itenerary.ForeignKeys[1]:
+			if value, ok := values[j].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field destination_airport_id", values[j])
+			} else if value.Valid {
+				i.destination_airport_id = new(uuid.UUID)
+				*i.destination_airport_id = *value.S.(*uuid.UUID)
+			}
+		case itenerary.ForeignKeys[2]:
+			if value, ok := values[j].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field customer_id", values[j])
+			} else if value.Valid {
+				i.customer_id = new(uuid.UUID)
+				*i.customer_id = *value.S.(*uuid.UUID)
+			}
 		}
 	}
 	return nil
+}
+
+// QueryFlightReservations queries the "flight_reservations" edge of the Itenerary entity.
+func (i *Itenerary) QueryFlightReservations() *FlightReservationQuery {
+	return (&IteneraryClient{config: i.config}).QueryFlightReservations(i)
+}
+
+// QueryCustomer queries the "customer" edge of the Itenerary entity.
+func (i *Itenerary) QueryCustomer() *CustomerQuery {
+	return (&IteneraryClient{config: i.config}).QueryCustomer(i)
+}
+
+// QueryOriginAirport queries the "origin_airport" edge of the Itenerary entity.
+func (i *Itenerary) QueryOriginAirport() *AirportQuery {
+	return (&IteneraryClient{config: i.config}).QueryOriginAirport(i)
+}
+
+// QueryDestinationAirport queries the "destination_airport" edge of the Itenerary entity.
+func (i *Itenerary) QueryDestinationAirport() *AirportQuery {
+	return (&IteneraryClient{config: i.config}).QueryDestinationAirport(i)
 }
 
 // Update returns a builder for updating this Itenerary.

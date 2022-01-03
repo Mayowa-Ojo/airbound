@@ -5,7 +5,9 @@ package ent
 import (
 	"airbound/internal/ent/permission"
 	"airbound/internal/ent/predicate"
+	"airbound/internal/ent/role"
 	"context"
+	"database/sql/driver"
 	"errors"
 	"fmt"
 	"math"
@@ -25,6 +27,8 @@ type PermissionQuery struct {
 	order      []OrderFunc
 	fields     []string
 	predicates []predicate.Permission
+	// eager-loading edges.
+	withRoles *RoleQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -59,6 +63,28 @@ func (pq *PermissionQuery) Unique(unique bool) *PermissionQuery {
 func (pq *PermissionQuery) Order(o ...OrderFunc) *PermissionQuery {
 	pq.order = append(pq.order, o...)
 	return pq
+}
+
+// QueryRoles chains the current query on the "roles" edge.
+func (pq *PermissionQuery) QueryRoles() *RoleQuery {
+	query := &RoleQuery{config: pq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := pq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := pq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(permission.Table, permission.FieldID, selector),
+			sqlgraph.To(role.Table, role.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, permission.RolesTable, permission.RolesPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first Permission entity from the query.
@@ -242,10 +268,22 @@ func (pq *PermissionQuery) Clone() *PermissionQuery {
 		offset:     pq.offset,
 		order:      append([]OrderFunc{}, pq.order...),
 		predicates: append([]predicate.Permission{}, pq.predicates...),
+		withRoles:  pq.withRoles.Clone(),
 		// clone intermediate query.
 		sql:  pq.sql.Clone(),
 		path: pq.path,
 	}
+}
+
+// WithRoles tells the query-builder to eager-load the nodes that are connected to
+// the "roles" edge. The optional arguments are used to configure the query builder of the edge.
+func (pq *PermissionQuery) WithRoles(opts ...func(*RoleQuery)) *PermissionQuery {
+	query := &RoleQuery{config: pq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	pq.withRoles = query
+	return pq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -311,8 +349,11 @@ func (pq *PermissionQuery) prepareQuery(ctx context.Context) error {
 
 func (pq *PermissionQuery) sqlAll(ctx context.Context) ([]*Permission, error) {
 	var (
-		nodes = []*Permission{}
-		_spec = pq.querySpec()
+		nodes       = []*Permission{}
+		_spec       = pq.querySpec()
+		loadedTypes = [1]bool{
+			pq.withRoles != nil,
+		}
 	)
 	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
 		node := &Permission{config: pq.config}
@@ -324,6 +365,7 @@ func (pq *PermissionQuery) sqlAll(ctx context.Context) ([]*Permission, error) {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	if err := sqlgraph.QueryNodes(ctx, pq.driver, _spec); err != nil {
@@ -332,6 +374,72 @@ func (pq *PermissionQuery) sqlAll(ctx context.Context) ([]*Permission, error) {
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+
+	if query := pq.withRoles; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		ids := make(map[uuid.UUID]*Permission, len(nodes))
+		for _, node := range nodes {
+			ids[node.ID] = node
+			fks = append(fks, node.ID)
+			node.Edges.Roles = []*Role{}
+		}
+		var (
+			edgeids []uuid.UUID
+			edges   = make(map[uuid.UUID][]*Permission)
+		)
+		_spec := &sqlgraph.EdgeQuerySpec{
+			Edge: &sqlgraph.EdgeSpec{
+				Inverse: true,
+				Table:   permission.RolesTable,
+				Columns: permission.RolesPrimaryKey,
+			},
+			Predicate: func(s *sql.Selector) {
+				s.Where(sql.InValues(permission.RolesPrimaryKey[1], fks...))
+			},
+			ScanValues: func() [2]interface{} {
+				return [2]interface{}{new(uuid.UUID), new(uuid.UUID)}
+			},
+			Assign: func(out, in interface{}) error {
+				eout, ok := out.(*uuid.UUID)
+				if !ok || eout == nil {
+					return fmt.Errorf("unexpected id value for edge-out")
+				}
+				ein, ok := in.(*uuid.UUID)
+				if !ok || ein == nil {
+					return fmt.Errorf("unexpected id value for edge-in")
+				}
+				outValue := *eout
+				inValue := *ein
+				node, ok := ids[outValue]
+				if !ok {
+					return fmt.Errorf("unexpected node id in edges: %v", outValue)
+				}
+				if _, ok := edges[inValue]; !ok {
+					edgeids = append(edgeids, inValue)
+				}
+				edges[inValue] = append(edges[inValue], node)
+				return nil
+			},
+		}
+		if err := sqlgraph.QueryEdges(ctx, pq.driver, _spec); err != nil {
+			return nil, fmt.Errorf(`query edges "roles": %w`, err)
+		}
+		query.Where(role.IDIn(edgeids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := edges[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected "roles" node returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Roles = append(nodes[i].Edges.Roles, n)
+			}
+		}
+	}
+
 	return nodes, nil
 }
 

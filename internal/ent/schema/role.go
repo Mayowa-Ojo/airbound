@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"entgo.io/ent"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 )
@@ -25,5 +26,12 @@ func (Role) Fields() []ent.Field {
 
 // Edges of the Role.
 func (Role) Edges() []ent.Edge {
-	return nil
+	return []ent.Edge{
+		edge.To("users", User.Type).StorageKey(edge.Column("role_id")),
+		edge.To("permissions", Permission.Type).
+			StorageKey(
+				edge.Table("role_permission"),
+				edge.Columns("role_id", "permission_id"),
+			),
+	}
 }

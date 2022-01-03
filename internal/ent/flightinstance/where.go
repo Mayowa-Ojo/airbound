@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
 )
 
@@ -473,6 +474,118 @@ func UpdatedAtLT(v time.Time) predicate.FlightInstance {
 func UpdatedAtLTE(v time.Time) predicate.FlightInstance {
 	return predicate.FlightInstance(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldUpdatedAt), v))
+	})
+}
+
+// HasFlight applies the HasEdge predicate on the "flight" edge.
+func HasFlight() predicate.FlightInstance {
+	return predicate.FlightInstance(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(FlightTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, FlightTable, FlightColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasFlightWith applies the HasEdge predicate on the "flight" edge with a given conditions (other predicates).
+func HasFlightWith(preds ...predicate.Flight) predicate.FlightInstance {
+	return predicate.FlightInstance(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(FlightInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, FlightTable, FlightColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasAircraft applies the HasEdge predicate on the "aircraft" edge.
+func HasAircraft() predicate.FlightInstance {
+	return predicate.FlightInstance(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(AircraftTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, AircraftTable, AircraftColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasAircraftWith applies the HasEdge predicate on the "aircraft" edge with a given conditions (other predicates).
+func HasAircraftWith(preds ...predicate.Aircraft) predicate.FlightInstance {
+	return predicate.FlightInstance(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(AircraftInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, AircraftTable, AircraftColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasFlightReservations applies the HasEdge predicate on the "flight_reservations" edge.
+func HasFlightReservations() predicate.FlightInstance {
+	return predicate.FlightInstance(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(FlightReservationsTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, FlightReservationsTable, FlightReservationsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasFlightReservationsWith applies the HasEdge predicate on the "flight_reservations" edge with a given conditions (other predicates).
+func HasFlightReservationsWith(preds ...predicate.FlightReservation) predicate.FlightInstance {
+	return predicate.FlightInstance(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(FlightReservationsInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, FlightReservationsTable, FlightReservationsColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasFlightSeats applies the HasEdge predicate on the "flight_seats" edge.
+func HasFlightSeats() predicate.FlightInstance {
+	return predicate.FlightInstance(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(FlightSeatsTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, FlightSeatsTable, FlightSeatsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasFlightSeatsWith applies the HasEdge predicate on the "flight_seats" edge with a given conditions (other predicates).
+func HasFlightSeatsWith(preds ...predicate.FlightSeat) predicate.FlightInstance {
+	return predicate.FlightInstance(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(FlightSeatsInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, FlightSeatsTable, FlightSeatsColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
 	})
 }
 

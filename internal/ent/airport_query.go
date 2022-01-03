@@ -3,9 +3,14 @@
 package ent
 
 import (
+	"airbound/internal/ent/address"
 	"airbound/internal/ent/airport"
+	"airbound/internal/ent/flight"
+	"airbound/internal/ent/frontdesk"
+	"airbound/internal/ent/itenerary"
 	"airbound/internal/ent/predicate"
 	"context"
+	"database/sql/driver"
 	"errors"
 	"fmt"
 	"math"
@@ -25,6 +30,13 @@ type AirportQuery struct {
 	order      []OrderFunc
 	fields     []string
 	predicates []predicate.Airport
+	// eager-loading edges.
+	withAddress                *AddressQuery
+	withFrontDesks             *FrontDeskQuery
+	withDepartureFlights       *FlightQuery
+	withArrivalFlights         *FlightQuery
+	withOriginIteneraries      *IteneraryQuery
+	withDestinationIteneraries *IteneraryQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -59,6 +71,138 @@ func (aq *AirportQuery) Unique(unique bool) *AirportQuery {
 func (aq *AirportQuery) Order(o ...OrderFunc) *AirportQuery {
 	aq.order = append(aq.order, o...)
 	return aq
+}
+
+// QueryAddress chains the current query on the "address" edge.
+func (aq *AirportQuery) QueryAddress() *AddressQuery {
+	query := &AddressQuery{config: aq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := aq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := aq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(airport.Table, airport.FieldID, selector),
+			sqlgraph.To(address.Table, address.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, airport.AddressTable, airport.AddressColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(aq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryFrontDesks chains the current query on the "front_desks" edge.
+func (aq *AirportQuery) QueryFrontDesks() *FrontDeskQuery {
+	query := &FrontDeskQuery{config: aq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := aq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := aq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(airport.Table, airport.FieldID, selector),
+			sqlgraph.To(frontdesk.Table, frontdesk.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, airport.FrontDesksTable, airport.FrontDesksColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(aq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryDepartureFlights chains the current query on the "departure_flights" edge.
+func (aq *AirportQuery) QueryDepartureFlights() *FlightQuery {
+	query := &FlightQuery{config: aq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := aq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := aq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(airport.Table, airport.FieldID, selector),
+			sqlgraph.To(flight.Table, flight.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, airport.DepartureFlightsTable, airport.DepartureFlightsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(aq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryArrivalFlights chains the current query on the "arrival_flights" edge.
+func (aq *AirportQuery) QueryArrivalFlights() *FlightQuery {
+	query := &FlightQuery{config: aq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := aq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := aq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(airport.Table, airport.FieldID, selector),
+			sqlgraph.To(flight.Table, flight.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, airport.ArrivalFlightsTable, airport.ArrivalFlightsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(aq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryOriginIteneraries chains the current query on the "origin_iteneraries" edge.
+func (aq *AirportQuery) QueryOriginIteneraries() *IteneraryQuery {
+	query := &IteneraryQuery{config: aq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := aq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := aq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(airport.Table, airport.FieldID, selector),
+			sqlgraph.To(itenerary.Table, itenerary.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, airport.OriginItenerariesTable, airport.OriginItenerariesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(aq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryDestinationIteneraries chains the current query on the "destination_iteneraries" edge.
+func (aq *AirportQuery) QueryDestinationIteneraries() *IteneraryQuery {
+	query := &IteneraryQuery{config: aq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := aq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := aq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(airport.Table, airport.FieldID, selector),
+			sqlgraph.To(itenerary.Table, itenerary.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, airport.DestinationItenerariesTable, airport.DestinationItenerariesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(aq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first Airport entity from the query.
@@ -237,15 +381,87 @@ func (aq *AirportQuery) Clone() *AirportQuery {
 		return nil
 	}
 	return &AirportQuery{
-		config:     aq.config,
-		limit:      aq.limit,
-		offset:     aq.offset,
-		order:      append([]OrderFunc{}, aq.order...),
-		predicates: append([]predicate.Airport{}, aq.predicates...),
+		config:                     aq.config,
+		limit:                      aq.limit,
+		offset:                     aq.offset,
+		order:                      append([]OrderFunc{}, aq.order...),
+		predicates:                 append([]predicate.Airport{}, aq.predicates...),
+		withAddress:                aq.withAddress.Clone(),
+		withFrontDesks:             aq.withFrontDesks.Clone(),
+		withDepartureFlights:       aq.withDepartureFlights.Clone(),
+		withArrivalFlights:         aq.withArrivalFlights.Clone(),
+		withOriginIteneraries:      aq.withOriginIteneraries.Clone(),
+		withDestinationIteneraries: aq.withDestinationIteneraries.Clone(),
 		// clone intermediate query.
 		sql:  aq.sql.Clone(),
 		path: aq.path,
 	}
+}
+
+// WithAddress tells the query-builder to eager-load the nodes that are connected to
+// the "address" edge. The optional arguments are used to configure the query builder of the edge.
+func (aq *AirportQuery) WithAddress(opts ...func(*AddressQuery)) *AirportQuery {
+	query := &AddressQuery{config: aq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	aq.withAddress = query
+	return aq
+}
+
+// WithFrontDesks tells the query-builder to eager-load the nodes that are connected to
+// the "front_desks" edge. The optional arguments are used to configure the query builder of the edge.
+func (aq *AirportQuery) WithFrontDesks(opts ...func(*FrontDeskQuery)) *AirportQuery {
+	query := &FrontDeskQuery{config: aq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	aq.withFrontDesks = query
+	return aq
+}
+
+// WithDepartureFlights tells the query-builder to eager-load the nodes that are connected to
+// the "departure_flights" edge. The optional arguments are used to configure the query builder of the edge.
+func (aq *AirportQuery) WithDepartureFlights(opts ...func(*FlightQuery)) *AirportQuery {
+	query := &FlightQuery{config: aq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	aq.withDepartureFlights = query
+	return aq
+}
+
+// WithArrivalFlights tells the query-builder to eager-load the nodes that are connected to
+// the "arrival_flights" edge. The optional arguments are used to configure the query builder of the edge.
+func (aq *AirportQuery) WithArrivalFlights(opts ...func(*FlightQuery)) *AirportQuery {
+	query := &FlightQuery{config: aq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	aq.withArrivalFlights = query
+	return aq
+}
+
+// WithOriginIteneraries tells the query-builder to eager-load the nodes that are connected to
+// the "origin_iteneraries" edge. The optional arguments are used to configure the query builder of the edge.
+func (aq *AirportQuery) WithOriginIteneraries(opts ...func(*IteneraryQuery)) *AirportQuery {
+	query := &IteneraryQuery{config: aq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	aq.withOriginIteneraries = query
+	return aq
+}
+
+// WithDestinationIteneraries tells the query-builder to eager-load the nodes that are connected to
+// the "destination_iteneraries" edge. The optional arguments are used to configure the query builder of the edge.
+func (aq *AirportQuery) WithDestinationIteneraries(opts ...func(*IteneraryQuery)) *AirportQuery {
+	query := &IteneraryQuery{config: aq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	aq.withDestinationIteneraries = query
+	return aq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -311,8 +527,16 @@ func (aq *AirportQuery) prepareQuery(ctx context.Context) error {
 
 func (aq *AirportQuery) sqlAll(ctx context.Context) ([]*Airport, error) {
 	var (
-		nodes = []*Airport{}
-		_spec = aq.querySpec()
+		nodes       = []*Airport{}
+		_spec       = aq.querySpec()
+		loadedTypes = [6]bool{
+			aq.withAddress != nil,
+			aq.withFrontDesks != nil,
+			aq.withDepartureFlights != nil,
+			aq.withArrivalFlights != nil,
+			aq.withOriginIteneraries != nil,
+			aq.withDestinationIteneraries != nil,
+		}
 	)
 	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
 		node := &Airport{config: aq.config}
@@ -324,6 +548,7 @@ func (aq *AirportQuery) sqlAll(ctx context.Context) ([]*Airport, error) {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	if err := sqlgraph.QueryNodes(ctx, aq.driver, _spec); err != nil {
@@ -332,6 +557,180 @@ func (aq *AirportQuery) sqlAll(ctx context.Context) ([]*Airport, error) {
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+
+	if query := aq.withAddress; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[uuid.UUID]*Airport)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.Address(func(s *sql.Selector) {
+			s.Where(sql.InValues(airport.AddressColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.airport_address
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "airport_address" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "airport_address" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.Address = n
+		}
+	}
+
+	if query := aq.withFrontDesks; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[uuid.UUID]*Airport)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+			nodes[i].Edges.FrontDesks = []*FrontDesk{}
+		}
+		query.withFKs = true
+		query.Where(predicate.FrontDesk(func(s *sql.Selector) {
+			s.Where(sql.InValues(airport.FrontDesksColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.airport_id
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "airport_id" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "airport_id" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.FrontDesks = append(node.Edges.FrontDesks, n)
+		}
+	}
+
+	if query := aq.withDepartureFlights; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[uuid.UUID]*Airport)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+			nodes[i].Edges.DepartureFlights = []*Flight{}
+		}
+		query.withFKs = true
+		query.Where(predicate.Flight(func(s *sql.Selector) {
+			s.Where(sql.InValues(airport.DepartureFlightsColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.depature_airport_id
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "depature_airport_id" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "depature_airport_id" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.DepartureFlights = append(node.Edges.DepartureFlights, n)
+		}
+	}
+
+	if query := aq.withArrivalFlights; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[uuid.UUID]*Airport)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+			nodes[i].Edges.ArrivalFlights = []*Flight{}
+		}
+		query.withFKs = true
+		query.Where(predicate.Flight(func(s *sql.Selector) {
+			s.Where(sql.InValues(airport.ArrivalFlightsColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.arrival_airport_id
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "arrival_airport_id" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "arrival_airport_id" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.ArrivalFlights = append(node.Edges.ArrivalFlights, n)
+		}
+	}
+
+	if query := aq.withOriginIteneraries; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[uuid.UUID]*Airport)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+			nodes[i].Edges.OriginIteneraries = []*Itenerary{}
+		}
+		query.withFKs = true
+		query.Where(predicate.Itenerary(func(s *sql.Selector) {
+			s.Where(sql.InValues(airport.OriginItenerariesColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.origin_airport_id
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "origin_airport_id" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "origin_airport_id" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.OriginIteneraries = append(node.Edges.OriginIteneraries, n)
+		}
+	}
+
+	if query := aq.withDestinationIteneraries; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[uuid.UUID]*Airport)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+			nodes[i].Edges.DestinationIteneraries = []*Itenerary{}
+		}
+		query.withFKs = true
+		query.Where(predicate.Itenerary(func(s *sql.Selector) {
+			s.Where(sql.InValues(airport.DestinationItenerariesColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.destination_airport_id
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "destination_airport_id" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "destination_airport_id" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.DestinationIteneraries = append(node.Edges.DestinationIteneraries, n)
+		}
+	}
+
 	return nodes, nil
 }
 

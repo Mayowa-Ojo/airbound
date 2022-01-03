@@ -3,9 +3,13 @@
 package ent
 
 import (
+	"airbound/internal/ent/flightinstance"
 	"airbound/internal/ent/flightreservation"
+	"airbound/internal/ent/itenerary"
+	"airbound/internal/ent/passenger"
 	"airbound/internal/ent/predicate"
 	"context"
+	"database/sql/driver"
 	"errors"
 	"fmt"
 	"math"
@@ -25,6 +29,11 @@ type FlightReservationQuery struct {
 	order      []OrderFunc
 	fields     []string
 	predicates []predicate.FlightReservation
+	// eager-loading edges.
+	withFlightInstance *FlightInstanceQuery
+	withItenerary      *IteneraryQuery
+	withPassengers     *PassengerQuery
+	withFKs            bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -59,6 +68,72 @@ func (frq *FlightReservationQuery) Unique(unique bool) *FlightReservationQuery {
 func (frq *FlightReservationQuery) Order(o ...OrderFunc) *FlightReservationQuery {
 	frq.order = append(frq.order, o...)
 	return frq
+}
+
+// QueryFlightInstance chains the current query on the "flight_instance" edge.
+func (frq *FlightReservationQuery) QueryFlightInstance() *FlightInstanceQuery {
+	query := &FlightInstanceQuery{config: frq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := frq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := frq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(flightreservation.Table, flightreservation.FieldID, selector),
+			sqlgraph.To(flightinstance.Table, flightinstance.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, flightreservation.FlightInstanceTable, flightreservation.FlightInstanceColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(frq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryItenerary chains the current query on the "itenerary" edge.
+func (frq *FlightReservationQuery) QueryItenerary() *IteneraryQuery {
+	query := &IteneraryQuery{config: frq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := frq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := frq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(flightreservation.Table, flightreservation.FieldID, selector),
+			sqlgraph.To(itenerary.Table, itenerary.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, flightreservation.IteneraryTable, flightreservation.IteneraryColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(frq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryPassengers chains the current query on the "passengers" edge.
+func (frq *FlightReservationQuery) QueryPassengers() *PassengerQuery {
+	query := &PassengerQuery{config: frq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := frq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := frq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(flightreservation.Table, flightreservation.FieldID, selector),
+			sqlgraph.To(passenger.Table, passenger.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, flightreservation.PassengersTable, flightreservation.PassengersColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(frq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first FlightReservation entity from the query.
@@ -237,15 +312,51 @@ func (frq *FlightReservationQuery) Clone() *FlightReservationQuery {
 		return nil
 	}
 	return &FlightReservationQuery{
-		config:     frq.config,
-		limit:      frq.limit,
-		offset:     frq.offset,
-		order:      append([]OrderFunc{}, frq.order...),
-		predicates: append([]predicate.FlightReservation{}, frq.predicates...),
+		config:             frq.config,
+		limit:              frq.limit,
+		offset:             frq.offset,
+		order:              append([]OrderFunc{}, frq.order...),
+		predicates:         append([]predicate.FlightReservation{}, frq.predicates...),
+		withFlightInstance: frq.withFlightInstance.Clone(),
+		withItenerary:      frq.withItenerary.Clone(),
+		withPassengers:     frq.withPassengers.Clone(),
 		// clone intermediate query.
 		sql:  frq.sql.Clone(),
 		path: frq.path,
 	}
+}
+
+// WithFlightInstance tells the query-builder to eager-load the nodes that are connected to
+// the "flight_instance" edge. The optional arguments are used to configure the query builder of the edge.
+func (frq *FlightReservationQuery) WithFlightInstance(opts ...func(*FlightInstanceQuery)) *FlightReservationQuery {
+	query := &FlightInstanceQuery{config: frq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	frq.withFlightInstance = query
+	return frq
+}
+
+// WithItenerary tells the query-builder to eager-load the nodes that are connected to
+// the "itenerary" edge. The optional arguments are used to configure the query builder of the edge.
+func (frq *FlightReservationQuery) WithItenerary(opts ...func(*IteneraryQuery)) *FlightReservationQuery {
+	query := &IteneraryQuery{config: frq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	frq.withItenerary = query
+	return frq
+}
+
+// WithPassengers tells the query-builder to eager-load the nodes that are connected to
+// the "passengers" edge. The optional arguments are used to configure the query builder of the edge.
+func (frq *FlightReservationQuery) WithPassengers(opts ...func(*PassengerQuery)) *FlightReservationQuery {
+	query := &PassengerQuery{config: frq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	frq.withPassengers = query
+	return frq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -311,9 +422,21 @@ func (frq *FlightReservationQuery) prepareQuery(ctx context.Context) error {
 
 func (frq *FlightReservationQuery) sqlAll(ctx context.Context) ([]*FlightReservation, error) {
 	var (
-		nodes = []*FlightReservation{}
-		_spec = frq.querySpec()
+		nodes       = []*FlightReservation{}
+		withFKs     = frq.withFKs
+		_spec       = frq.querySpec()
+		loadedTypes = [3]bool{
+			frq.withFlightInstance != nil,
+			frq.withItenerary != nil,
+			frq.withPassengers != nil,
+		}
 	)
+	if frq.withFlightInstance != nil || frq.withItenerary != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, flightreservation.ForeignKeys...)
+	}
 	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
 		node := &FlightReservation{config: frq.config}
 		nodes = append(nodes, node)
@@ -324,6 +447,7 @@ func (frq *FlightReservationQuery) sqlAll(ctx context.Context) ([]*FlightReserva
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	if err := sqlgraph.QueryNodes(ctx, frq.driver, _spec); err != nil {
@@ -332,6 +456,94 @@ func (frq *FlightReservationQuery) sqlAll(ctx context.Context) ([]*FlightReserva
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+
+	if query := frq.withFlightInstance; query != nil {
+		ids := make([]uuid.UUID, 0, len(nodes))
+		nodeids := make(map[uuid.UUID][]*FlightReservation)
+		for i := range nodes {
+			if nodes[i].flight_instance_id == nil {
+				continue
+			}
+			fk := *nodes[i].flight_instance_id
+			if _, ok := nodeids[fk]; !ok {
+				ids = append(ids, fk)
+			}
+			nodeids[fk] = append(nodeids[fk], nodes[i])
+		}
+		query.Where(flightinstance.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "flight_instance_id" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.FlightInstance = n
+			}
+		}
+	}
+
+	if query := frq.withItenerary; query != nil {
+		ids := make([]uuid.UUID, 0, len(nodes))
+		nodeids := make(map[uuid.UUID][]*FlightReservation)
+		for i := range nodes {
+			if nodes[i].itenerary_id == nil {
+				continue
+			}
+			fk := *nodes[i].itenerary_id
+			if _, ok := nodeids[fk]; !ok {
+				ids = append(ids, fk)
+			}
+			nodeids[fk] = append(nodeids[fk], nodes[i])
+		}
+		query.Where(itenerary.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "itenerary_id" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Itenerary = n
+			}
+		}
+	}
+
+	if query := frq.withPassengers; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[uuid.UUID]*FlightReservation)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+			nodes[i].Edges.Passengers = []*Passenger{}
+		}
+		query.withFKs = true
+		query.Where(predicate.Passenger(func(s *sql.Selector) {
+			s.Where(sql.InValues(flightreservation.PassengersColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.flight_reservation_id
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "flight_reservation_id" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "flight_reservation_id" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.Passengers = append(node.Edges.Passengers, n)
+		}
+	}
+
 	return nodes, nil
 }
 

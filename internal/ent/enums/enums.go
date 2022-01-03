@@ -164,7 +164,7 @@ func (WeekDay) Values() []string {
 }
 
 func (w WeekDay) Value() (driver.Value, error) {
-	return w.String, nil
+	return w.String(), nil
 }
 
 func (w *WeekDay) Scan(val interface{}) error {

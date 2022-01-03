@@ -3,7 +3,9 @@
 package ent
 
 import (
+	"airbound/internal/ent/airport"
 	"airbound/internal/ent/frontdesk"
+	"airbound/internal/ent/user"
 	"fmt"
 	"strings"
 	"time"
@@ -23,6 +25,50 @@ type FrontDesk struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the FrontDeskQuery when eager-loading is set.
+	Edges           FrontDeskEdges `json:"edges"`
+	airport_id      *uuid.UUID
+	user_front_desk *uuid.UUID
+}
+
+// FrontDeskEdges holds the relations/edges for other nodes in the graph.
+type FrontDeskEdges struct {
+	// User holds the value of the user edge.
+	User *User `json:"user,omitempty"`
+	// Airport holds the value of the airport edge.
+	Airport *Airport `json:"airport,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [2]bool
+}
+
+// UserOrErr returns the User value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e FrontDeskEdges) UserOrErr() (*User, error) {
+	if e.loadedTypes[0] {
+		if e.User == nil {
+			// The edge user was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: user.Label}
+		}
+		return e.User, nil
+	}
+	return nil, &NotLoadedError{edge: "user"}
+}
+
+// AirportOrErr returns the Airport value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e FrontDeskEdges) AirportOrErr() (*Airport, error) {
+	if e.loadedTypes[1] {
+		if e.Airport == nil {
+			// The edge airport was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: airport.Label}
+		}
+		return e.Airport, nil
+	}
+	return nil, &NotLoadedError{edge: "airport"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -36,6 +82,10 @@ func (*FrontDesk) scanValues(columns []string) ([]interface{}, error) {
 			values[i] = new(sql.NullTime)
 		case frontdesk.FieldID:
 			values[i] = new(uuid.UUID)
+		case frontdesk.ForeignKeys[0]: // airport_id
+			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
+		case frontdesk.ForeignKeys[1]: // user_front_desk
+			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type FrontDesk", columns[i])
 		}
@@ -75,9 +125,33 @@ func (fd *FrontDesk) assignValues(columns []string, values []interface{}) error 
 			} else if value.Valid {
 				fd.UpdatedAt = value.Time
 			}
+		case frontdesk.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field airport_id", values[i])
+			} else if value.Valid {
+				fd.airport_id = new(uuid.UUID)
+				*fd.airport_id = *value.S.(*uuid.UUID)
+			}
+		case frontdesk.ForeignKeys[1]:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field user_front_desk", values[i])
+			} else if value.Valid {
+				fd.user_front_desk = new(uuid.UUID)
+				*fd.user_front_desk = *value.S.(*uuid.UUID)
+			}
 		}
 	}
 	return nil
+}
+
+// QueryUser queries the "user" edge of the FrontDesk entity.
+func (fd *FrontDesk) QueryUser() *UserQuery {
+	return (&FrontDeskClient{config: fd.config}).QueryUser(fd)
+}
+
+// QueryAirport queries the "airport" edge of the FrontDesk entity.
+func (fd *FrontDesk) QueryAirport() *AirportQuery {
+	return (&FrontDeskClient{config: fd.config}).QueryAirport(fd)
 }
 
 // Update returns a builder for updating this FrontDesk.

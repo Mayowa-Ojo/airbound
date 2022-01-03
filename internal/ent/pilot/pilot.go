@@ -23,8 +23,26 @@ const (
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
+	// EdgeUser holds the string denoting the user edge name in mutations.
+	EdgeUser = "user"
+	// EdgeAirline holds the string denoting the airline edge name in mutations.
+	EdgeAirline = "airline"
 	// Table holds the table name of the pilot in the database.
 	Table = "pilots"
+	// UserTable is the table that holds the user relation/edge.
+	UserTable = "pilots"
+	// UserInverseTable is the table name for the User entity.
+	// It exists in this package in order to avoid circular dependency with the "user" package.
+	UserInverseTable = "users"
+	// UserColumn is the table column denoting the user relation/edge.
+	UserColumn = "user_pilot"
+	// AirlineTable is the table that holds the airline relation/edge.
+	AirlineTable = "pilots"
+	// AirlineInverseTable is the table name for the Airline entity.
+	// It exists in this package in order to avoid circular dependency with the "airline" package.
+	AirlineInverseTable = "airlines"
+	// AirlineColumn is the table column denoting the airline relation/edge.
+	AirlineColumn = "airline_id"
 )
 
 // Columns holds all SQL columns for pilot fields.
@@ -37,10 +55,22 @@ var Columns = []string{
 	FieldUpdatedAt,
 }
 
+// ForeignKeys holds the SQL foreign-keys that are owned by the "pilots"
+// table and are not defined as standalone fields in the schema.
+var ForeignKeys = []string{
+	"airline_id",
+	"user_pilot",
+}
+
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
 	for i := range Columns {
 		if column == Columns[i] {
+			return true
+		}
+	}
+	for i := range ForeignKeys {
+		if column == ForeignKeys[i] {
 			return true
 		}
 	}

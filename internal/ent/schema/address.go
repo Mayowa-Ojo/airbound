@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"entgo.io/ent"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 )
@@ -28,5 +29,14 @@ func (Address) Fields() []ent.Field {
 
 // Edges of the Address.
 func (Address) Edges() []ent.Edge {
-	return nil
+	return []ent.Edge{
+		edge.From("user", User.Type).
+			Ref("address").
+			Unique().
+			Required(),
+		edge.From("airport", Airport.Type).
+			Ref("address").
+			Unique().
+			Required(),
+	}
 }

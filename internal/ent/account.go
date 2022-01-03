@@ -5,6 +5,7 @@ package ent
 import (
 	"airbound/internal/ent/account"
 	"airbound/internal/ent/enums"
+	"airbound/internal/ent/user"
 	"fmt"
 	"strings"
 	"time"
@@ -28,6 +29,33 @@ type Account struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the AccountQuery when eager-loading is set.
+	Edges        AccountEdges `json:"edges"`
+	user_account *uuid.UUID
+}
+
+// AccountEdges holds the relations/edges for other nodes in the graph.
+type AccountEdges struct {
+	// User holds the value of the user edge.
+	User *User `json:"user,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+}
+
+// UserOrErr returns the User value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e AccountEdges) UserOrErr() (*User, error) {
+	if e.loadedTypes[0] {
+		if e.User == nil {
+			// The edge user was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: user.Label}
+		}
+		return e.User, nil
+	}
+	return nil, &NotLoadedError{edge: "user"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -43,6 +71,8 @@ func (*Account) scanValues(columns []string) ([]interface{}, error) {
 			values[i] = new(sql.NullTime)
 		case account.FieldID:
 			values[i] = new(uuid.UUID)
+		case account.ForeignKeys[0]: // user_account
+			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Account", columns[i])
 		}
@@ -94,9 +124,21 @@ func (a *Account) assignValues(columns []string, values []interface{}) error {
 			} else if value.Valid {
 				a.UpdatedAt = value.Time
 			}
+		case account.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field user_account", values[i])
+			} else if value.Valid {
+				a.user_account = new(uuid.UUID)
+				*a.user_account = *value.S.(*uuid.UUID)
+			}
 		}
 	}
 	return nil
+}
+
+// QueryUser queries the "user" edge of the Account entity.
+func (a *Account) QueryUser() *UserQuery {
+	return (&AccountClient{config: a.config}).QueryUser(a)
 }
 
 // Update returns a builder for updating this Account.

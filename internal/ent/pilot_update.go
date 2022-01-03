@@ -3,15 +3,19 @@
 package ent
 
 import (
+	"airbound/internal/ent/airline"
 	"airbound/internal/ent/pilot"
 	"airbound/internal/ent/predicate"
+	"airbound/internal/ent/user"
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 )
 
 // PilotUpdate is the builder for updating Pilot entities.
@@ -72,9 +76,51 @@ func (pu *PilotUpdate) SetUpdatedAt(t time.Time) *PilotUpdate {
 	return pu
 }
 
+// SetUserID sets the "user" edge to the User entity by ID.
+func (pu *PilotUpdate) SetUserID(id uuid.UUID) *PilotUpdate {
+	pu.mutation.SetUserID(id)
+	return pu
+}
+
+// SetUser sets the "user" edge to the User entity.
+func (pu *PilotUpdate) SetUser(u *User) *PilotUpdate {
+	return pu.SetUserID(u.ID)
+}
+
+// SetAirlineID sets the "airline" edge to the Airline entity by ID.
+func (pu *PilotUpdate) SetAirlineID(id uuid.UUID) *PilotUpdate {
+	pu.mutation.SetAirlineID(id)
+	return pu
+}
+
+// SetNillableAirlineID sets the "airline" edge to the Airline entity by ID if the given value is not nil.
+func (pu *PilotUpdate) SetNillableAirlineID(id *uuid.UUID) *PilotUpdate {
+	if id != nil {
+		pu = pu.SetAirlineID(*id)
+	}
+	return pu
+}
+
+// SetAirline sets the "airline" edge to the Airline entity.
+func (pu *PilotUpdate) SetAirline(a *Airline) *PilotUpdate {
+	return pu.SetAirlineID(a.ID)
+}
+
 // Mutation returns the PilotMutation object of the builder.
 func (pu *PilotUpdate) Mutation() *PilotMutation {
 	return pu.mutation
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (pu *PilotUpdate) ClearUser() *PilotUpdate {
+	pu.mutation.ClearUser()
+	return pu
+}
+
+// ClearAirline clears the "airline" edge to the Airline entity.
+func (pu *PilotUpdate) ClearAirline() *PilotUpdate {
+	pu.mutation.ClearAirline()
+	return pu
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -163,6 +209,9 @@ func (pu *PilotUpdate) check() error {
 			return &ValidationError{Name: "flight_hours", err: fmt.Errorf("ent: validator failed for field \"flight_hours\": %w", err)}
 		}
 	}
+	if _, ok := pu.mutation.UserID(); pu.mutation.UserCleared() && !ok {
+		return errors.New("ent: clearing a required unique edge \"user\"")
+	}
 	return nil
 }
 
@@ -225,6 +274,76 @@ func (pu *PilotUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Value:  value,
 			Column: pilot.FieldUpdatedAt,
 		})
+	}
+	if pu.mutation.UserCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   pilot.UserTable,
+			Columns: []string{pilot.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.UserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   pilot.UserTable,
+			Columns: []string{pilot.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if pu.mutation.AirlineCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   pilot.AirlineTable,
+			Columns: []string{pilot.AirlineColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: airline.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := pu.mutation.AirlineIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   pilot.AirlineTable,
+			Columns: []string{pilot.AirlineColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: airline.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, pu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -290,9 +409,51 @@ func (puo *PilotUpdateOne) SetUpdatedAt(t time.Time) *PilotUpdateOne {
 	return puo
 }
 
+// SetUserID sets the "user" edge to the User entity by ID.
+func (puo *PilotUpdateOne) SetUserID(id uuid.UUID) *PilotUpdateOne {
+	puo.mutation.SetUserID(id)
+	return puo
+}
+
+// SetUser sets the "user" edge to the User entity.
+func (puo *PilotUpdateOne) SetUser(u *User) *PilotUpdateOne {
+	return puo.SetUserID(u.ID)
+}
+
+// SetAirlineID sets the "airline" edge to the Airline entity by ID.
+func (puo *PilotUpdateOne) SetAirlineID(id uuid.UUID) *PilotUpdateOne {
+	puo.mutation.SetAirlineID(id)
+	return puo
+}
+
+// SetNillableAirlineID sets the "airline" edge to the Airline entity by ID if the given value is not nil.
+func (puo *PilotUpdateOne) SetNillableAirlineID(id *uuid.UUID) *PilotUpdateOne {
+	if id != nil {
+		puo = puo.SetAirlineID(*id)
+	}
+	return puo
+}
+
+// SetAirline sets the "airline" edge to the Airline entity.
+func (puo *PilotUpdateOne) SetAirline(a *Airline) *PilotUpdateOne {
+	return puo.SetAirlineID(a.ID)
+}
+
 // Mutation returns the PilotMutation object of the builder.
 func (puo *PilotUpdateOne) Mutation() *PilotMutation {
 	return puo.mutation
+}
+
+// ClearUser clears the "user" edge to the User entity.
+func (puo *PilotUpdateOne) ClearUser() *PilotUpdateOne {
+	puo.mutation.ClearUser()
+	return puo
+}
+
+// ClearAirline clears the "airline" edge to the Airline entity.
+func (puo *PilotUpdateOne) ClearAirline() *PilotUpdateOne {
+	puo.mutation.ClearAirline()
+	return puo
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -388,6 +549,9 @@ func (puo *PilotUpdateOne) check() error {
 			return &ValidationError{Name: "flight_hours", err: fmt.Errorf("ent: validator failed for field \"flight_hours\": %w", err)}
 		}
 	}
+	if _, ok := puo.mutation.UserID(); puo.mutation.UserCleared() && !ok {
+		return errors.New("ent: clearing a required unique edge \"user\"")
+	}
 	return nil
 }
 
@@ -467,6 +631,76 @@ func (puo *PilotUpdateOne) sqlSave(ctx context.Context) (_node *Pilot, err error
 			Value:  value,
 			Column: pilot.FieldUpdatedAt,
 		})
+	}
+	if puo.mutation.UserCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   pilot.UserTable,
+			Columns: []string{pilot.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.UserIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   pilot.UserTable,
+			Columns: []string{pilot.UserColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if puo.mutation.AirlineCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   pilot.AirlineTable,
+			Columns: []string{pilot.AirlineColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: airline.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := puo.mutation.AirlineIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   pilot.AirlineTable,
+			Columns: []string{pilot.AirlineColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: airline.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &Pilot{config: puo.config}
 	_spec.Assign = _node.assignValues

@@ -27,8 +27,51 @@ const (
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
+	// EdgeFlightInstances holds the string denoting the flight_instances edge name in mutations.
+	EdgeFlightInstances = "flight_instances"
+	// EdgeFlightSchedules holds the string denoting the flight_schedules edge name in mutations.
+	EdgeFlightSchedules = "flight_schedules"
+	// EdgeCrews holds the string denoting the crews edge name in mutations.
+	EdgeCrews = "crews"
+	// EdgeDepartureAirport holds the string denoting the departure_airport edge name in mutations.
+	EdgeDepartureAirport = "departure_airport"
+	// EdgeArrivalAirport holds the string denoting the arrival_airport edge name in mutations.
+	EdgeArrivalAirport = "arrival_airport"
 	// Table holds the table name of the flight in the database.
 	Table = "flights"
+	// FlightInstancesTable is the table that holds the flight_instances relation/edge.
+	FlightInstancesTable = "flight_instances"
+	// FlightInstancesInverseTable is the table name for the FlightInstance entity.
+	// It exists in this package in order to avoid circular dependency with the "flightinstance" package.
+	FlightInstancesInverseTable = "flight_instances"
+	// FlightInstancesColumn is the table column denoting the flight_instances relation/edge.
+	FlightInstancesColumn = "flight_id"
+	// FlightSchedulesTable is the table that holds the flight_schedules relation/edge.
+	FlightSchedulesTable = "flight_schedules"
+	// FlightSchedulesInverseTable is the table name for the FlightSchedule entity.
+	// It exists in this package in order to avoid circular dependency with the "flightschedule" package.
+	FlightSchedulesInverseTable = "flight_schedules"
+	// FlightSchedulesColumn is the table column denoting the flight_schedules relation/edge.
+	FlightSchedulesColumn = "flight_id"
+	// CrewsTable is the table that holds the crews relation/edge. The primary key declared below.
+	CrewsTable = "flight_crew"
+	// CrewsInverseTable is the table name for the Crew entity.
+	// It exists in this package in order to avoid circular dependency with the "crew" package.
+	CrewsInverseTable = "crews"
+	// DepartureAirportTable is the table that holds the departure_airport relation/edge.
+	DepartureAirportTable = "flights"
+	// DepartureAirportInverseTable is the table name for the Airport entity.
+	// It exists in this package in order to avoid circular dependency with the "airport" package.
+	DepartureAirportInverseTable = "airports"
+	// DepartureAirportColumn is the table column denoting the departure_airport relation/edge.
+	DepartureAirportColumn = "depature_airport_id"
+	// ArrivalAirportTable is the table that holds the arrival_airport relation/edge.
+	ArrivalAirportTable = "flights"
+	// ArrivalAirportInverseTable is the table name for the Airport entity.
+	// It exists in this package in order to avoid circular dependency with the "airport" package.
+	ArrivalAirportInverseTable = "airports"
+	// ArrivalAirportColumn is the table column denoting the arrival_airport relation/edge.
+	ArrivalAirportColumn = "arrival_airport_id"
 )
 
 // Columns holds all SQL columns for flight fields.
@@ -42,10 +85,28 @@ var Columns = []string{
 	FieldUpdatedAt,
 }
 
+// ForeignKeys holds the SQL foreign-keys that are owned by the "flights"
+// table and are not defined as standalone fields in the schema.
+var ForeignKeys = []string{
+	"depature_airport_id",
+	"arrival_airport_id",
+}
+
+var (
+	// CrewsPrimaryKey and CrewsColumn2 are the table columns denoting the
+	// primary key for the crews relation (M2M).
+	CrewsPrimaryKey = []string{"flight_id", "crew_id"}
+)
+
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
 	for i := range Columns {
 		if column == Columns[i] {
+			return true
+		}
+	}
+	for i := range ForeignKeys {
+		if column == ForeignKeys[i] {
 			return true
 		}
 	}

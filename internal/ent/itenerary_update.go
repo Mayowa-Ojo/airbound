@@ -3,6 +3,9 @@
 package ent
 
 import (
+	"airbound/internal/ent/airport"
+	"airbound/internal/ent/customer"
+	"airbound/internal/ent/flightreservation"
 	"airbound/internal/ent/itenerary"
 	"airbound/internal/ent/predicate"
 	"context"
@@ -12,6 +15,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 )
 
 // IteneraryUpdate is the builder for updating Itenerary entities.
@@ -47,9 +51,120 @@ func (iu *IteneraryUpdate) SetUpdatedAt(t time.Time) *IteneraryUpdate {
 	return iu
 }
 
+// AddFlightReservationIDs adds the "flight_reservations" edge to the FlightReservation entity by IDs.
+func (iu *IteneraryUpdate) AddFlightReservationIDs(ids ...uuid.UUID) *IteneraryUpdate {
+	iu.mutation.AddFlightReservationIDs(ids...)
+	return iu
+}
+
+// AddFlightReservations adds the "flight_reservations" edges to the FlightReservation entity.
+func (iu *IteneraryUpdate) AddFlightReservations(f ...*FlightReservation) *IteneraryUpdate {
+	ids := make([]uuid.UUID, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return iu.AddFlightReservationIDs(ids...)
+}
+
+// SetCustomerID sets the "customer" edge to the Customer entity by ID.
+func (iu *IteneraryUpdate) SetCustomerID(id uuid.UUID) *IteneraryUpdate {
+	iu.mutation.SetCustomerID(id)
+	return iu
+}
+
+// SetNillableCustomerID sets the "customer" edge to the Customer entity by ID if the given value is not nil.
+func (iu *IteneraryUpdate) SetNillableCustomerID(id *uuid.UUID) *IteneraryUpdate {
+	if id != nil {
+		iu = iu.SetCustomerID(*id)
+	}
+	return iu
+}
+
+// SetCustomer sets the "customer" edge to the Customer entity.
+func (iu *IteneraryUpdate) SetCustomer(c *Customer) *IteneraryUpdate {
+	return iu.SetCustomerID(c.ID)
+}
+
+// SetOriginAirportID sets the "origin_airport" edge to the Airport entity by ID.
+func (iu *IteneraryUpdate) SetOriginAirportID(id uuid.UUID) *IteneraryUpdate {
+	iu.mutation.SetOriginAirportID(id)
+	return iu
+}
+
+// SetNillableOriginAirportID sets the "origin_airport" edge to the Airport entity by ID if the given value is not nil.
+func (iu *IteneraryUpdate) SetNillableOriginAirportID(id *uuid.UUID) *IteneraryUpdate {
+	if id != nil {
+		iu = iu.SetOriginAirportID(*id)
+	}
+	return iu
+}
+
+// SetOriginAirport sets the "origin_airport" edge to the Airport entity.
+func (iu *IteneraryUpdate) SetOriginAirport(a *Airport) *IteneraryUpdate {
+	return iu.SetOriginAirportID(a.ID)
+}
+
+// SetDestinationAirportID sets the "destination_airport" edge to the Airport entity by ID.
+func (iu *IteneraryUpdate) SetDestinationAirportID(id uuid.UUID) *IteneraryUpdate {
+	iu.mutation.SetDestinationAirportID(id)
+	return iu
+}
+
+// SetNillableDestinationAirportID sets the "destination_airport" edge to the Airport entity by ID if the given value is not nil.
+func (iu *IteneraryUpdate) SetNillableDestinationAirportID(id *uuid.UUID) *IteneraryUpdate {
+	if id != nil {
+		iu = iu.SetDestinationAirportID(*id)
+	}
+	return iu
+}
+
+// SetDestinationAirport sets the "destination_airport" edge to the Airport entity.
+func (iu *IteneraryUpdate) SetDestinationAirport(a *Airport) *IteneraryUpdate {
+	return iu.SetDestinationAirportID(a.ID)
+}
+
 // Mutation returns the IteneraryMutation object of the builder.
 func (iu *IteneraryUpdate) Mutation() *IteneraryMutation {
 	return iu.mutation
+}
+
+// ClearFlightReservations clears all "flight_reservations" edges to the FlightReservation entity.
+func (iu *IteneraryUpdate) ClearFlightReservations() *IteneraryUpdate {
+	iu.mutation.ClearFlightReservations()
+	return iu
+}
+
+// RemoveFlightReservationIDs removes the "flight_reservations" edge to FlightReservation entities by IDs.
+func (iu *IteneraryUpdate) RemoveFlightReservationIDs(ids ...uuid.UUID) *IteneraryUpdate {
+	iu.mutation.RemoveFlightReservationIDs(ids...)
+	return iu
+}
+
+// RemoveFlightReservations removes "flight_reservations" edges to FlightReservation entities.
+func (iu *IteneraryUpdate) RemoveFlightReservations(f ...*FlightReservation) *IteneraryUpdate {
+	ids := make([]uuid.UUID, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return iu.RemoveFlightReservationIDs(ids...)
+}
+
+// ClearCustomer clears the "customer" edge to the Customer entity.
+func (iu *IteneraryUpdate) ClearCustomer() *IteneraryUpdate {
+	iu.mutation.ClearCustomer()
+	return iu
+}
+
+// ClearOriginAirport clears the "origin_airport" edge to the Airport entity.
+func (iu *IteneraryUpdate) ClearOriginAirport() *IteneraryUpdate {
+	iu.mutation.ClearOriginAirport()
+	return iu
+}
+
+// ClearDestinationAirport clears the "destination_airport" edge to the Airport entity.
+func (iu *IteneraryUpdate) ClearDestinationAirport() *IteneraryUpdate {
+	iu.mutation.ClearDestinationAirport()
+	return iu
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -147,6 +262,165 @@ func (iu *IteneraryUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: itenerary.FieldUpdatedAt,
 		})
 	}
+	if iu.mutation.FlightReservationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   itenerary.FlightReservationsTable,
+			Columns: []string{itenerary.FlightReservationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flightreservation.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := iu.mutation.RemovedFlightReservationsIDs(); len(nodes) > 0 && !iu.mutation.FlightReservationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   itenerary.FlightReservationsTable,
+			Columns: []string{itenerary.FlightReservationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flightreservation.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := iu.mutation.FlightReservationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   itenerary.FlightReservationsTable,
+			Columns: []string{itenerary.FlightReservationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flightreservation.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if iu.mutation.CustomerCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   itenerary.CustomerTable,
+			Columns: []string{itenerary.CustomerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: customer.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := iu.mutation.CustomerIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   itenerary.CustomerTable,
+			Columns: []string{itenerary.CustomerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: customer.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if iu.mutation.OriginAirportCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   itenerary.OriginAirportTable,
+			Columns: []string{itenerary.OriginAirportColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: airport.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := iu.mutation.OriginAirportIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   itenerary.OriginAirportTable,
+			Columns: []string{itenerary.OriginAirportColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: airport.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if iu.mutation.DestinationAirportCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   itenerary.DestinationAirportTable,
+			Columns: []string{itenerary.DestinationAirportColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: airport.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := iu.mutation.DestinationAirportIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   itenerary.DestinationAirportTable,
+			Columns: []string{itenerary.DestinationAirportColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: airport.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, iu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{itenerary.Label}
@@ -186,9 +460,120 @@ func (iuo *IteneraryUpdateOne) SetUpdatedAt(t time.Time) *IteneraryUpdateOne {
 	return iuo
 }
 
+// AddFlightReservationIDs adds the "flight_reservations" edge to the FlightReservation entity by IDs.
+func (iuo *IteneraryUpdateOne) AddFlightReservationIDs(ids ...uuid.UUID) *IteneraryUpdateOne {
+	iuo.mutation.AddFlightReservationIDs(ids...)
+	return iuo
+}
+
+// AddFlightReservations adds the "flight_reservations" edges to the FlightReservation entity.
+func (iuo *IteneraryUpdateOne) AddFlightReservations(f ...*FlightReservation) *IteneraryUpdateOne {
+	ids := make([]uuid.UUID, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return iuo.AddFlightReservationIDs(ids...)
+}
+
+// SetCustomerID sets the "customer" edge to the Customer entity by ID.
+func (iuo *IteneraryUpdateOne) SetCustomerID(id uuid.UUID) *IteneraryUpdateOne {
+	iuo.mutation.SetCustomerID(id)
+	return iuo
+}
+
+// SetNillableCustomerID sets the "customer" edge to the Customer entity by ID if the given value is not nil.
+func (iuo *IteneraryUpdateOne) SetNillableCustomerID(id *uuid.UUID) *IteneraryUpdateOne {
+	if id != nil {
+		iuo = iuo.SetCustomerID(*id)
+	}
+	return iuo
+}
+
+// SetCustomer sets the "customer" edge to the Customer entity.
+func (iuo *IteneraryUpdateOne) SetCustomer(c *Customer) *IteneraryUpdateOne {
+	return iuo.SetCustomerID(c.ID)
+}
+
+// SetOriginAirportID sets the "origin_airport" edge to the Airport entity by ID.
+func (iuo *IteneraryUpdateOne) SetOriginAirportID(id uuid.UUID) *IteneraryUpdateOne {
+	iuo.mutation.SetOriginAirportID(id)
+	return iuo
+}
+
+// SetNillableOriginAirportID sets the "origin_airport" edge to the Airport entity by ID if the given value is not nil.
+func (iuo *IteneraryUpdateOne) SetNillableOriginAirportID(id *uuid.UUID) *IteneraryUpdateOne {
+	if id != nil {
+		iuo = iuo.SetOriginAirportID(*id)
+	}
+	return iuo
+}
+
+// SetOriginAirport sets the "origin_airport" edge to the Airport entity.
+func (iuo *IteneraryUpdateOne) SetOriginAirport(a *Airport) *IteneraryUpdateOne {
+	return iuo.SetOriginAirportID(a.ID)
+}
+
+// SetDestinationAirportID sets the "destination_airport" edge to the Airport entity by ID.
+func (iuo *IteneraryUpdateOne) SetDestinationAirportID(id uuid.UUID) *IteneraryUpdateOne {
+	iuo.mutation.SetDestinationAirportID(id)
+	return iuo
+}
+
+// SetNillableDestinationAirportID sets the "destination_airport" edge to the Airport entity by ID if the given value is not nil.
+func (iuo *IteneraryUpdateOne) SetNillableDestinationAirportID(id *uuid.UUID) *IteneraryUpdateOne {
+	if id != nil {
+		iuo = iuo.SetDestinationAirportID(*id)
+	}
+	return iuo
+}
+
+// SetDestinationAirport sets the "destination_airport" edge to the Airport entity.
+func (iuo *IteneraryUpdateOne) SetDestinationAirport(a *Airport) *IteneraryUpdateOne {
+	return iuo.SetDestinationAirportID(a.ID)
+}
+
 // Mutation returns the IteneraryMutation object of the builder.
 func (iuo *IteneraryUpdateOne) Mutation() *IteneraryMutation {
 	return iuo.mutation
+}
+
+// ClearFlightReservations clears all "flight_reservations" edges to the FlightReservation entity.
+func (iuo *IteneraryUpdateOne) ClearFlightReservations() *IteneraryUpdateOne {
+	iuo.mutation.ClearFlightReservations()
+	return iuo
+}
+
+// RemoveFlightReservationIDs removes the "flight_reservations" edge to FlightReservation entities by IDs.
+func (iuo *IteneraryUpdateOne) RemoveFlightReservationIDs(ids ...uuid.UUID) *IteneraryUpdateOne {
+	iuo.mutation.RemoveFlightReservationIDs(ids...)
+	return iuo
+}
+
+// RemoveFlightReservations removes "flight_reservations" edges to FlightReservation entities.
+func (iuo *IteneraryUpdateOne) RemoveFlightReservations(f ...*FlightReservation) *IteneraryUpdateOne {
+	ids := make([]uuid.UUID, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return iuo.RemoveFlightReservationIDs(ids...)
+}
+
+// ClearCustomer clears the "customer" edge to the Customer entity.
+func (iuo *IteneraryUpdateOne) ClearCustomer() *IteneraryUpdateOne {
+	iuo.mutation.ClearCustomer()
+	return iuo
+}
+
+// ClearOriginAirport clears the "origin_airport" edge to the Airport entity.
+func (iuo *IteneraryUpdateOne) ClearOriginAirport() *IteneraryUpdateOne {
+	iuo.mutation.ClearOriginAirport()
+	return iuo
+}
+
+// ClearDestinationAirport clears the "destination_airport" edge to the Airport entity.
+func (iuo *IteneraryUpdateOne) ClearDestinationAirport() *IteneraryUpdateOne {
+	iuo.mutation.ClearDestinationAirport()
+	return iuo
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -309,6 +694,165 @@ func (iuo *IteneraryUpdateOne) sqlSave(ctx context.Context) (_node *Itenerary, e
 			Value:  value,
 			Column: itenerary.FieldUpdatedAt,
 		})
+	}
+	if iuo.mutation.FlightReservationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   itenerary.FlightReservationsTable,
+			Columns: []string{itenerary.FlightReservationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flightreservation.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := iuo.mutation.RemovedFlightReservationsIDs(); len(nodes) > 0 && !iuo.mutation.FlightReservationsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   itenerary.FlightReservationsTable,
+			Columns: []string{itenerary.FlightReservationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flightreservation.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := iuo.mutation.FlightReservationsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   itenerary.FlightReservationsTable,
+			Columns: []string{itenerary.FlightReservationsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flightreservation.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if iuo.mutation.CustomerCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   itenerary.CustomerTable,
+			Columns: []string{itenerary.CustomerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: customer.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := iuo.mutation.CustomerIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   itenerary.CustomerTable,
+			Columns: []string{itenerary.CustomerColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: customer.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if iuo.mutation.OriginAirportCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   itenerary.OriginAirportTable,
+			Columns: []string{itenerary.OriginAirportColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: airport.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := iuo.mutation.OriginAirportIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   itenerary.OriginAirportTable,
+			Columns: []string{itenerary.OriginAirportColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: airport.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if iuo.mutation.DestinationAirportCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   itenerary.DestinationAirportTable,
+			Columns: []string{itenerary.DestinationAirportColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: airport.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := iuo.mutation.DestinationAirportIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   itenerary.DestinationAirportTable,
+			Columns: []string{itenerary.DestinationAirportColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: airport.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &Itenerary{config: iuo.config}
 	_spec.Assign = _node.assignValues

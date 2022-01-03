@@ -17,8 +17,44 @@ const (
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
+	// EdgeFlightReservations holds the string denoting the flight_reservations edge name in mutations.
+	EdgeFlightReservations = "flight_reservations"
+	// EdgeCustomer holds the string denoting the customer edge name in mutations.
+	EdgeCustomer = "customer"
+	// EdgeOriginAirport holds the string denoting the origin_airport edge name in mutations.
+	EdgeOriginAirport = "origin_airport"
+	// EdgeDestinationAirport holds the string denoting the destination_airport edge name in mutations.
+	EdgeDestinationAirport = "destination_airport"
 	// Table holds the table name of the itenerary in the database.
 	Table = "iteneraries"
+	// FlightReservationsTable is the table that holds the flight_reservations relation/edge.
+	FlightReservationsTable = "flight_reservations"
+	// FlightReservationsInverseTable is the table name for the FlightReservation entity.
+	// It exists in this package in order to avoid circular dependency with the "flightreservation" package.
+	FlightReservationsInverseTable = "flight_reservations"
+	// FlightReservationsColumn is the table column denoting the flight_reservations relation/edge.
+	FlightReservationsColumn = "itenerary_id"
+	// CustomerTable is the table that holds the customer relation/edge.
+	CustomerTable = "iteneraries"
+	// CustomerInverseTable is the table name for the Customer entity.
+	// It exists in this package in order to avoid circular dependency with the "customer" package.
+	CustomerInverseTable = "customers"
+	// CustomerColumn is the table column denoting the customer relation/edge.
+	CustomerColumn = "customer_id"
+	// OriginAirportTable is the table that holds the origin_airport relation/edge.
+	OriginAirportTable = "iteneraries"
+	// OriginAirportInverseTable is the table name for the Airport entity.
+	// It exists in this package in order to avoid circular dependency with the "airport" package.
+	OriginAirportInverseTable = "airports"
+	// OriginAirportColumn is the table column denoting the origin_airport relation/edge.
+	OriginAirportColumn = "origin_airport_id"
+	// DestinationAirportTable is the table that holds the destination_airport relation/edge.
+	DestinationAirportTable = "iteneraries"
+	// DestinationAirportInverseTable is the table name for the Airport entity.
+	// It exists in this package in order to avoid circular dependency with the "airport" package.
+	DestinationAirportInverseTable = "airports"
+	// DestinationAirportColumn is the table column denoting the destination_airport relation/edge.
+	DestinationAirportColumn = "destination_airport_id"
 )
 
 // Columns holds all SQL columns for itenerary fields.
@@ -28,10 +64,23 @@ var Columns = []string{
 	FieldUpdatedAt,
 }
 
+// ForeignKeys holds the SQL foreign-keys that are owned by the "iteneraries"
+// table and are not defined as standalone fields in the schema.
+var ForeignKeys = []string{
+	"origin_airport_id",
+	"destination_airport_id",
+	"customer_id",
+}
+
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
 	for i := range Columns {
 		if column == Columns[i] {
+			return true
+		}
+	}
+	for i := range ForeignKeys {
+		if column == ForeignKeys[i] {
 			return true
 		}
 	}

@@ -3,7 +3,10 @@
 package ent
 
 import (
+	"airbound/internal/ent/aircraft"
 	"airbound/internal/ent/airline"
+	"airbound/internal/ent/crew"
+	"airbound/internal/ent/pilot"
 	"context"
 	"errors"
 	"fmt"
@@ -65,6 +68,51 @@ func (ac *AirlineCreate) SetNillableUpdatedAt(t *time.Time) *AirlineCreate {
 func (ac *AirlineCreate) SetID(u uuid.UUID) *AirlineCreate {
 	ac.mutation.SetID(u)
 	return ac
+}
+
+// AddAircraftIDs adds the "aircrafts" edge to the Aircraft entity by IDs.
+func (ac *AirlineCreate) AddAircraftIDs(ids ...uuid.UUID) *AirlineCreate {
+	ac.mutation.AddAircraftIDs(ids...)
+	return ac
+}
+
+// AddAircrafts adds the "aircrafts" edges to the Aircraft entity.
+func (ac *AirlineCreate) AddAircrafts(a ...*Aircraft) *AirlineCreate {
+	ids := make([]uuid.UUID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return ac.AddAircraftIDs(ids...)
+}
+
+// AddCrewIDs adds the "crews" edge to the Crew entity by IDs.
+func (ac *AirlineCreate) AddCrewIDs(ids ...uuid.UUID) *AirlineCreate {
+	ac.mutation.AddCrewIDs(ids...)
+	return ac
+}
+
+// AddCrews adds the "crews" edges to the Crew entity.
+func (ac *AirlineCreate) AddCrews(c ...*Crew) *AirlineCreate {
+	ids := make([]uuid.UUID, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return ac.AddCrewIDs(ids...)
+}
+
+// AddPilotIDs adds the "pilots" edge to the Pilot entity by IDs.
+func (ac *AirlineCreate) AddPilotIDs(ids ...uuid.UUID) *AirlineCreate {
+	ac.mutation.AddPilotIDs(ids...)
+	return ac
+}
+
+// AddPilots adds the "pilots" edges to the Pilot entity.
+func (ac *AirlineCreate) AddPilots(p ...*Pilot) *AirlineCreate {
+	ids := make([]uuid.UUID, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return ac.AddPilotIDs(ids...)
 }
 
 // Mutation returns the AirlineMutation object of the builder.
@@ -239,6 +287,63 @@ func (ac *AirlineCreate) createSpec() (*Airline, *sqlgraph.CreateSpec) {
 			Column: airline.FieldUpdatedAt,
 		})
 		_node.UpdatedAt = value
+	}
+	if nodes := ac.mutation.AircraftsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   airline.AircraftsTable,
+			Columns: []string{airline.AircraftsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: aircraft.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := ac.mutation.CrewsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   airline.CrewsTable,
+			Columns: []string{airline.CrewsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: crew.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := ac.mutation.PilotsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   airline.PilotsTable,
+			Columns: []string{airline.PilotsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: pilot.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

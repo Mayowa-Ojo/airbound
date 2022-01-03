@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"entgo.io/ent"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 )
@@ -25,5 +26,13 @@ func (FrontDesk) Fields() []ent.Field {
 
 // Edges of the FrontDesk.
 func (FrontDesk) Edges() []ent.Edge {
-	return nil
+	return []ent.Edge{
+		edge.From("user", User.Type).
+			Ref("front_desk").
+			Unique().
+			Required(),
+		edge.From("airport", Airport.Type).
+			Ref("front_desks").
+			Unique(),
+	}
 }

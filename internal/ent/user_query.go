@@ -3,9 +3,18 @@
 package ent
 
 import (
+	"airbound/internal/ent/account"
+	"airbound/internal/ent/address"
+	"airbound/internal/ent/admin"
+	"airbound/internal/ent/crew"
+	"airbound/internal/ent/customer"
+	"airbound/internal/ent/frontdesk"
+	"airbound/internal/ent/pilot"
 	"airbound/internal/ent/predicate"
+	"airbound/internal/ent/role"
 	"airbound/internal/ent/user"
 	"context"
+	"database/sql/driver"
 	"errors"
 	"fmt"
 	"math"
@@ -25,6 +34,16 @@ type UserQuery struct {
 	order      []OrderFunc
 	fields     []string
 	predicates []predicate.User
+	// eager-loading edges.
+	withAccount   *AccountQuery
+	withAdmin     *AdminQuery
+	withCrew      *CrewQuery
+	withPilot     *PilotQuery
+	withFrontDesk *FrontDeskQuery
+	withCustomer  *CustomerQuery
+	withAddress   *AddressQuery
+	withRole      *RoleQuery
+	withFKs       bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -59,6 +78,182 @@ func (uq *UserQuery) Unique(unique bool) *UserQuery {
 func (uq *UserQuery) Order(o ...OrderFunc) *UserQuery {
 	uq.order = append(uq.order, o...)
 	return uq
+}
+
+// QueryAccount chains the current query on the "account" edge.
+func (uq *UserQuery) QueryAccount() *AccountQuery {
+	query := &AccountQuery{config: uq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(account.Table, account.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, user.AccountTable, user.AccountColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryAdmin chains the current query on the "admin" edge.
+func (uq *UserQuery) QueryAdmin() *AdminQuery {
+	query := &AdminQuery{config: uq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(admin.Table, admin.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, user.AdminTable, user.AdminColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryCrew chains the current query on the "crew" edge.
+func (uq *UserQuery) QueryCrew() *CrewQuery {
+	query := &CrewQuery{config: uq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(crew.Table, crew.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, user.CrewTable, user.CrewColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryPilot chains the current query on the "pilot" edge.
+func (uq *UserQuery) QueryPilot() *PilotQuery {
+	query := &PilotQuery{config: uq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(pilot.Table, pilot.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, user.PilotTable, user.PilotColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryFrontDesk chains the current query on the "front_desk" edge.
+func (uq *UserQuery) QueryFrontDesk() *FrontDeskQuery {
+	query := &FrontDeskQuery{config: uq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(frontdesk.Table, frontdesk.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, user.FrontDeskTable, user.FrontDeskColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryCustomer chains the current query on the "customer" edge.
+func (uq *UserQuery) QueryCustomer() *CustomerQuery {
+	query := &CustomerQuery{config: uq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(customer.Table, customer.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, user.CustomerTable, user.CustomerColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryAddress chains the current query on the "address" edge.
+func (uq *UserQuery) QueryAddress() *AddressQuery {
+	query := &AddressQuery{config: uq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(address.Table, address.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, user.AddressTable, user.AddressColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryRole chains the current query on the "role" edge.
+func (uq *UserQuery) QueryRole() *RoleQuery {
+	query := &RoleQuery{config: uq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(role.Table, role.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, user.RoleTable, user.RoleColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first User entity from the query.
@@ -237,15 +432,111 @@ func (uq *UserQuery) Clone() *UserQuery {
 		return nil
 	}
 	return &UserQuery{
-		config:     uq.config,
-		limit:      uq.limit,
-		offset:     uq.offset,
-		order:      append([]OrderFunc{}, uq.order...),
-		predicates: append([]predicate.User{}, uq.predicates...),
+		config:        uq.config,
+		limit:         uq.limit,
+		offset:        uq.offset,
+		order:         append([]OrderFunc{}, uq.order...),
+		predicates:    append([]predicate.User{}, uq.predicates...),
+		withAccount:   uq.withAccount.Clone(),
+		withAdmin:     uq.withAdmin.Clone(),
+		withCrew:      uq.withCrew.Clone(),
+		withPilot:     uq.withPilot.Clone(),
+		withFrontDesk: uq.withFrontDesk.Clone(),
+		withCustomer:  uq.withCustomer.Clone(),
+		withAddress:   uq.withAddress.Clone(),
+		withRole:      uq.withRole.Clone(),
 		// clone intermediate query.
 		sql:  uq.sql.Clone(),
 		path: uq.path,
 	}
+}
+
+// WithAccount tells the query-builder to eager-load the nodes that are connected to
+// the "account" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithAccount(opts ...func(*AccountQuery)) *UserQuery {
+	query := &AccountQuery{config: uq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withAccount = query
+	return uq
+}
+
+// WithAdmin tells the query-builder to eager-load the nodes that are connected to
+// the "admin" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithAdmin(opts ...func(*AdminQuery)) *UserQuery {
+	query := &AdminQuery{config: uq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withAdmin = query
+	return uq
+}
+
+// WithCrew tells the query-builder to eager-load the nodes that are connected to
+// the "crew" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithCrew(opts ...func(*CrewQuery)) *UserQuery {
+	query := &CrewQuery{config: uq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withCrew = query
+	return uq
+}
+
+// WithPilot tells the query-builder to eager-load the nodes that are connected to
+// the "pilot" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithPilot(opts ...func(*PilotQuery)) *UserQuery {
+	query := &PilotQuery{config: uq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withPilot = query
+	return uq
+}
+
+// WithFrontDesk tells the query-builder to eager-load the nodes that are connected to
+// the "front_desk" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithFrontDesk(opts ...func(*FrontDeskQuery)) *UserQuery {
+	query := &FrontDeskQuery{config: uq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withFrontDesk = query
+	return uq
+}
+
+// WithCustomer tells the query-builder to eager-load the nodes that are connected to
+// the "customer" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithCustomer(opts ...func(*CustomerQuery)) *UserQuery {
+	query := &CustomerQuery{config: uq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withCustomer = query
+	return uq
+}
+
+// WithAddress tells the query-builder to eager-load the nodes that are connected to
+// the "address" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithAddress(opts ...func(*AddressQuery)) *UserQuery {
+	query := &AddressQuery{config: uq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withAddress = query
+	return uq
+}
+
+// WithRole tells the query-builder to eager-load the nodes that are connected to
+// the "role" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithRole(opts ...func(*RoleQuery)) *UserQuery {
+	query := &RoleQuery{config: uq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withRole = query
+	return uq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -311,9 +602,26 @@ func (uq *UserQuery) prepareQuery(ctx context.Context) error {
 
 func (uq *UserQuery) sqlAll(ctx context.Context) ([]*User, error) {
 	var (
-		nodes = []*User{}
-		_spec = uq.querySpec()
+		nodes       = []*User{}
+		withFKs     = uq.withFKs
+		_spec       = uq.querySpec()
+		loadedTypes = [8]bool{
+			uq.withAccount != nil,
+			uq.withAdmin != nil,
+			uq.withCrew != nil,
+			uq.withPilot != nil,
+			uq.withFrontDesk != nil,
+			uq.withCustomer != nil,
+			uq.withAddress != nil,
+			uq.withRole != nil,
+		}
 	)
+	if uq.withRole != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, user.ForeignKeys...)
+	}
 	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
 		node := &User{config: uq.config}
 		nodes = append(nodes, node)
@@ -324,6 +632,7 @@ func (uq *UserQuery) sqlAll(ctx context.Context) ([]*User, error) {
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	if err := sqlgraph.QueryNodes(ctx, uq.driver, _spec); err != nil {
@@ -332,6 +641,232 @@ func (uq *UserQuery) sqlAll(ctx context.Context) ([]*User, error) {
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+
+	if query := uq.withAccount; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[uuid.UUID]*User)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.Account(func(s *sql.Selector) {
+			s.Where(sql.InValues(user.AccountColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.user_account
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "user_account" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "user_account" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.Account = n
+		}
+	}
+
+	if query := uq.withAdmin; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[uuid.UUID]*User)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.Admin(func(s *sql.Selector) {
+			s.Where(sql.InValues(user.AdminColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.user_admin
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "user_admin" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "user_admin" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.Admin = n
+		}
+	}
+
+	if query := uq.withCrew; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[uuid.UUID]*User)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.Crew(func(s *sql.Selector) {
+			s.Where(sql.InValues(user.CrewColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.user_crew
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "user_crew" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "user_crew" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.Crew = n
+		}
+	}
+
+	if query := uq.withPilot; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[uuid.UUID]*User)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.Pilot(func(s *sql.Selector) {
+			s.Where(sql.InValues(user.PilotColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.user_pilot
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "user_pilot" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "user_pilot" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.Pilot = n
+		}
+	}
+
+	if query := uq.withFrontDesk; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[uuid.UUID]*User)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.FrontDesk(func(s *sql.Selector) {
+			s.Where(sql.InValues(user.FrontDeskColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.user_front_desk
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "user_front_desk" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "user_front_desk" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.FrontDesk = n
+		}
+	}
+
+	if query := uq.withCustomer; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[uuid.UUID]*User)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.Customer(func(s *sql.Selector) {
+			s.Where(sql.InValues(user.CustomerColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.user_customer
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "user_customer" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "user_customer" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.Customer = n
+		}
+	}
+
+	if query := uq.withAddress; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[uuid.UUID]*User)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+		}
+		query.withFKs = true
+		query.Where(predicate.Address(func(s *sql.Selector) {
+			s.Where(sql.InValues(user.AddressColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.user_address
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "user_address" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "user_address" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.Address = n
+		}
+	}
+
+	if query := uq.withRole; query != nil {
+		ids := make([]uuid.UUID, 0, len(nodes))
+		nodeids := make(map[uuid.UUID][]*User)
+		for i := range nodes {
+			if nodes[i].role_id == nil {
+				continue
+			}
+			fk := *nodes[i].role_id
+			if _, ok := nodeids[fk]; !ok {
+				ids = append(ids, fk)
+			}
+			nodeids[fk] = append(nodeids[fk], nodes[i])
+		}
+		query.Where(role.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "role_id" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Role = n
+			}
+		}
+	}
+
 	return nodes, nil
 }
 

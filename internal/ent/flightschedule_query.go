@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"airbound/internal/ent/flight"
 	"airbound/internal/ent/flightschedule"
 	"airbound/internal/ent/predicate"
 	"context"
@@ -25,6 +26,9 @@ type FlightScheduleQuery struct {
 	order      []OrderFunc
 	fields     []string
 	predicates []predicate.FlightSchedule
+	// eager-loading edges.
+	withFlight *FlightQuery
+	withFKs    bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -59,6 +63,28 @@ func (fsq *FlightScheduleQuery) Unique(unique bool) *FlightScheduleQuery {
 func (fsq *FlightScheduleQuery) Order(o ...OrderFunc) *FlightScheduleQuery {
 	fsq.order = append(fsq.order, o...)
 	return fsq
+}
+
+// QueryFlight chains the current query on the "flight" edge.
+func (fsq *FlightScheduleQuery) QueryFlight() *FlightQuery {
+	query := &FlightQuery{config: fsq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := fsq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := fsq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(flightschedule.Table, flightschedule.FieldID, selector),
+			sqlgraph.To(flight.Table, flight.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, flightschedule.FlightTable, flightschedule.FlightColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(fsq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first FlightSchedule entity from the query.
@@ -242,10 +268,22 @@ func (fsq *FlightScheduleQuery) Clone() *FlightScheduleQuery {
 		offset:     fsq.offset,
 		order:      append([]OrderFunc{}, fsq.order...),
 		predicates: append([]predicate.FlightSchedule{}, fsq.predicates...),
+		withFlight: fsq.withFlight.Clone(),
 		// clone intermediate query.
 		sql:  fsq.sql.Clone(),
 		path: fsq.path,
 	}
+}
+
+// WithFlight tells the query-builder to eager-load the nodes that are connected to
+// the "flight" edge. The optional arguments are used to configure the query builder of the edge.
+func (fsq *FlightScheduleQuery) WithFlight(opts ...func(*FlightQuery)) *FlightScheduleQuery {
+	query := &FlightQuery{config: fsq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	fsq.withFlight = query
+	return fsq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -311,9 +349,19 @@ func (fsq *FlightScheduleQuery) prepareQuery(ctx context.Context) error {
 
 func (fsq *FlightScheduleQuery) sqlAll(ctx context.Context) ([]*FlightSchedule, error) {
 	var (
-		nodes = []*FlightSchedule{}
-		_spec = fsq.querySpec()
+		nodes       = []*FlightSchedule{}
+		withFKs     = fsq.withFKs
+		_spec       = fsq.querySpec()
+		loadedTypes = [1]bool{
+			fsq.withFlight != nil,
+		}
 	)
+	if fsq.withFlight != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, flightschedule.ForeignKeys...)
+	}
 	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
 		node := &FlightSchedule{config: fsq.config}
 		nodes = append(nodes, node)
@@ -324,6 +372,7 @@ func (fsq *FlightScheduleQuery) sqlAll(ctx context.Context) ([]*FlightSchedule, 
 			return fmt.Errorf("ent: Assign called without calling ScanValues")
 		}
 		node := nodes[len(nodes)-1]
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	if err := sqlgraph.QueryNodes(ctx, fsq.driver, _spec); err != nil {
@@ -332,6 +381,36 @@ func (fsq *FlightScheduleQuery) sqlAll(ctx context.Context) ([]*FlightSchedule, 
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+
+	if query := fsq.withFlight; query != nil {
+		ids := make([]uuid.UUID, 0, len(nodes))
+		nodeids := make(map[uuid.UUID][]*FlightSchedule)
+		for i := range nodes {
+			if nodes[i].flight_id == nil {
+				continue
+			}
+			fk := *nodes[i].flight_id
+			if _, ok := nodeids[fk]; !ok {
+				ids = append(ids, fk)
+			}
+			nodeids[fk] = append(nodeids[fk], nodes[i])
+		}
+		query.Where(flight.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "flight_id" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Flight = n
+			}
+		}
+	}
+
 	return nodes, nil
 }
 
