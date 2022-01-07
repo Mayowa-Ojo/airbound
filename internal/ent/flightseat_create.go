@@ -310,7 +310,7 @@ func (fsc *FlightSeatCreate) createSpec() (*FlightSeat, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.seat_flight_seat = &nodes[0]
+		_node.seat_id = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := fsc.mutation.PassengerIDs(); len(nodes) > 0 {
@@ -330,7 +330,7 @@ func (fsc *FlightSeatCreate) createSpec() (*FlightSeat, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.passenger_flight_seat = &nodes[0]
+		_node.passenger_id = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

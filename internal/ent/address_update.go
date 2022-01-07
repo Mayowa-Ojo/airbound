@@ -8,7 +8,6 @@ import (
 	"airbound/internal/ent/predicate"
 	"airbound/internal/ent/user"
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
@@ -81,6 +80,14 @@ func (au *AddressUpdate) SetUserID(id uuid.UUID) *AddressUpdate {
 	return au
 }
 
+// SetNillableUserID sets the "user" edge to the User entity by ID if the given value is not nil.
+func (au *AddressUpdate) SetNillableUserID(id *uuid.UUID) *AddressUpdate {
+	if id != nil {
+		au = au.SetUserID(*id)
+	}
+	return au
+}
+
 // SetUser sets the "user" edge to the User entity.
 func (au *AddressUpdate) SetUser(u *User) *AddressUpdate {
 	return au.SetUserID(u.ID)
@@ -89,6 +96,14 @@ func (au *AddressUpdate) SetUser(u *User) *AddressUpdate {
 // SetAirportID sets the "airport" edge to the Airport entity by ID.
 func (au *AddressUpdate) SetAirportID(id uuid.UUID) *AddressUpdate {
 	au.mutation.SetAirportID(id)
+	return au
+}
+
+// SetNillableAirportID sets the "airport" edge to the Airport entity by ID if the given value is not nil.
+func (au *AddressUpdate) SetNillableAirportID(id *uuid.UUID) *AddressUpdate {
+	if id != nil {
+		au = au.SetAirportID(*id)
+	}
 	return au
 }
 
@@ -205,12 +220,6 @@ func (au *AddressUpdate) check() error {
 			return &ValidationError{Name: "zipcode", err: fmt.Errorf("ent: validator failed for field \"zipcode\": %w", err)}
 		}
 	}
-	if _, ok := au.mutation.UserID(); au.mutation.UserCleared() && !ok {
-		return errors.New("ent: clearing a required unique edge \"user\"")
-	}
-	if _, ok := au.mutation.AirportID(); au.mutation.AirportCleared() && !ok {
-		return errors.New("ent: clearing a required unique edge \"airport\"")
-	}
 	return nil
 }
 
@@ -277,7 +286,7 @@ func (au *AddressUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if au.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
-			Inverse: true,
+			Inverse: false,
 			Table:   address.UserTable,
 			Columns: []string{address.UserColumn},
 			Bidi:    false,
@@ -293,7 +302,7 @@ func (au *AddressUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if nodes := au.mutation.UserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
-			Inverse: true,
+			Inverse: false,
 			Table:   address.UserTable,
 			Columns: []string{address.UserColumn},
 			Bidi:    false,
@@ -312,7 +321,7 @@ func (au *AddressUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if au.mutation.AirportCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
-			Inverse: true,
+			Inverse: false,
 			Table:   address.AirportTable,
 			Columns: []string{address.AirportColumn},
 			Bidi:    false,
@@ -328,7 +337,7 @@ func (au *AddressUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if nodes := au.mutation.AirportIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
-			Inverse: true,
+			Inverse: false,
 			Table:   address.AirportTable,
 			Columns: []string{address.AirportColumn},
 			Bidi:    false,
@@ -413,6 +422,14 @@ func (auo *AddressUpdateOne) SetUserID(id uuid.UUID) *AddressUpdateOne {
 	return auo
 }
 
+// SetNillableUserID sets the "user" edge to the User entity by ID if the given value is not nil.
+func (auo *AddressUpdateOne) SetNillableUserID(id *uuid.UUID) *AddressUpdateOne {
+	if id != nil {
+		auo = auo.SetUserID(*id)
+	}
+	return auo
+}
+
 // SetUser sets the "user" edge to the User entity.
 func (auo *AddressUpdateOne) SetUser(u *User) *AddressUpdateOne {
 	return auo.SetUserID(u.ID)
@@ -421,6 +438,14 @@ func (auo *AddressUpdateOne) SetUser(u *User) *AddressUpdateOne {
 // SetAirportID sets the "airport" edge to the Airport entity by ID.
 func (auo *AddressUpdateOne) SetAirportID(id uuid.UUID) *AddressUpdateOne {
 	auo.mutation.SetAirportID(id)
+	return auo
+}
+
+// SetNillableAirportID sets the "airport" edge to the Airport entity by ID if the given value is not nil.
+func (auo *AddressUpdateOne) SetNillableAirportID(id *uuid.UUID) *AddressUpdateOne {
+	if id != nil {
+		auo = auo.SetAirportID(*id)
+	}
 	return auo
 }
 
@@ -544,12 +569,6 @@ func (auo *AddressUpdateOne) check() error {
 			return &ValidationError{Name: "zipcode", err: fmt.Errorf("ent: validator failed for field \"zipcode\": %w", err)}
 		}
 	}
-	if _, ok := auo.mutation.UserID(); auo.mutation.UserCleared() && !ok {
-		return errors.New("ent: clearing a required unique edge \"user\"")
-	}
-	if _, ok := auo.mutation.AirportID(); auo.mutation.AirportCleared() && !ok {
-		return errors.New("ent: clearing a required unique edge \"airport\"")
-	}
 	return nil
 }
 
@@ -633,7 +652,7 @@ func (auo *AddressUpdateOne) sqlSave(ctx context.Context) (_node *Address, err e
 	if auo.mutation.UserCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
-			Inverse: true,
+			Inverse: false,
 			Table:   address.UserTable,
 			Columns: []string{address.UserColumn},
 			Bidi:    false,
@@ -649,7 +668,7 @@ func (auo *AddressUpdateOne) sqlSave(ctx context.Context) (_node *Address, err e
 	if nodes := auo.mutation.UserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
-			Inverse: true,
+			Inverse: false,
 			Table:   address.UserTable,
 			Columns: []string{address.UserColumn},
 			Bidi:    false,
@@ -668,7 +687,7 @@ func (auo *AddressUpdateOne) sqlSave(ctx context.Context) (_node *Address, err e
 	if auo.mutation.AirportCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
-			Inverse: true,
+			Inverse: false,
 			Table:   address.AirportTable,
 			Columns: []string{address.AirportColumn},
 			Bidi:    false,
@@ -684,7 +703,7 @@ func (auo *AddressUpdateOne) sqlSave(ctx context.Context) (_node *Address, err e
 	if nodes := auo.mutation.AirportIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
-			Inverse: true,
+			Inverse: false,
 			Table:   address.AirportTable,
 			Columns: []string{address.AirportColumn},
 			Bidi:    false,

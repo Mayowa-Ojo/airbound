@@ -40,14 +40,14 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "seat" package.
 	SeatInverseTable = "seats"
 	// SeatColumn is the table column denoting the seat relation/edge.
-	SeatColumn = "seat_flight_seat"
+	SeatColumn = "seat_id"
 	// PassengerTable is the table that holds the passenger relation/edge.
 	PassengerTable = "flight_seats"
 	// PassengerInverseTable is the table name for the Passenger entity.
 	// It exists in this package in order to avoid circular dependency with the "passenger" package.
 	PassengerInverseTable = "passengers"
 	// PassengerColumn is the table column denoting the passenger relation/edge.
-	PassengerColumn = "passenger_flight_seat"
+	PassengerColumn = "passenger_id"
 )
 
 // Columns holds all SQL columns for flightseat fields.
@@ -62,8 +62,8 @@ var Columns = []string{
 // table and are not defined as standalone fields in the schema.
 var ForeignKeys = []string{
 	"flight_instance_id",
-	"passenger_flight_seat",
-	"seat_flight_seat",
+	"passenger_id",
+	"seat_id",
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).

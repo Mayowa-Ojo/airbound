@@ -44,7 +44,7 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "flightseat" package.
 	FlightSeatInverseTable = "flight_seats"
 	// FlightSeatColumn is the table column denoting the flight_seat relation/edge.
-	FlightSeatColumn = "passenger_flight_seat"
+	FlightSeatColumn = "passenger_id"
 )
 
 // Columns holds all SQL columns for passenger fields.

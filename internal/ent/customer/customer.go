@@ -31,7 +31,7 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "user" package.
 	UserInverseTable = "users"
 	// UserColumn is the table column denoting the user relation/edge.
-	UserColumn = "user_customer"
+	UserColumn = "user_id"
 	// ItenerariesTable is the table that holds the iteneraries relation/edge.
 	ItenerariesTable = "iteneraries"
 	// ItenerariesInverseTable is the table name for the Itenerary entity.
@@ -52,7 +52,7 @@ var Columns = []string{
 // ForeignKeys holds the SQL foreign-keys that are owned by the "customers"
 // table and are not defined as standalone fields in the schema.
 var ForeignKeys = []string{
-	"user_customer",
+	"user_id",
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).

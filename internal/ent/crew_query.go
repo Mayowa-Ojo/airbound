@@ -461,10 +461,10 @@ func (cq *CrewQuery) sqlAll(ctx context.Context) ([]*Crew, error) {
 		ids := make([]uuid.UUID, 0, len(nodes))
 		nodeids := make(map[uuid.UUID][]*Crew)
 		for i := range nodes {
-			if nodes[i].user_crew == nil {
+			if nodes[i].user_id == nil {
 				continue
 			}
-			fk := *nodes[i].user_crew
+			fk := *nodes[i].user_id
 			if _, ok := nodeids[fk]; !ok {
 				ids = append(ids, fk)
 			}
@@ -478,7 +478,7 @@ func (cq *CrewQuery) sqlAll(ctx context.Context) ([]*Crew, error) {
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "user_crew" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "user_id" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.User = n

@@ -34,6 +34,7 @@ func (Passenger) Edges() []ent.Edge {
 			Ref("passengers").
 			Unique(),
 		edge.To("flight_seat", FlightSeat.Type).
+			StorageKey(edge.Column("passenger_id")).
 			Unique(),
 	}
 }

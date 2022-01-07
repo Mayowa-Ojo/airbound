@@ -399,7 +399,7 @@ func (ac *AircraftCreate) createSpec() (*Aircraft, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.flight_instance_aircraft = &nodes[0]
+		_node.flight_instance_id = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := ac.mutation.SeatsIDs(); len(nodes) > 0 {

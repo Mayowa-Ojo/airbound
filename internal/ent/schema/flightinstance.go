@@ -34,6 +34,7 @@ func (FlightInstance) Edges() []ent.Edge {
 			Ref("flight_instances").
 			Unique(),
 		edge.To("aircraft", Aircraft.Type).
+			StorageKey(edge.Column("flight_instance_id")).
 			Unique(),
 		edge.To("flight_reservations", FlightReservation.Type).
 			StorageKey(edge.Column("flight_instance_id")),

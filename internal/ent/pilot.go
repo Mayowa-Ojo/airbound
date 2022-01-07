@@ -33,7 +33,7 @@ type Pilot struct {
 	// The values are being populated by the PilotQuery when eager-loading is set.
 	Edges      PilotEdges `json:"edges"`
 	airline_id *uuid.UUID
-	user_pilot *uuid.UUID
+	user_id    *uuid.UUID
 }
 
 // PilotEdges holds the relations/edges for other nodes in the graph.
@@ -90,7 +90,7 @@ func (*Pilot) scanValues(columns []string) ([]interface{}, error) {
 			values[i] = new(uuid.UUID)
 		case pilot.ForeignKeys[0]: // airline_id
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
-		case pilot.ForeignKeys[1]: // user_pilot
+		case pilot.ForeignKeys[1]: // user_id
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Pilot", columns[i])
@@ -152,10 +152,10 @@ func (pi *Pilot) assignValues(columns []string, values []interface{}) error {
 			}
 		case pilot.ForeignKeys[1]:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
-				return fmt.Errorf("unexpected type %T for field user_pilot", values[i])
+				return fmt.Errorf("unexpected type %T for field user_id", values[i])
 			} else if value.Valid {
-				pi.user_pilot = new(uuid.UUID)
-				*pi.user_pilot = *value.S.(*uuid.UUID)
+				pi.user_id = new(uuid.UUID)
+				*pi.user_id = *value.S.(*uuid.UUID)
 			}
 		}
 	}

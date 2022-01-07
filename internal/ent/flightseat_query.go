@@ -489,10 +489,10 @@ func (fsq *FlightSeatQuery) sqlAll(ctx context.Context) ([]*FlightSeat, error) {
 		ids := make([]uuid.UUID, 0, len(nodes))
 		nodeids := make(map[uuid.UUID][]*FlightSeat)
 		for i := range nodes {
-			if nodes[i].seat_flight_seat == nil {
+			if nodes[i].seat_id == nil {
 				continue
 			}
-			fk := *nodes[i].seat_flight_seat
+			fk := *nodes[i].seat_id
 			if _, ok := nodeids[fk]; !ok {
 				ids = append(ids, fk)
 			}
@@ -506,7 +506,7 @@ func (fsq *FlightSeatQuery) sqlAll(ctx context.Context) ([]*FlightSeat, error) {
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "seat_flight_seat" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "seat_id" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.Seat = n
@@ -518,10 +518,10 @@ func (fsq *FlightSeatQuery) sqlAll(ctx context.Context) ([]*FlightSeat, error) {
 		ids := make([]uuid.UUID, 0, len(nodes))
 		nodeids := make(map[uuid.UUID][]*FlightSeat)
 		for i := range nodes {
-			if nodes[i].passenger_flight_seat == nil {
+			if nodes[i].passenger_id == nil {
 				continue
 			}
-			fk := *nodes[i].passenger_flight_seat
+			fk := *nodes[i].passenger_id
 			if _, ok := nodeids[fk]; !ok {
 				ids = append(ids, fk)
 			}
@@ -535,7 +535,7 @@ func (fsq *FlightSeatQuery) sqlAll(ctx context.Context) ([]*FlightSeat, error) {
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "passenger_flight_seat" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "passenger_id" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.Passenger = n

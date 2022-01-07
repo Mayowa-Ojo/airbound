@@ -30,7 +30,8 @@ type Airport struct {
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the AirportQuery when eager-loading is set.
-	Edges AirportEdges `json:"edges"`
+	Edges      AirportEdges `json:"edges"`
+	address_id *uuid.UUID
 }
 
 // AirportEdges holds the relations/edges for other nodes in the graph.
@@ -122,6 +123,8 @@ func (*Airport) scanValues(columns []string) ([]interface{}, error) {
 			values[i] = new(sql.NullTime)
 		case airport.FieldID:
 			values[i] = new(uuid.UUID)
+		case airport.ForeignKeys[0]: // address_id
+			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Airport", columns[i])
 		}
@@ -172,6 +175,13 @@ func (a *Airport) assignValues(columns []string, values []interface{}) error {
 				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
 			} else if value.Valid {
 				a.UpdatedAt = value.Time
+			}
+		case airport.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field address_id", values[i])
+			} else if value.Valid {
+				a.address_id = new(uuid.UUID)
+				*a.address_id = *value.S.(*uuid.UUID)
 			}
 		}
 	}

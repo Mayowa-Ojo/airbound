@@ -314,7 +314,7 @@ func (pc *PilotCreate) createSpec() (*Pilot, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.user_pilot = &nodes[0]
+		_node.user_id = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := pc.mutation.AirlineIDs(); len(nodes) > 0 {

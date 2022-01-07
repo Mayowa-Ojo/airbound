@@ -465,13 +465,13 @@ func (sq *SeatQuery) sqlAll(ctx context.Context) ([]*Seat, error) {
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.seat_flight_seat
+			fk := n.seat_id
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "seat_flight_seat" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "seat_id" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "seat_flight_seat" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "seat_id" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.FlightSeat = n
 		}

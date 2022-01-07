@@ -87,6 +87,14 @@ func (ac *AddressCreate) SetUserID(id uuid.UUID) *AddressCreate {
 	return ac
 }
 
+// SetNillableUserID sets the "user" edge to the User entity by ID if the given value is not nil.
+func (ac *AddressCreate) SetNillableUserID(id *uuid.UUID) *AddressCreate {
+	if id != nil {
+		ac = ac.SetUserID(*id)
+	}
+	return ac
+}
+
 // SetUser sets the "user" edge to the User entity.
 func (ac *AddressCreate) SetUser(u *User) *AddressCreate {
 	return ac.SetUserID(u.ID)
@@ -95,6 +103,14 @@ func (ac *AddressCreate) SetUser(u *User) *AddressCreate {
 // SetAirportID sets the "airport" edge to the Airport entity by ID.
 func (ac *AddressCreate) SetAirportID(id uuid.UUID) *AddressCreate {
 	ac.mutation.SetAirportID(id)
+	return ac
+}
+
+// SetNillableAirportID sets the "airport" edge to the Airport entity by ID if the given value is not nil.
+func (ac *AddressCreate) SetNillableAirportID(id *uuid.UUID) *AddressCreate {
+	if id != nil {
+		ac = ac.SetAirportID(*id)
+	}
 	return ac
 }
 
@@ -228,12 +244,6 @@ func (ac *AddressCreate) check() error {
 	if _, ok := ac.mutation.UpdatedAt(); !ok {
 		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "updated_at"`)}
 	}
-	if _, ok := ac.mutation.UserID(); !ok {
-		return &ValidationError{Name: "user", err: errors.New("ent: missing required edge \"user\"")}
-	}
-	if _, ok := ac.mutation.AirportID(); !ok {
-		return &ValidationError{Name: "airport", err: errors.New("ent: missing required edge \"airport\"")}
-	}
 	return nil
 }
 
@@ -317,7 +327,7 @@ func (ac *AddressCreate) createSpec() (*Address, *sqlgraph.CreateSpec) {
 	if nodes := ac.mutation.UserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
-			Inverse: true,
+			Inverse: false,
 			Table:   address.UserTable,
 			Columns: []string{address.UserColumn},
 			Bidi:    false,
@@ -331,13 +341,12 @@ func (ac *AddressCreate) createSpec() (*Address, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.user_address = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := ac.mutation.AirportIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
-			Inverse: true,
+			Inverse: false,
 			Table:   address.AirportTable,
 			Columns: []string{address.AirportColumn},
 			Bidi:    false,
@@ -351,7 +360,6 @@ func (ac *AddressCreate) createSpec() (*Address, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.airport_address = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

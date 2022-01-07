@@ -29,7 +29,7 @@ type Crew struct {
 	// The values are being populated by the CrewQuery when eager-loading is set.
 	Edges      CrewEdges `json:"edges"`
 	airline_id *uuid.UUID
-	user_crew  *uuid.UUID
+	user_id    *uuid.UUID
 }
 
 // CrewEdges holds the relations/edges for other nodes in the graph.
@@ -95,7 +95,7 @@ func (*Crew) scanValues(columns []string) ([]interface{}, error) {
 			values[i] = new(uuid.UUID)
 		case crew.ForeignKeys[0]: // airline_id
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
-		case crew.ForeignKeys[1]: // user_crew
+		case crew.ForeignKeys[1]: // user_id
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Crew", columns[i])
@@ -145,10 +145,10 @@ func (c *Crew) assignValues(columns []string, values []interface{}) error {
 			}
 		case crew.ForeignKeys[1]:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
-				return fmt.Errorf("unexpected type %T for field user_crew", values[i])
+				return fmt.Errorf("unexpected type %T for field user_id", values[i])
 			} else if value.Valid {
-				c.user_crew = new(uuid.UUID)
-				*c.user_crew = *value.S.(*uuid.UUID)
+				c.user_id = new(uuid.UUID)
+				*c.user_id = *value.S.(*uuid.UUID)
 			}
 		}
 	}

@@ -28,10 +28,10 @@ type FlightSeat struct {
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the FlightSeatQuery when eager-loading is set.
-	Edges                 FlightSeatEdges `json:"edges"`
-	flight_instance_id    *uuid.UUID
-	passenger_flight_seat *uuid.UUID
-	seat_flight_seat      *uuid.UUID
+	Edges              FlightSeatEdges `json:"edges"`
+	flight_instance_id *uuid.UUID
+	passenger_id       *uuid.UUID
+	seat_id            *uuid.UUID
 }
 
 // FlightSeatEdges holds the relations/edges for other nodes in the graph.
@@ -102,9 +102,9 @@ func (*FlightSeat) scanValues(columns []string) ([]interface{}, error) {
 			values[i] = new(uuid.UUID)
 		case flightseat.ForeignKeys[0]: // flight_instance_id
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
-		case flightseat.ForeignKeys[1]: // passenger_flight_seat
+		case flightseat.ForeignKeys[1]: // passenger_id
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
-		case flightseat.ForeignKeys[2]: // seat_flight_seat
+		case flightseat.ForeignKeys[2]: // seat_id
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type FlightSeat", columns[i])
@@ -154,17 +154,17 @@ func (fs *FlightSeat) assignValues(columns []string, values []interface{}) error
 			}
 		case flightseat.ForeignKeys[1]:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
-				return fmt.Errorf("unexpected type %T for field passenger_flight_seat", values[i])
+				return fmt.Errorf("unexpected type %T for field passenger_id", values[i])
 			} else if value.Valid {
-				fs.passenger_flight_seat = new(uuid.UUID)
-				*fs.passenger_flight_seat = *value.S.(*uuid.UUID)
+				fs.passenger_id = new(uuid.UUID)
+				*fs.passenger_id = *value.S.(*uuid.UUID)
 			}
 		case flightseat.ForeignKeys[2]:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
-				return fmt.Errorf("unexpected type %T for field seat_flight_seat", values[i])
+				return fmt.Errorf("unexpected type %T for field seat_id", values[i])
 			} else if value.Valid {
-				fs.seat_flight_seat = new(uuid.UUID)
-				*fs.seat_flight_seat = *value.S.(*uuid.UUID)
+				fs.seat_id = new(uuid.UUID)
+				*fs.seat_id = *value.S.(*uuid.UUID)
 			}
 		}
 	}

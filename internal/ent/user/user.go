@@ -49,49 +49,49 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "account" package.
 	AccountInverseTable = "accounts"
 	// AccountColumn is the table column denoting the account relation/edge.
-	AccountColumn = "user_account"
+	AccountColumn = "user_id"
 	// AdminTable is the table that holds the admin relation/edge.
 	AdminTable = "admins"
 	// AdminInverseTable is the table name for the Admin entity.
 	// It exists in this package in order to avoid circular dependency with the "admin" package.
 	AdminInverseTable = "admins"
 	// AdminColumn is the table column denoting the admin relation/edge.
-	AdminColumn = "user_admin"
+	AdminColumn = "user_id"
 	// CrewTable is the table that holds the crew relation/edge.
 	CrewTable = "crews"
 	// CrewInverseTable is the table name for the Crew entity.
 	// It exists in this package in order to avoid circular dependency with the "crew" package.
 	CrewInverseTable = "crews"
 	// CrewColumn is the table column denoting the crew relation/edge.
-	CrewColumn = "user_crew"
+	CrewColumn = "user_id"
 	// PilotTable is the table that holds the pilot relation/edge.
 	PilotTable = "pilots"
 	// PilotInverseTable is the table name for the Pilot entity.
 	// It exists in this package in order to avoid circular dependency with the "pilot" package.
 	PilotInverseTable = "pilots"
 	// PilotColumn is the table column denoting the pilot relation/edge.
-	PilotColumn = "user_pilot"
+	PilotColumn = "user_id"
 	// FrontDeskTable is the table that holds the front_desk relation/edge.
 	FrontDeskTable = "front_desks"
 	// FrontDeskInverseTable is the table name for the FrontDesk entity.
 	// It exists in this package in order to avoid circular dependency with the "frontdesk" package.
 	FrontDeskInverseTable = "front_desks"
 	// FrontDeskColumn is the table column denoting the front_desk relation/edge.
-	FrontDeskColumn = "user_front_desk"
+	FrontDeskColumn = "user_id"
 	// CustomerTable is the table that holds the customer relation/edge.
 	CustomerTable = "customers"
 	// CustomerInverseTable is the table name for the Customer entity.
 	// It exists in this package in order to avoid circular dependency with the "customer" package.
 	CustomerInverseTable = "customers"
 	// CustomerColumn is the table column denoting the customer relation/edge.
-	CustomerColumn = "user_customer"
+	CustomerColumn = "user_id"
 	// AddressTable is the table that holds the address relation/edge.
-	AddressTable = "addresses"
+	AddressTable = "users"
 	// AddressInverseTable is the table name for the Address entity.
 	// It exists in this package in order to avoid circular dependency with the "address" package.
 	AddressInverseTable = "addresses"
 	// AddressColumn is the table column denoting the address relation/edge.
-	AddressColumn = "user_address"
+	AddressColumn = "address_id"
 	// RoleTable is the table that holds the role relation/edge.
 	RoleTable = "users"
 	// RoleInverseTable is the table name for the Role entity.
@@ -115,6 +115,7 @@ var Columns = []string{
 // ForeignKeys holds the SQL foreign-keys that are owned by the "users"
 // table and are not defined as standalone fields in the schema.
 var ForeignKeys = []string{
+	"address_id",
 	"role_id",
 }
 

@@ -35,9 +35,9 @@ type Aircraft struct {
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the AircraftQuery when eager-loading is set.
-	Edges                    AircraftEdges `json:"edges"`
-	airline_id               *uuid.UUID
-	flight_instance_aircraft *uuid.UUID
+	Edges              AircraftEdges `json:"edges"`
+	airline_id         *uuid.UUID
+	flight_instance_id *uuid.UUID
 }
 
 // AircraftEdges holds the relations/edges for other nodes in the graph.
@@ -105,7 +105,7 @@ func (*Aircraft) scanValues(columns []string) ([]interface{}, error) {
 			values[i] = new(uuid.UUID)
 		case aircraft.ForeignKeys[0]: // airline_id
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
-		case aircraft.ForeignKeys[1]: // flight_instance_aircraft
+		case aircraft.ForeignKeys[1]: // flight_instance_id
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Aircraft", columns[i])
@@ -179,10 +179,10 @@ func (a *Aircraft) assignValues(columns []string, values []interface{}) error {
 			}
 		case aircraft.ForeignKeys[1]:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
-				return fmt.Errorf("unexpected type %T for field flight_instance_aircraft", values[i])
+				return fmt.Errorf("unexpected type %T for field flight_instance_id", values[i])
 			} else if value.Valid {
-				a.flight_instance_aircraft = new(uuid.UUID)
-				*a.flight_instance_aircraft = *value.S.(*uuid.UUID)
+				a.flight_instance_id = new(uuid.UUID)
+				*a.flight_instance_id = *value.S.(*uuid.UUID)
 			}
 		}
 	}

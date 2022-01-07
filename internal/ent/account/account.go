@@ -35,7 +35,7 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "user" package.
 	UserInverseTable = "users"
 	// UserColumn is the table column denoting the user relation/edge.
-	UserColumn = "user_account"
+	UserColumn = "user_id"
 )
 
 // Columns holds all SQL columns for account fields.
@@ -51,7 +51,7 @@ var Columns = []string{
 // ForeignKeys holds the SQL foreign-keys that are owned by the "accounts"
 // table and are not defined as standalone fields in the schema.
 var ForeignKeys = []string{
-	"user_account",
+	"user_id",
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -83,7 +83,7 @@ var (
 // AccountStatusValidator is a validator for the "account_status" field enum values. It is called by the builders before save.
 func AccountStatusValidator(as enums.AccountStatus) error {
 	switch as {
-	case "ACTIVE", "CLOSED", "BLACKLISTED", "BLOCKED":
+	case "ACTIVE", "CLOSED", "BLACKLISTED", "BLOCKED", "NONE":
 		return nil
 	default:
 		return fmt.Errorf("account: invalid enum value for account_status field: %q", as)

@@ -30,13 +30,11 @@ func (Address) Fields() []ent.Field {
 // Edges of the Address.
 func (Address) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.From("user", User.Type).
-			Ref("address").
-			Unique().
-			Required(),
-		edge.From("airport", Airport.Type).
-			Ref("address").
-			Unique().
-			Required(),
+		edge.To("user", User.Type).
+			StorageKey(edge.Column("address_id")).
+			Unique(),
+		edge.To("airport", Airport.Type).
+			StorageKey(edge.Column("address_id")).
+			Unique(),
 	}
 }

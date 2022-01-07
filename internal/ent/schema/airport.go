@@ -29,7 +29,8 @@ func (Airport) Fields() []ent.Field {
 // Edges of the Airport.
 func (Airport) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("address", Address.Type).
+		edge.From("address", Address.Type).
+			Ref("airport").
 			Unique(),
 		edge.To("front_desks", FrontDesk.Type).
 			StorageKey(edge.Column("airport_id")),

@@ -27,9 +27,9 @@ type FrontDesk struct {
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the FrontDeskQuery when eager-loading is set.
-	Edges           FrontDeskEdges `json:"edges"`
-	airport_id      *uuid.UUID
-	user_front_desk *uuid.UUID
+	Edges      FrontDeskEdges `json:"edges"`
+	airport_id *uuid.UUID
+	user_id    *uuid.UUID
 }
 
 // FrontDeskEdges holds the relations/edges for other nodes in the graph.
@@ -84,7 +84,7 @@ func (*FrontDesk) scanValues(columns []string) ([]interface{}, error) {
 			values[i] = new(uuid.UUID)
 		case frontdesk.ForeignKeys[0]: // airport_id
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
-		case frontdesk.ForeignKeys[1]: // user_front_desk
+		case frontdesk.ForeignKeys[1]: // user_id
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type FrontDesk", columns[i])
@@ -134,10 +134,10 @@ func (fd *FrontDesk) assignValues(columns []string, values []interface{}) error 
 			}
 		case frontdesk.ForeignKeys[1]:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
-				return fmt.Errorf("unexpected type %T for field user_front_desk", values[i])
+				return fmt.Errorf("unexpected type %T for field user_id", values[i])
 			} else if value.Valid {
-				fd.user_front_desk = new(uuid.UUID)
-				*fd.user_front_desk = *value.S.(*uuid.UUID)
+				fd.user_id = new(uuid.UUID)
+				*fd.user_id = *value.S.(*uuid.UUID)
 			}
 		}
 	}

@@ -11,12 +11,12 @@ var (
 	// AccountsColumns holds the columns for the "accounts" table.
 	AccountsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID, Unique: true},
-		{Name: "account_status", Type: field.TypeEnum, Enums: []string{"ACTIVE", "CLOSED", "BLACKLISTED", "BLOCKED"}},
+		{Name: "account_status", Type: field.TypeEnum, Enums: []string{"ACTIVE", "CLOSED", "BLACKLISTED", "BLOCKED", "NONE"}},
 		{Name: "password", Type: field.TypeBytes},
 		{Name: "salt", Type: field.TypeBytes},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "user_account", Type: field.TypeUUID, Unique: true, Nullable: true},
+		{Name: "user_id", Type: field.TypeUUID, Unique: true, Nullable: true},
 	}
 	// AccountsTable holds the schema information for the "accounts" table.
 	AccountsTable = &schema.Table{
@@ -41,28 +41,12 @@ var (
 		{Name: "zipcode", Type: field.TypeString, Size: 50},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "airport_address", Type: field.TypeUUID, Unique: true, Nullable: true},
-		{Name: "user_address", Type: field.TypeUUID, Unique: true, Nullable: true},
 	}
 	// AddressesTable holds the schema information for the "addresses" table.
 	AddressesTable = &schema.Table{
 		Name:       "addresses",
 		Columns:    AddressesColumns,
 		PrimaryKey: []*schema.Column{AddressesColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "addresses_airports_address",
-				Columns:    []*schema.Column{AddressesColumns[7]},
-				RefColumns: []*schema.Column{AirportsColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-			{
-				Symbol:     "addresses_users_address",
-				Columns:    []*schema.Column{AddressesColumns[8]},
-				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-		},
 	}
 	// AdminsColumns holds the columns for the "admins" table.
 	AdminsColumns = []*schema.Column{
@@ -71,7 +55,7 @@ var (
 		{Name: "two_fa_completed", Type: field.TypeBool, Default: false},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "user_admin", Type: field.TypeUUID, Unique: true, Nullable: true},
+		{Name: "user_id", Type: field.TypeUUID, Unique: true, Nullable: true},
 	}
 	// AdminsTable holds the schema information for the "admins" table.
 	AdminsTable = &schema.Table{
@@ -98,7 +82,7 @@ var (
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "airline_id", Type: field.TypeUUID, Nullable: true},
-		{Name: "flight_instance_aircraft", Type: field.TypeUUID, Unique: true, Nullable: true},
+		{Name: "flight_instance_id", Type: field.TypeUUID, Unique: true, Nullable: true},
 	}
 	// AircraftsTable holds the schema information for the "aircrafts" table.
 	AircraftsTable = &schema.Table{
@@ -142,12 +126,21 @@ var (
 		{Name: "icao_code", Type: field.TypeString, Size: 4},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "address_id", Type: field.TypeUUID, Unique: true, Nullable: true},
 	}
 	// AirportsTable holds the schema information for the "airports" table.
 	AirportsTable = &schema.Table{
 		Name:       "airports",
 		Columns:    AirportsColumns,
 		PrimaryKey: []*schema.Column{AirportsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "airports_addresses_airport",
+				Columns:    []*schema.Column{AirportsColumns[6]},
+				RefColumns: []*schema.Column{AddressesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
 	}
 	// CrewsColumns holds the columns for the "crews" table.
 	CrewsColumns = []*schema.Column{
@@ -156,7 +149,7 @@ var (
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "airline_id", Type: field.TypeUUID, Nullable: true},
-		{Name: "user_crew", Type: field.TypeUUID, Unique: true, Nullable: true},
+		{Name: "user_id", Type: field.TypeUUID, Unique: true, Nullable: true},
 	}
 	// CrewsTable holds the schema information for the "crews" table.
 	CrewsTable = &schema.Table{
@@ -184,7 +177,7 @@ var (
 		{Name: "frequent_flyer_number", Type: field.TypeString, Size: 50},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "user_customer", Type: field.TypeUUID, Unique: true, Nullable: true},
+		{Name: "user_id", Type: field.TypeUUID, Unique: true, Nullable: true},
 	}
 	// CustomersTable holds the schema information for the "customers" table.
 	CustomersTable = &schema.Table{
@@ -319,8 +312,8 @@ var (
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "flight_instance_id", Type: field.TypeUUID, Nullable: true},
-		{Name: "passenger_flight_seat", Type: field.TypeUUID, Unique: true, Nullable: true},
-		{Name: "seat_flight_seat", Type: field.TypeUUID, Unique: true, Nullable: true},
+		{Name: "passenger_id", Type: field.TypeUUID, Unique: true, Nullable: true},
+		{Name: "seat_id", Type: field.TypeUUID, Unique: true, Nullable: true},
 	}
 	// FlightSeatsTable holds the schema information for the "flight_seats" table.
 	FlightSeatsTable = &schema.Table{
@@ -355,7 +348,7 @@ var (
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "airport_id", Type: field.TypeUUID, Nullable: true},
-		{Name: "user_front_desk", Type: field.TypeUUID, Unique: true, Nullable: true},
+		{Name: "user_id", Type: field.TypeUUID, Unique: true, Nullable: true},
 	}
 	// FrontDesksTable holds the schema information for the "front_desks" table.
 	FrontDesksTable = &schema.Table{
@@ -459,7 +452,7 @@ var (
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "airline_id", Type: field.TypeUUID, Nullable: true},
-		{Name: "user_pilot", Type: field.TypeUUID, Unique: true, Nullable: true},
+		{Name: "user_id", Type: field.TypeUUID, Unique: true, Nullable: true},
 	}
 	// PilotsTable holds the schema information for the "pilots" table.
 	PilotsTable = &schema.Table{
@@ -524,10 +517,11 @@ var (
 		{Name: "id", Type: field.TypeUUID, Unique: true},
 		{Name: "firstname", Type: field.TypeString, Size: 250},
 		{Name: "lastname", Type: field.TypeString, Size: 250},
-		{Name: "email", Type: field.TypeString, Size: 250},
+		{Name: "email", Type: field.TypeString, Unique: true, Size: 250},
 		{Name: "phone", Type: field.TypeString, Size: 15},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "address_id", Type: field.TypeUUID, Unique: true, Nullable: true},
 		{Name: "role_id", Type: field.TypeUUID, Nullable: true},
 	}
 	// UsersTable holds the schema information for the "users" table.
@@ -537,8 +531,14 @@ var (
 		PrimaryKey: []*schema.Column{UsersColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "users_roles_users",
+				Symbol:     "users_addresses_user",
 				Columns:    []*schema.Column{UsersColumns[7]},
+				RefColumns: []*schema.Column{AddressesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "users_roles_users",
+				Columns:    []*schema.Column{UsersColumns[8]},
 				RefColumns: []*schema.Column{RolesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -624,11 +624,10 @@ var (
 
 func init() {
 	AccountsTable.ForeignKeys[0].RefTable = UsersTable
-	AddressesTable.ForeignKeys[0].RefTable = AirportsTable
-	AddressesTable.ForeignKeys[1].RefTable = UsersTable
 	AdminsTable.ForeignKeys[0].RefTable = UsersTable
 	AircraftsTable.ForeignKeys[0].RefTable = AirlinesTable
 	AircraftsTable.ForeignKeys[1].RefTable = FlightInstancesTable
+	AirportsTable.ForeignKeys[0].RefTable = AddressesTable
 	CrewsTable.ForeignKeys[0].RefTable = AirlinesTable
 	CrewsTable.ForeignKeys[1].RefTable = UsersTable
 	CustomersTable.ForeignKeys[0].RefTable = UsersTable
@@ -650,7 +649,8 @@ func init() {
 	PilotsTable.ForeignKeys[0].RefTable = AirlinesTable
 	PilotsTable.ForeignKeys[1].RefTable = UsersTable
 	SeatsTable.ForeignKeys[0].RefTable = AircraftsTable
-	UsersTable.ForeignKeys[0].RefTable = RolesTable
+	UsersTable.ForeignKeys[0].RefTable = AddressesTable
+	UsersTable.ForeignKeys[1].RefTable = RolesTable
 	FlightCrewTable.ForeignKeys[0].RefTable = FlightsTable
 	FlightCrewTable.ForeignKeys[1].RefTable = CrewsTable
 	RolePermissionTable.ForeignKeys[0].RefTable = RolesTable

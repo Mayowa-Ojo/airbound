@@ -539,13 +539,13 @@ func (fiq *FlightInstanceQuery) sqlAll(ctx context.Context) ([]*FlightInstance, 
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.flight_instance_aircraft
+			fk := n.flight_instance_id
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "flight_instance_aircraft" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "flight_instance_id" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "flight_instance_aircraft" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "flight_instance_id" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.Aircraft = n
 		}

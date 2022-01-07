@@ -33,7 +33,7 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "user" package.
 	UserInverseTable = "users"
 	// UserColumn is the table column denoting the user relation/edge.
-	UserColumn = "user_crew"
+	UserColumn = "user_id"
 	// AirlineTable is the table that holds the airline relation/edge.
 	AirlineTable = "crews"
 	// AirlineInverseTable is the table name for the Airline entity.
@@ -60,7 +60,7 @@ var Columns = []string{
 // table and are not defined as standalone fields in the schema.
 var ForeignKeys = []string{
 	"airline_id",
-	"user_crew",
+	"user_id",
 }
 
 var (

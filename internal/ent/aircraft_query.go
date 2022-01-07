@@ -490,10 +490,10 @@ func (aq *AircraftQuery) sqlAll(ctx context.Context) ([]*Aircraft, error) {
 		ids := make([]uuid.UUID, 0, len(nodes))
 		nodeids := make(map[uuid.UUID][]*Aircraft)
 		for i := range nodes {
-			if nodes[i].flight_instance_aircraft == nil {
+			if nodes[i].flight_instance_id == nil {
 				continue
 			}
-			fk := *nodes[i].flight_instance_aircraft
+			fk := *nodes[i].flight_instance_id
 			if _, ok := nodeids[fk]; !ok {
 				ids = append(ids, fk)
 			}
@@ -507,7 +507,7 @@ func (aq *AircraftQuery) sqlAll(ctx context.Context) ([]*Aircraft, error) {
 		for _, n := range neighbors {
 			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "flight_instance_aircraft" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "flight_instance_id" returned %v`, n.ID)
 			}
 			for i := range nodes {
 				nodes[i].Edges.FlightInstance = n

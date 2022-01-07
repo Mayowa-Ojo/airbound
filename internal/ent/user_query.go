@@ -226,7 +226,7 @@ func (uq *UserQuery) QueryAddress() *AddressQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(address.Table, address.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, user.AddressTable, user.AddressColumn),
+			sqlgraph.Edge(sqlgraph.O2O, true, user.AddressTable, user.AddressColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -616,7 +616,7 @@ func (uq *UserQuery) sqlAll(ctx context.Context) ([]*User, error) {
 			uq.withRole != nil,
 		}
 	)
-	if uq.withRole != nil {
+	if uq.withAddress != nil || uq.withRole != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -658,13 +658,13 @@ func (uq *UserQuery) sqlAll(ctx context.Context) ([]*User, error) {
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.user_account
+			fk := n.user_id
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "user_account" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "user_id" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "user_account" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "user_id" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.Account = n
 		}
@@ -686,13 +686,13 @@ func (uq *UserQuery) sqlAll(ctx context.Context) ([]*User, error) {
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.user_admin
+			fk := n.user_id
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "user_admin" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "user_id" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "user_admin" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "user_id" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.Admin = n
 		}
@@ -714,13 +714,13 @@ func (uq *UserQuery) sqlAll(ctx context.Context) ([]*User, error) {
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.user_crew
+			fk := n.user_id
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "user_crew" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "user_id" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "user_crew" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "user_id" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.Crew = n
 		}
@@ -742,13 +742,13 @@ func (uq *UserQuery) sqlAll(ctx context.Context) ([]*User, error) {
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.user_pilot
+			fk := n.user_id
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "user_pilot" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "user_id" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "user_pilot" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "user_id" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.Pilot = n
 		}
@@ -770,13 +770,13 @@ func (uq *UserQuery) sqlAll(ctx context.Context) ([]*User, error) {
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.user_front_desk
+			fk := n.user_id
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "user_front_desk" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "user_id" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "user_front_desk" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "user_id" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.FrontDesk = n
 		}
@@ -798,43 +798,44 @@ func (uq *UserQuery) sqlAll(ctx context.Context) ([]*User, error) {
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.user_customer
+			fk := n.user_id
 			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "user_customer" is nil for node %v`, n.ID)
+				return nil, fmt.Errorf(`foreign-key "user_id" is nil for node %v`, n.ID)
 			}
 			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "user_customer" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "user_id" returned %v for node %v`, *fk, n.ID)
 			}
 			node.Edges.Customer = n
 		}
 	}
 
 	if query := uq.withAddress; query != nil {
-		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[uuid.UUID]*User)
+		ids := make([]uuid.UUID, 0, len(nodes))
+		nodeids := make(map[uuid.UUID][]*User)
 		for i := range nodes {
-			fks = append(fks, nodes[i].ID)
-			nodeids[nodes[i].ID] = nodes[i]
+			if nodes[i].address_id == nil {
+				continue
+			}
+			fk := *nodes[i].address_id
+			if _, ok := nodeids[fk]; !ok {
+				ids = append(ids, fk)
+			}
+			nodeids[fk] = append(nodeids[fk], nodes[i])
 		}
-		query.withFKs = true
-		query.Where(predicate.Address(func(s *sql.Selector) {
-			s.Where(sql.InValues(user.AddressColumn, fks...))
-		}))
+		query.Where(address.IDIn(ids...))
 		neighbors, err := query.All(ctx)
 		if err != nil {
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.user_address
-			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "user_address" is nil for node %v`, n.ID)
-			}
-			node, ok := nodeids[*fk]
+			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "user_address" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "address_id" returned %v`, n.ID)
 			}
-			node.Edges.Address = n
+			for i := range nodes {
+				nodes[i].Edges.Address = n
+			}
 		}
 	}
 

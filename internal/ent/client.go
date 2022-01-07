@@ -462,7 +462,7 @@ func (c *AddressClient) QueryUser(a *Address) *UserQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(address.Table, address.FieldID, id),
 			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, true, address.UserTable, address.UserColumn),
+			sqlgraph.Edge(sqlgraph.O2O, false, address.UserTable, address.UserColumn),
 		)
 		fromV = sqlgraph.Neighbors(a.driver.Dialect(), step)
 		return fromV, nil
@@ -478,7 +478,7 @@ func (c *AddressClient) QueryAirport(a *Address) *AirportQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(address.Table, address.FieldID, id),
 			sqlgraph.To(airport.Table, airport.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, true, address.AirportTable, address.AirportColumn),
+			sqlgraph.Edge(sqlgraph.O2O, false, address.AirportTable, address.AirportColumn),
 		)
 		fromV = sqlgraph.Neighbors(a.driver.Dialect(), step)
 		return fromV, nil
@@ -966,7 +966,7 @@ func (c *AirportClient) QueryAddress(a *Airport) *AddressQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(airport.Table, airport.FieldID, id),
 			sqlgraph.To(address.Table, address.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, airport.AddressTable, airport.AddressColumn),
+			sqlgraph.Edge(sqlgraph.O2O, true, airport.AddressTable, airport.AddressColumn),
 		)
 		fromV = sqlgraph.Neighbors(a.driver.Dialect(), step)
 		return fromV, nil
@@ -3084,7 +3084,7 @@ func (c *UserClient) QueryAddress(u *User) *AddressQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, id),
 			sqlgraph.To(address.Table, address.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, user.AddressTable, user.AddressColumn),
+			sqlgraph.Edge(sqlgraph.O2O, true, user.AddressTable, user.AddressColumn),
 		)
 		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
 		return fromV, nil

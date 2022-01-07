@@ -39,15 +39,16 @@ func (FlightStatus) Values() (kinds []string) {
 type AccountStatus string
 
 const (
-	AccountActive      AccountStatus = "ACTIVE"
-	AccountClosed      AccountStatus = "CLOSED"
-	AccountBlacklisted AccountStatus = "BLACKLISTED"
-	AccountBlocked     AccountStatus = "BLOCKED"
+	AccountStatusNone        AccountStatus = "NONE"
+	AccountStatusActive      AccountStatus = "ACTIVE"
+	AccountStatusClosed      AccountStatus = "CLOSED"
+	AccountStatusBlacklisted AccountStatus = "BLACKLISTED"
+	AccountStatusBlocked     AccountStatus = "BLOCKED"
 )
 
 func (AccountStatus) Values() (kinds []string) {
 	for _, s := range []AccountStatus{
-		AccountActive, AccountClosed, AccountBlacklisted, AccountBlocked,
+		AccountStatusActive, AccountStatusClosed, AccountStatusBlacklisted, AccountStatusBlocked, AccountStatusNone,
 	} {
 		kinds = append(kinds, string(s))
 	}

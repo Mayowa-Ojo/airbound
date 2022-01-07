@@ -32,7 +32,6 @@ func (Account) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("user", User.Type).
 			Ref("account").
-			Unique().
-			Required(),
+			Unique(),
 	}
 }

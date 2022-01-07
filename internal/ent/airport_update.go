@@ -425,7 +425,7 @@ func (au *AirportUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if au.mutation.AddressCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
-			Inverse: false,
+			Inverse: true,
 			Table:   airport.AddressTable,
 			Columns: []string{airport.AddressColumn},
 			Bidi:    false,
@@ -441,7 +441,7 @@ func (au *AirportUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if nodes := au.mutation.AddressIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
-			Inverse: false,
+			Inverse: true,
 			Table:   airport.AddressTable,
 			Columns: []string{airport.AddressColumn},
 			Bidi:    false,
@@ -1163,7 +1163,7 @@ func (auo *AirportUpdateOne) sqlSave(ctx context.Context) (_node *Airport, err e
 	if auo.mutation.AddressCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
-			Inverse: false,
+			Inverse: true,
 			Table:   airport.AddressTable,
 			Columns: []string{airport.AddressColumn},
 			Bidi:    false,
@@ -1179,7 +1179,7 @@ func (auo *AirportUpdateOne) sqlSave(ctx context.Context) (_node *Airport, err e
 	if nodes := auo.mutation.AddressIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
-			Inverse: false,
+			Inverse: true,
 			Table:   airport.AddressTable,
 			Columns: []string{airport.AddressColumn},
 			Bidi:    false,

@@ -31,7 +31,7 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "user" package.
 	UserInverseTable = "users"
 	// UserColumn is the table column denoting the user relation/edge.
-	UserColumn = "user_front_desk"
+	UserColumn = "user_id"
 	// AirportTable is the table that holds the airport relation/edge.
 	AirportTable = "front_desks"
 	// AirportInverseTable is the table name for the Airport entity.
@@ -53,7 +53,7 @@ var Columns = []string{
 // table and are not defined as standalone fields in the schema.
 var ForeignKeys = []string{
 	"airport_id",
-	"user_front_desk",
+	"user_id",
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).

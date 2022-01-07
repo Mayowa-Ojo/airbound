@@ -363,7 +363,7 @@ func (ac *AirportCreate) createSpec() (*Airport, *sqlgraph.CreateSpec) {
 	if nodes := ac.mutation.AddressIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
-			Inverse: false,
+			Inverse: true,
 			Table:   airport.AddressTable,
 			Columns: []string{airport.AddressColumn},
 			Bidi:    false,
@@ -377,6 +377,7 @@ func (ac *AirportCreate) createSpec() (*Airport, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_node.address_id = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := ac.mutation.FrontDesksIDs(); len(nodes) > 0 {

@@ -8,7 +8,6 @@ import (
 	"airbound/internal/ent/predicate"
 	"airbound/internal/ent/user"
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
@@ -72,6 +71,14 @@ func (au *AccountUpdate) SetUpdatedAt(t time.Time) *AccountUpdate {
 // SetUserID sets the "user" edge to the User entity by ID.
 func (au *AccountUpdate) SetUserID(id uuid.UUID) *AccountUpdate {
 	au.mutation.SetUserID(id)
+	return au
+}
+
+// SetNillableUserID sets the "user" edge to the User entity by ID if the given value is not nil.
+func (au *AccountUpdate) SetNillableUserID(id *uuid.UUID) *AccountUpdate {
+	if id != nil {
+		au = au.SetUserID(*id)
+	}
 	return au
 }
 
@@ -166,9 +173,6 @@ func (au *AccountUpdate) check() error {
 		if err := account.AccountStatusValidator(v); err != nil {
 			return &ValidationError{Name: "account_status", err: fmt.Errorf("ent: validator failed for field \"account_status\": %w", err)}
 		}
-	}
-	if _, ok := au.mutation.UserID(); au.mutation.UserCleared() && !ok {
-		return errors.New("ent: clearing a required unique edge \"user\"")
 	}
 	return nil
 }
@@ -324,6 +328,14 @@ func (auo *AccountUpdateOne) SetUserID(id uuid.UUID) *AccountUpdateOne {
 	return auo
 }
 
+// SetNillableUserID sets the "user" edge to the User entity by ID if the given value is not nil.
+func (auo *AccountUpdateOne) SetNillableUserID(id *uuid.UUID) *AccountUpdateOne {
+	if id != nil {
+		auo = auo.SetUserID(*id)
+	}
+	return auo
+}
+
 // SetUser sets the "user" edge to the User entity.
 func (auo *AccountUpdateOne) SetUser(u *User) *AccountUpdateOne {
 	return auo.SetUserID(u.ID)
@@ -422,9 +434,6 @@ func (auo *AccountUpdateOne) check() error {
 		if err := account.AccountStatusValidator(v); err != nil {
 			return &ValidationError{Name: "account_status", err: fmt.Errorf("ent: validator failed for field \"account_status\": %w", err)}
 		}
-	}
-	if _, ok := auo.mutation.UserID(); auo.mutation.UserCleared() && !ok {
-		return errors.New("ent: clearing a required unique edge \"user\"")
 	}
 	return nil
 }

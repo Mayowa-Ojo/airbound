@@ -652,7 +652,7 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if uu.mutation.AddressCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
-			Inverse: false,
+			Inverse: true,
 			Table:   user.AddressTable,
 			Columns: []string{user.AddressColumn},
 			Bidi:    false,
@@ -668,7 +668,7 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if nodes := uu.mutation.AddressIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
-			Inverse: false,
+			Inverse: true,
 			Table:   user.AddressTable,
 			Columns: []string{user.AddressColumn},
 			Bidi:    false,
@@ -1378,7 +1378,7 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	if uuo.mutation.AddressCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
-			Inverse: false,
+			Inverse: true,
 			Table:   user.AddressTable,
 			Columns: []string{user.AddressColumn},
 			Bidi:    false,
@@ -1394,7 +1394,7 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	if nodes := uuo.mutation.AddressIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2O,
-			Inverse: false,
+			Inverse: true,
 			Table:   user.AddressTable,
 			Columns: []string{user.AddressColumn},
 			Bidi:    false,

@@ -37,6 +37,7 @@ type AirportQuery struct {
 	withArrivalFlights         *FlightQuery
 	withOriginIteneraries      *IteneraryQuery
 	withDestinationIteneraries *IteneraryQuery
+	withFKs                    bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -87,7 +88,7 @@ func (aq *AirportQuery) QueryAddress() *AddressQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(airport.Table, airport.FieldID, selector),
 			sqlgraph.To(address.Table, address.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, airport.AddressTable, airport.AddressColumn),
+			sqlgraph.Edge(sqlgraph.O2O, true, airport.AddressTable, airport.AddressColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(aq.driver.Dialect(), step)
 		return fromU, nil
@@ -528,6 +529,7 @@ func (aq *AirportQuery) prepareQuery(ctx context.Context) error {
 func (aq *AirportQuery) sqlAll(ctx context.Context) ([]*Airport, error) {
 	var (
 		nodes       = []*Airport{}
+		withFKs     = aq.withFKs
 		_spec       = aq.querySpec()
 		loadedTypes = [6]bool{
 			aq.withAddress != nil,
@@ -538,6 +540,12 @@ func (aq *AirportQuery) sqlAll(ctx context.Context) ([]*Airport, error) {
 			aq.withDestinationIteneraries != nil,
 		}
 	)
+	if aq.withAddress != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, airport.ForeignKeys...)
+	}
 	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
 		node := &Airport{config: aq.config}
 		nodes = append(nodes, node)
@@ -559,30 +567,31 @@ func (aq *AirportQuery) sqlAll(ctx context.Context) ([]*Airport, error) {
 	}
 
 	if query := aq.withAddress; query != nil {
-		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[uuid.UUID]*Airport)
+		ids := make([]uuid.UUID, 0, len(nodes))
+		nodeids := make(map[uuid.UUID][]*Airport)
 		for i := range nodes {
-			fks = append(fks, nodes[i].ID)
-			nodeids[nodes[i].ID] = nodes[i]
+			if nodes[i].address_id == nil {
+				continue
+			}
+			fk := *nodes[i].address_id
+			if _, ok := nodeids[fk]; !ok {
+				ids = append(ids, fk)
+			}
+			nodeids[fk] = append(nodeids[fk], nodes[i])
 		}
-		query.withFKs = true
-		query.Where(predicate.Address(func(s *sql.Selector) {
-			s.Where(sql.InValues(airport.AddressColumn, fks...))
-		}))
+		query.Where(address.IDIn(ids...))
 		neighbors, err := query.All(ctx)
 		if err != nil {
 			return nil, err
 		}
 		for _, n := range neighbors {
-			fk := n.airport_address
-			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "airport_address" is nil for node %v`, n.ID)
-			}
-			node, ok := nodeids[*fk]
+			nodes, ok := nodeids[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "airport_address" returned %v for node %v`, *fk, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "address_id" returned %v`, n.ID)
 			}
-			node.Edges.Address = n
+			for i := range nodes {
+				nodes[i].Edges.Address = n
+			}
 		}
 	}
 

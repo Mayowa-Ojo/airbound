@@ -48,7 +48,7 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "flightinstance" package.
 	FlightInstanceInverseTable = "flight_instances"
 	// FlightInstanceColumn is the table column denoting the flight_instance relation/edge.
-	FlightInstanceColumn = "flight_instance_aircraft"
+	FlightInstanceColumn = "flight_instance_id"
 	// SeatsTable is the table that holds the seats relation/edge.
 	SeatsTable = "seats"
 	// SeatsInverseTable is the table name for the Seat entity.
@@ -74,7 +74,7 @@ var Columns = []string{
 // table and are not defined as standalone fields in the schema.
 var ForeignKeys = []string{
 	"airline_id",
-	"flight_instance_aircraft",
+	"flight_instance_id",
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).

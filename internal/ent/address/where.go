@@ -738,7 +738,7 @@ func HasUser() predicate.Address {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(UserTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, true, UserTable, UserColumn),
+			sqlgraph.Edge(sqlgraph.O2O, false, UserTable, UserColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
@@ -750,7 +750,7 @@ func HasUserWith(preds ...predicate.User) predicate.Address {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(UserInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, true, UserTable, UserColumn),
+			sqlgraph.Edge(sqlgraph.O2O, false, UserTable, UserColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
@@ -766,7 +766,7 @@ func HasAirport() predicate.Address {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(AirportTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, true, AirportTable, AirportColumn),
+			sqlgraph.Edge(sqlgraph.O2O, false, AirportTable, AirportColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
@@ -778,7 +778,7 @@ func HasAirportWith(preds ...predicate.Airport) predicate.Address {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(AirportInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, true, AirportTable, AirportColumn),
+			sqlgraph.Edge(sqlgraph.O2O, false, AirportTable, AirportColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

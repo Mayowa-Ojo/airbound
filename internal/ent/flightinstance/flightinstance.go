@@ -48,7 +48,7 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "aircraft" package.
 	AircraftInverseTable = "aircrafts"
 	// AircraftColumn is the table column denoting the aircraft relation/edge.
-	AircraftColumn = "flight_instance_aircraft"
+	AircraftColumn = "flight_instance_id"
 	// FlightReservationsTable is the table that holds the flight_reservations relation/edge.
 	FlightReservationsTable = "flight_reservations"
 	// FlightReservationsInverseTable is the table name for the FlightReservation entity.

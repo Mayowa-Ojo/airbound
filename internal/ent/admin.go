@@ -28,8 +28,8 @@ type Admin struct {
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the AdminQuery when eager-loading is set.
-	Edges      AdminEdges `json:"edges"`
-	user_admin *uuid.UUID
+	Edges   AdminEdges `json:"edges"`
+	user_id *uuid.UUID
 }
 
 // AdminEdges holds the relations/edges for other nodes in the graph.
@@ -68,7 +68,7 @@ func (*Admin) scanValues(columns []string) ([]interface{}, error) {
 			values[i] = new(sql.NullTime)
 		case admin.FieldID:
 			values[i] = new(uuid.UUID)
-		case admin.ForeignKeys[0]: // user_admin
+		case admin.ForeignKeys[0]: // user_id
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Admin", columns[i])
@@ -117,10 +117,10 @@ func (a *Admin) assignValues(columns []string, values []interface{}) error {
 			}
 		case admin.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
-				return fmt.Errorf("unexpected type %T for field user_admin", values[i])
+				return fmt.Errorf("unexpected type %T for field user_id", values[i])
 			} else if value.Valid {
-				a.user_admin = new(uuid.UUID)
-				*a.user_admin = *value.S.(*uuid.UUID)
+				a.user_id = new(uuid.UUID)
+				*a.user_id = *value.S.(*uuid.UUID)
 			}
 		}
 	}

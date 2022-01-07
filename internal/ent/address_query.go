@@ -8,6 +8,7 @@ import (
 	"airbound/internal/ent/predicate"
 	"airbound/internal/ent/user"
 	"context"
+	"database/sql/driver"
 	"errors"
 	"fmt"
 	"math"
@@ -30,7 +31,6 @@ type AddressQuery struct {
 	// eager-loading edges.
 	withUser    *UserQuery
 	withAirport *AirportQuery
-	withFKs     bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -81,7 +81,7 @@ func (aq *AddressQuery) QueryUser() *UserQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(address.Table, address.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, true, address.UserTable, address.UserColumn),
+			sqlgraph.Edge(sqlgraph.O2O, false, address.UserTable, address.UserColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(aq.driver.Dialect(), step)
 		return fromU, nil
@@ -103,7 +103,7 @@ func (aq *AddressQuery) QueryAirport() *AirportQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(address.Table, address.FieldID, selector),
 			sqlgraph.To(airport.Table, airport.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, true, address.AirportTable, address.AirportColumn),
+			sqlgraph.Edge(sqlgraph.O2O, false, address.AirportTable, address.AirportColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(aq.driver.Dialect(), step)
 		return fromU, nil
@@ -386,19 +386,12 @@ func (aq *AddressQuery) prepareQuery(ctx context.Context) error {
 func (aq *AddressQuery) sqlAll(ctx context.Context) ([]*Address, error) {
 	var (
 		nodes       = []*Address{}
-		withFKs     = aq.withFKs
 		_spec       = aq.querySpec()
 		loadedTypes = [2]bool{
 			aq.withUser != nil,
 			aq.withAirport != nil,
 		}
 	)
-	if aq.withUser != nil || aq.withAirport != nil {
-		withFKs = true
-	}
-	if withFKs {
-		_spec.Node.Columns = append(_spec.Node.Columns, address.ForeignKeys...)
-	}
 	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
 		node := &Address{config: aq.config}
 		nodes = append(nodes, node)
@@ -420,60 +413,58 @@ func (aq *AddressQuery) sqlAll(ctx context.Context) ([]*Address, error) {
 	}
 
 	if query := aq.withUser; query != nil {
-		ids := make([]uuid.UUID, 0, len(nodes))
-		nodeids := make(map[uuid.UUID][]*Address)
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[uuid.UUID]*Address)
 		for i := range nodes {
-			if nodes[i].user_address == nil {
-				continue
-			}
-			fk := *nodes[i].user_address
-			if _, ok := nodeids[fk]; !ok {
-				ids = append(ids, fk)
-			}
-			nodeids[fk] = append(nodeids[fk], nodes[i])
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
 		}
-		query.Where(user.IDIn(ids...))
+		query.withFKs = true
+		query.Where(predicate.User(func(s *sql.Selector) {
+			s.Where(sql.InValues(address.UserColumn, fks...))
+		}))
 		neighbors, err := query.All(ctx)
 		if err != nil {
 			return nil, err
 		}
 		for _, n := range neighbors {
-			nodes, ok := nodeids[n.ID]
+			fk := n.address_id
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "address_id" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "user_address" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "address_id" returned %v for node %v`, *fk, n.ID)
 			}
-			for i := range nodes {
-				nodes[i].Edges.User = n
-			}
+			node.Edges.User = n
 		}
 	}
 
 	if query := aq.withAirport; query != nil {
-		ids := make([]uuid.UUID, 0, len(nodes))
-		nodeids := make(map[uuid.UUID][]*Address)
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[uuid.UUID]*Address)
 		for i := range nodes {
-			if nodes[i].airport_address == nil {
-				continue
-			}
-			fk := *nodes[i].airport_address
-			if _, ok := nodeids[fk]; !ok {
-				ids = append(ids, fk)
-			}
-			nodeids[fk] = append(nodeids[fk], nodes[i])
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
 		}
-		query.Where(airport.IDIn(ids...))
+		query.withFKs = true
+		query.Where(predicate.Airport(func(s *sql.Selector) {
+			s.Where(sql.InValues(address.AirportColumn, fks...))
+		}))
 		neighbors, err := query.All(ctx)
 		if err != nil {
 			return nil, err
 		}
 		for _, n := range neighbors {
-			nodes, ok := nodeids[n.ID]
+			fk := n.address_id
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "address_id" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "airport_address" returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected foreign-key "address_id" returned %v for node %v`, *fk, n.ID)
 			}
-			for i := range nodes {
-				nodes[i].Edges.Airport = n
-			}
+			node.Edges.Airport = n
 		}
 	}
 

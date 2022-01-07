@@ -26,8 +26,8 @@ type Customer struct {
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CustomerQuery when eager-loading is set.
-	Edges         CustomerEdges `json:"edges"`
-	user_customer *uuid.UUID
+	Edges   CustomerEdges `json:"edges"`
+	user_id *uuid.UUID
 }
 
 // CustomerEdges holds the relations/edges for other nodes in the graph.
@@ -75,7 +75,7 @@ func (*Customer) scanValues(columns []string) ([]interface{}, error) {
 			values[i] = new(sql.NullTime)
 		case customer.FieldID:
 			values[i] = new(uuid.UUID)
-		case customer.ForeignKeys[0]: // user_customer
+		case customer.ForeignKeys[0]: // user_id
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Customer", columns[i])
@@ -118,10 +118,10 @@ func (c *Customer) assignValues(columns []string, values []interface{}) error {
 			}
 		case customer.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
-				return fmt.Errorf("unexpected type %T for field user_customer", values[i])
+				return fmt.Errorf("unexpected type %T for field user_id", values[i])
 			} else if value.Valid {
-				c.user_customer = new(uuid.UUID)
-				*c.user_customer = *value.S.(*uuid.UUID)
+				c.user_id = new(uuid.UUID)
+				*c.user_id = *value.S.(*uuid.UUID)
 			}
 		}
 	}
