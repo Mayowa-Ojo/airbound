@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"airbound/internal/ent/enums"
 	"time"
 
 	"entgo.io/ent"
@@ -18,7 +19,7 @@ type Role struct {
 func (Role) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}).Default(uuid.New).Unique().Immutable(),
-		field.String("name").MaxLen(250),
+		field.Enum("name").GoType(enums.Role("")),
 		field.Time("created_at").Default(time.Now),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 	}

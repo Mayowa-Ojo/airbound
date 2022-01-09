@@ -3,6 +3,7 @@
 package role
 
 import (
+	"airbound/internal/ent/enums"
 	"airbound/internal/ent/predicate"
 	"time"
 
@@ -94,13 +95,6 @@ func IDLTE(id uuid.UUID) predicate.Role {
 	})
 }
 
-// Name applies equality check predicate on the "name" field. It's identical to NameEQ.
-func Name(v string) predicate.Role {
-	return predicate.Role(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldName), v))
-	})
-}
-
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.Role {
 	return predicate.Role(func(s *sql.Selector) {
@@ -116,21 +110,23 @@ func UpdatedAt(v time.Time) predicate.Role {
 }
 
 // NameEQ applies the EQ predicate on the "name" field.
-func NameEQ(v string) predicate.Role {
+func NameEQ(v enums.Role) predicate.Role {
+	vc := v
 	return predicate.Role(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldName), v))
+		s.Where(sql.EQ(s.C(FieldName), vc))
 	})
 }
 
 // NameNEQ applies the NEQ predicate on the "name" field.
-func NameNEQ(v string) predicate.Role {
+func NameNEQ(v enums.Role) predicate.Role {
+	vc := v
 	return predicate.Role(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldName), v))
+		s.Where(sql.NEQ(s.C(FieldName), vc))
 	})
 }
 
 // NameIn applies the In predicate on the "name" field.
-func NameIn(vs ...string) predicate.Role {
+func NameIn(vs ...enums.Role) predicate.Role {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -147,7 +143,7 @@ func NameIn(vs ...string) predicate.Role {
 }
 
 // NameNotIn applies the NotIn predicate on the "name" field.
-func NameNotIn(vs ...string) predicate.Role {
+func NameNotIn(vs ...enums.Role) predicate.Role {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -160,69 +156,6 @@ func NameNotIn(vs ...string) predicate.Role {
 			return
 		}
 		s.Where(sql.NotIn(s.C(FieldName), v...))
-	})
-}
-
-// NameGT applies the GT predicate on the "name" field.
-func NameGT(v string) predicate.Role {
-	return predicate.Role(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldName), v))
-	})
-}
-
-// NameGTE applies the GTE predicate on the "name" field.
-func NameGTE(v string) predicate.Role {
-	return predicate.Role(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldName), v))
-	})
-}
-
-// NameLT applies the LT predicate on the "name" field.
-func NameLT(v string) predicate.Role {
-	return predicate.Role(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldName), v))
-	})
-}
-
-// NameLTE applies the LTE predicate on the "name" field.
-func NameLTE(v string) predicate.Role {
-	return predicate.Role(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldName), v))
-	})
-}
-
-// NameContains applies the Contains predicate on the "name" field.
-func NameContains(v string) predicate.Role {
-	return predicate.Role(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldName), v))
-	})
-}
-
-// NameHasPrefix applies the HasPrefix predicate on the "name" field.
-func NameHasPrefix(v string) predicate.Role {
-	return predicate.Role(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldName), v))
-	})
-}
-
-// NameHasSuffix applies the HasSuffix predicate on the "name" field.
-func NameHasSuffix(v string) predicate.Role {
-	return predicate.Role(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldName), v))
-	})
-}
-
-// NameEqualFold applies the EqualFold predicate on the "name" field.
-func NameEqualFold(v string) predicate.Role {
-	return predicate.Role(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldName), v))
-	})
-}
-
-// NameContainsFold applies the ContainsFold predicate on the "name" field.
-func NameContainsFold(v string) predicate.Role {
-	return predicate.Role(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldName), v))
 	})
 }
 

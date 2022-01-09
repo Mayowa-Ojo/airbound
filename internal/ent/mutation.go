@@ -1356,6 +1356,7 @@ type AdminMutation struct {
 	id               *uuid.UUID
 	two_fa_secret    *string
 	two_fa_completed *bool
+	token            *string
 	created_at       *time.Time
 	updated_at       *time.Time
 	clearedFields    map[string]struct{}
@@ -1536,6 +1537,55 @@ func (m *AdminMutation) ResetTwoFaCompleted() {
 	m.two_fa_completed = nil
 }
 
+// SetToken sets the "token" field.
+func (m *AdminMutation) SetToken(s string) {
+	m.token = &s
+}
+
+// Token returns the value of the "token" field in the mutation.
+func (m *AdminMutation) Token() (r string, exists bool) {
+	v := m.token
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldToken returns the old "token" field's value of the Admin entity.
+// If the Admin object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AdminMutation) OldToken(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldToken is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldToken requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldToken: %w", err)
+	}
+	return oldValue.Token, nil
+}
+
+// ClearToken clears the value of the "token" field.
+func (m *AdminMutation) ClearToken() {
+	m.token = nil
+	m.clearedFields[admin.FieldToken] = struct{}{}
+}
+
+// TokenCleared returns if the "token" field was cleared in this mutation.
+func (m *AdminMutation) TokenCleared() bool {
+	_, ok := m.clearedFields[admin.FieldToken]
+	return ok
+}
+
+// ResetToken resets all changes to the "token" field.
+func (m *AdminMutation) ResetToken() {
+	m.token = nil
+	delete(m.clearedFields, admin.FieldToken)
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (m *AdminMutation) SetCreatedAt(t time.Time) {
 	m.created_at = &t
@@ -1666,12 +1716,15 @@ func (m *AdminMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *AdminMutation) Fields() []string {
-	fields := make([]string, 0, 4)
+	fields := make([]string, 0, 5)
 	if m.two_fa_secret != nil {
 		fields = append(fields, admin.FieldTwoFaSecret)
 	}
 	if m.two_fa_completed != nil {
 		fields = append(fields, admin.FieldTwoFaCompleted)
+	}
+	if m.token != nil {
+		fields = append(fields, admin.FieldToken)
 	}
 	if m.created_at != nil {
 		fields = append(fields, admin.FieldCreatedAt)
@@ -1691,6 +1744,8 @@ func (m *AdminMutation) Field(name string) (ent.Value, bool) {
 		return m.TwoFaSecret()
 	case admin.FieldTwoFaCompleted:
 		return m.TwoFaCompleted()
+	case admin.FieldToken:
+		return m.Token()
 	case admin.FieldCreatedAt:
 		return m.CreatedAt()
 	case admin.FieldUpdatedAt:
@@ -1708,6 +1763,8 @@ func (m *AdminMutation) OldField(ctx context.Context, name string) (ent.Value, e
 		return m.OldTwoFaSecret(ctx)
 	case admin.FieldTwoFaCompleted:
 		return m.OldTwoFaCompleted(ctx)
+	case admin.FieldToken:
+		return m.OldToken(ctx)
 	case admin.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case admin.FieldUpdatedAt:
@@ -1734,6 +1791,13 @@ func (m *AdminMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetTwoFaCompleted(v)
+		return nil
+	case admin.FieldToken:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetToken(v)
 		return nil
 	case admin.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -1782,6 +1846,9 @@ func (m *AdminMutation) ClearedFields() []string {
 	if m.FieldCleared(admin.FieldTwoFaSecret) {
 		fields = append(fields, admin.FieldTwoFaSecret)
 	}
+	if m.FieldCleared(admin.FieldToken) {
+		fields = append(fields, admin.FieldToken)
+	}
 	return fields
 }
 
@@ -1799,6 +1866,9 @@ func (m *AdminMutation) ClearField(name string) error {
 	case admin.FieldTwoFaSecret:
 		m.ClearTwoFaSecret()
 		return nil
+	case admin.FieldToken:
+		m.ClearToken()
+		return nil
 	}
 	return fmt.Errorf("unknown Admin nullable field %s", name)
 }
@@ -1812,6 +1882,9 @@ func (m *AdminMutation) ResetField(name string) error {
 		return nil
 	case admin.FieldTwoFaCompleted:
 		m.ResetTwoFaCompleted()
+		return nil
+	case admin.FieldToken:
+		m.ResetToken()
 		return nil
 	case admin.FieldCreatedAt:
 		m.ResetCreatedAt()
@@ -12687,7 +12760,7 @@ type RoleMutation struct {
 	op                 Op
 	typ                string
 	id                 *uuid.UUID
-	name               *string
+	name               *enums.Role
 	created_at         *time.Time
 	updated_at         *time.Time
 	clearedFields      map[string]struct{}
@@ -12788,12 +12861,12 @@ func (m *RoleMutation) ID() (id uuid.UUID, exists bool) {
 }
 
 // SetName sets the "name" field.
-func (m *RoleMutation) SetName(s string) {
-	m.name = &s
+func (m *RoleMutation) SetName(e enums.Role) {
+	m.name = &e
 }
 
 // Name returns the value of the "name" field in the mutation.
-func (m *RoleMutation) Name() (r string, exists bool) {
+func (m *RoleMutation) Name() (r enums.Role, exists bool) {
 	v := m.name
 	if v == nil {
 		return
@@ -12804,7 +12877,7 @@ func (m *RoleMutation) Name() (r string, exists bool) {
 // OldName returns the old "name" field's value of the Role entity.
 // If the Role object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *RoleMutation) OldName(ctx context.Context) (v string, err error) {
+func (m *RoleMutation) OldName(ctx context.Context) (v enums.Role, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, fmt.Errorf("OldName is only allowed on UpdateOne operations")
 	}
@@ -13071,7 +13144,7 @@ func (m *RoleMutation) OldField(ctx context.Context, name string) (ent.Value, er
 func (m *RoleMutation) SetField(name string, value ent.Value) error {
 	switch name {
 	case role.FieldName:
-		v, ok := value.(string)
+		v, ok := value.(enums.Role)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}

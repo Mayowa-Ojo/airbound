@@ -82,6 +82,8 @@ var (
 	EmployeeIDValidator func(string) error
 	// LicenceNumberValidator is a validator for the "licence_number" field. It is called by the builders before save.
 	LicenceNumberValidator func(string) error
+	// DefaultFlightHours holds the default value on creation for the "flight_hours" field.
+	DefaultFlightHours int
 	// FlightHoursValidator is a validator for the "flight_hours" field. It is called by the builders before save.
 	FlightHoursValidator func(int) error
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.

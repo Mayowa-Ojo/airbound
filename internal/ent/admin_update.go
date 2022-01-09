@@ -64,6 +64,26 @@ func (au *AdminUpdate) SetNillableTwoFaCompleted(b *bool) *AdminUpdate {
 	return au
 }
 
+// SetToken sets the "token" field.
+func (au *AdminUpdate) SetToken(s string) *AdminUpdate {
+	au.mutation.SetToken(s)
+	return au
+}
+
+// SetNillableToken sets the "token" field if the given value is not nil.
+func (au *AdminUpdate) SetNillableToken(s *string) *AdminUpdate {
+	if s != nil {
+		au.SetToken(*s)
+	}
+	return au
+}
+
+// ClearToken clears the value of the "token" field.
+func (au *AdminUpdate) ClearToken() *AdminUpdate {
+	au.mutation.ClearToken()
+	return au
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (au *AdminUpdate) SetCreatedAt(t time.Time) *AdminUpdate {
 	au.mutation.SetCreatedAt(t)
@@ -182,6 +202,11 @@ func (au *AdminUpdate) check() error {
 			return &ValidationError{Name: "two_fa_secret", err: fmt.Errorf("ent: validator failed for field \"two_fa_secret\": %w", err)}
 		}
 	}
+	if v, ok := au.mutation.Token(); ok {
+		if err := admin.TokenValidator(v); err != nil {
+			return &ValidationError{Name: "token", err: fmt.Errorf("ent: validator failed for field \"token\": %w", err)}
+		}
+	}
 	if _, ok := au.mutation.UserID(); au.mutation.UserCleared() && !ok {
 		return errors.New("ent: clearing a required unique edge \"user\"")
 	}
@@ -224,6 +249,19 @@ func (au *AdminUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Type:   field.TypeBool,
 			Value:  value,
 			Column: admin.FieldTwoFaCompleted,
+		})
+	}
+	if value, ok := au.mutation.Token(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: admin.FieldToken,
+		})
+	}
+	if au.mutation.TokenCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: admin.FieldToken,
 		})
 	}
 	if value, ok := au.mutation.CreatedAt(); ok {
@@ -325,6 +363,26 @@ func (auo *AdminUpdateOne) SetNillableTwoFaCompleted(b *bool) *AdminUpdateOne {
 	if b != nil {
 		auo.SetTwoFaCompleted(*b)
 	}
+	return auo
+}
+
+// SetToken sets the "token" field.
+func (auo *AdminUpdateOne) SetToken(s string) *AdminUpdateOne {
+	auo.mutation.SetToken(s)
+	return auo
+}
+
+// SetNillableToken sets the "token" field if the given value is not nil.
+func (auo *AdminUpdateOne) SetNillableToken(s *string) *AdminUpdateOne {
+	if s != nil {
+		auo.SetToken(*s)
+	}
+	return auo
+}
+
+// ClearToken clears the value of the "token" field.
+func (auo *AdminUpdateOne) ClearToken() *AdminUpdateOne {
+	auo.mutation.ClearToken()
 	return auo
 }
 
@@ -453,6 +511,11 @@ func (auo *AdminUpdateOne) check() error {
 			return &ValidationError{Name: "two_fa_secret", err: fmt.Errorf("ent: validator failed for field \"two_fa_secret\": %w", err)}
 		}
 	}
+	if v, ok := auo.mutation.Token(); ok {
+		if err := admin.TokenValidator(v); err != nil {
+			return &ValidationError{Name: "token", err: fmt.Errorf("ent: validator failed for field \"token\": %w", err)}
+		}
+	}
 	if _, ok := auo.mutation.UserID(); auo.mutation.UserCleared() && !ok {
 		return errors.New("ent: clearing a required unique edge \"user\"")
 	}
@@ -512,6 +575,19 @@ func (auo *AdminUpdateOne) sqlSave(ctx context.Context) (_node *Admin, err error
 			Type:   field.TypeBool,
 			Value:  value,
 			Column: admin.FieldTwoFaCompleted,
+		})
+	}
+	if value, ok := auo.mutation.Token(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: admin.FieldToken,
+		})
+	}
+	if auo.mutation.TokenCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: admin.FieldToken,
 		})
 	}
 	if value, ok := auo.mutation.CreatedAt(); ok {

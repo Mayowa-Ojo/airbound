@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"airbound/internal/ent/enums"
 	"airbound/internal/ent/permission"
 	"airbound/internal/ent/role"
 	"airbound/internal/ent/user"
@@ -24,8 +25,8 @@ type RoleCreate struct {
 }
 
 // SetName sets the "name" field.
-func (rc *RoleCreate) SetName(s string) *RoleCreate {
-	rc.mutation.SetName(s)
+func (rc *RoleCreate) SetName(e enums.Role) *RoleCreate {
+	rc.mutation.SetName(e)
 	return rc
 }
 
@@ -228,7 +229,7 @@ func (rc *RoleCreate) createSpec() (*Role, *sqlgraph.CreateSpec) {
 	}
 	if value, ok := rc.mutation.Name(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
+			Type:   field.TypeEnum,
 			Value:  value,
 			Column: role.FieldName,
 		})

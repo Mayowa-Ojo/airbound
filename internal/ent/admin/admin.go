@@ -17,6 +17,8 @@ const (
 	FieldTwoFaSecret = "two_fa_secret"
 	// FieldTwoFaCompleted holds the string denoting the two_fa_completed field in the database.
 	FieldTwoFaCompleted = "two_fa_completed"
+	// FieldToken holds the string denoting the token field in the database.
+	FieldToken = "token"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
@@ -39,6 +41,7 @@ var Columns = []string{
 	FieldID,
 	FieldTwoFaSecret,
 	FieldTwoFaCompleted,
+	FieldToken,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }
@@ -69,6 +72,8 @@ var (
 	TwoFaSecretValidator func(string) error
 	// DefaultTwoFaCompleted holds the default value on creation for the "two_fa_completed" field.
 	DefaultTwoFaCompleted bool
+	// TokenValidator is a validator for the "token" field. It is called by the builders before save.
+	TokenValidator func(string) error
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.

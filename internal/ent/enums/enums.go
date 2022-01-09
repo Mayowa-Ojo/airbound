@@ -123,6 +123,23 @@ func (FlightScheduleType) Values() (kinds []string) {
 	return
 }
 
+type Role string
+
+const (
+	RoleAdmin     Role = "ADMIN"
+	RolePilot     Role = "PILOT"
+	RoleCrew      Role = "CREW"
+	RoleFrontDesk Role = "FRONT_DESK"
+	RoleCustomer  Role = "CUSTOMER"
+)
+
+func (Role) Values() (kinds []string) {
+	for _, s := range []Role{RoleAdmin, RolePilot, RoleCrew, RoleFrontDesk, RoleCustomer} {
+		kinds = append(kinds, string(s))
+	}
+	return
+}
+
 type WeekDay int
 
 const (

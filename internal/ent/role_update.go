@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"airbound/internal/ent/enums"
 	"airbound/internal/ent/permission"
 	"airbound/internal/ent/predicate"
 	"airbound/internal/ent/role"
@@ -31,8 +32,8 @@ func (ru *RoleUpdate) Where(ps ...predicate.Role) *RoleUpdate {
 }
 
 // SetName sets the "name" field.
-func (ru *RoleUpdate) SetName(s string) *RoleUpdate {
-	ru.mutation.SetName(s)
+func (ru *RoleUpdate) SetName(e enums.Role) *RoleUpdate {
+	ru.mutation.SetName(e)
 	return ru
 }
 
@@ -232,7 +233,7 @@ func (ru *RoleUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := ru.mutation.Name(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
+			Type:   field.TypeEnum,
 			Value:  value,
 			Column: role.FieldName,
 		})
@@ -379,8 +380,8 @@ type RoleUpdateOne struct {
 }
 
 // SetName sets the "name" field.
-func (ruo *RoleUpdateOne) SetName(s string) *RoleUpdateOne {
-	ruo.mutation.SetName(s)
+func (ruo *RoleUpdateOne) SetName(e enums.Role) *RoleUpdateOne {
+	ruo.mutation.SetName(e)
 	return ruo
 }
 
@@ -604,7 +605,7 @@ func (ruo *RoleUpdateOne) sqlSave(ctx context.Context) (_node *Role, err error) 
 	}
 	if value, ok := ruo.mutation.Name(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
+			Type:   field.TypeEnum,
 			Value:  value,
 			Column: role.FieldName,
 		})

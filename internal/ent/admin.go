@@ -22,6 +22,8 @@ type Admin struct {
 	TwoFaSecret string `json:"two_fa_secret,omitempty"`
 	// TwoFaCompleted holds the value of the "two_fa_completed" field.
 	TwoFaCompleted bool `json:"two_fa_completed,omitempty"`
+	// Token holds the value of the "token" field.
+	Token string `json:"token,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -62,7 +64,7 @@ func (*Admin) scanValues(columns []string) ([]interface{}, error) {
 		switch columns[i] {
 		case admin.FieldTwoFaCompleted:
 			values[i] = new(sql.NullBool)
-		case admin.FieldTwoFaSecret:
+		case admin.FieldTwoFaSecret, admin.FieldToken:
 			values[i] = new(sql.NullString)
 		case admin.FieldCreatedAt, admin.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -102,6 +104,12 @@ func (a *Admin) assignValues(columns []string, values []interface{}) error {
 				return fmt.Errorf("unexpected type %T for field two_fa_completed", values[i])
 			} else if value.Valid {
 				a.TwoFaCompleted = value.Bool
+			}
+		case admin.FieldToken:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field token", values[i])
+			} else if value.Valid {
+				a.Token = value.String
 			}
 		case admin.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -159,6 +167,8 @@ func (a *Admin) String() string {
 	builder.WriteString(a.TwoFaSecret)
 	builder.WriteString(", two_fa_completed=")
 	builder.WriteString(fmt.Sprintf("%v", a.TwoFaCompleted))
+	builder.WriteString(", token=")
+	builder.WriteString(a.Token)
 	builder.WriteString(", created_at=")
 	builder.WriteString(a.CreatedAt.Format(time.ANSIC))
 	builder.WriteString(", updated_at=")

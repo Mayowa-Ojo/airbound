@@ -3,6 +3,8 @@
 package role
 
 import (
+	"airbound/internal/ent/enums"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -64,8 +66,6 @@ func ValidColumn(column string) bool {
 }
 
 var (
-	// NameValidator is a validator for the "name" field. It is called by the builders before save.
-	NameValidator func(string) error
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
@@ -75,3 +75,13 @@ var (
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
+
+// NameValidator is a validator for the "name" field enum values. It is called by the builders before save.
+func NameValidator(n enums.Role) error {
+	switch n {
+	case "ADMIN", "PILOT", "CREW", "FRONT_DESK", "CUSTOMER":
+		return nil
+	default:
+		return fmt.Errorf("role: invalid enum value for name field: %q", n)
+	}
+}

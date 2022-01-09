@@ -50,6 +50,20 @@ func (ac *AdminCreate) SetNillableTwoFaCompleted(b *bool) *AdminCreate {
 	return ac
 }
 
+// SetToken sets the "token" field.
+func (ac *AdminCreate) SetToken(s string) *AdminCreate {
+	ac.mutation.SetToken(s)
+	return ac
+}
+
+// SetNillableToken sets the "token" field if the given value is not nil.
+func (ac *AdminCreate) SetNillableToken(s *string) *AdminCreate {
+	if s != nil {
+		ac.SetToken(*s)
+	}
+	return ac
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (ac *AdminCreate) SetCreatedAt(t time.Time) *AdminCreate {
 	ac.mutation.SetCreatedAt(t)
@@ -194,6 +208,11 @@ func (ac *AdminCreate) check() error {
 	if _, ok := ac.mutation.TwoFaCompleted(); !ok {
 		return &ValidationError{Name: "two_fa_completed", err: errors.New(`ent: missing required field "two_fa_completed"`)}
 	}
+	if v, ok := ac.mutation.Token(); ok {
+		if err := admin.TokenValidator(v); err != nil {
+			return &ValidationError{Name: "token", err: fmt.Errorf(`ent: validator failed for field "token": %w`, err)}
+		}
+	}
 	if _, ok := ac.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "created_at"`)}
 	}
@@ -250,6 +269,14 @@ func (ac *AdminCreate) createSpec() (*Admin, *sqlgraph.CreateSpec) {
 			Column: admin.FieldTwoFaCompleted,
 		})
 		_node.TwoFaCompleted = value
+	}
+	if value, ok := ac.mutation.Token(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: admin.FieldToken,
+		})
+		_node.Token = value
 	}
 	if value, ok := ac.mutation.CreatedAt(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{

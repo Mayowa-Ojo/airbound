@@ -20,7 +20,7 @@ func (Pilot) Fields() []ent.Field {
 		field.UUID("id", uuid.UUID{}).Default(uuid.New).Unique().Immutable(),
 		field.String("employee_id").MaxLen(50),
 		field.String("licence_number").MaxLen(50),
-		field.Int("flight_hours").NonNegative(),
+		field.Int("flight_hours").NonNegative().Default(0),
 		field.Time("created_at").Default(time.Now),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 	}

@@ -41,6 +41,14 @@ func (pc *PilotCreate) SetFlightHours(i int) *PilotCreate {
 	return pc
 }
 
+// SetNillableFlightHours sets the "flight_hours" field if the given value is not nil.
+func (pc *PilotCreate) SetNillableFlightHours(i *int) *PilotCreate {
+	if i != nil {
+		pc.SetFlightHours(*i)
+	}
+	return pc
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (pc *PilotCreate) SetCreatedAt(t time.Time) *PilotCreate {
 	pc.mutation.SetCreatedAt(t)
@@ -176,6 +184,10 @@ func (pc *PilotCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (pc *PilotCreate) defaults() {
+	if _, ok := pc.mutation.FlightHours(); !ok {
+		v := pilot.DefaultFlightHours
+		pc.mutation.SetFlightHours(v)
+	}
 	if _, ok := pc.mutation.CreatedAt(); !ok {
 		v := pilot.DefaultCreatedAt()
 		pc.mutation.SetCreatedAt(v)

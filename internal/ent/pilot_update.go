@@ -50,6 +50,14 @@ func (pu *PilotUpdate) SetFlightHours(i int) *PilotUpdate {
 	return pu
 }
 
+// SetNillableFlightHours sets the "flight_hours" field if the given value is not nil.
+func (pu *PilotUpdate) SetNillableFlightHours(i *int) *PilotUpdate {
+	if i != nil {
+		pu.SetFlightHours(*i)
+	}
+	return pu
+}
+
 // AddFlightHours adds i to the "flight_hours" field.
 func (pu *PilotUpdate) AddFlightHours(i int) *PilotUpdate {
 	pu.mutation.AddFlightHours(i)
@@ -380,6 +388,14 @@ func (puo *PilotUpdateOne) SetLicenceNumber(s string) *PilotUpdateOne {
 func (puo *PilotUpdateOne) SetFlightHours(i int) *PilotUpdateOne {
 	puo.mutation.ResetFlightHours()
 	puo.mutation.SetFlightHours(i)
+	return puo
+}
+
+// SetNillableFlightHours sets the "flight_hours" field if the given value is not nil.
+func (puo *PilotUpdateOne) SetNillableFlightHours(i *int) *PilotUpdateOne {
+	if i != nil {
+		puo.SetFlightHours(*i)
+	}
 	return puo
 }
 

@@ -53,6 +53,7 @@ var (
 		{Name: "id", Type: field.TypeUUID, Unique: true},
 		{Name: "two_fa_secret", Type: field.TypeString, Nullable: true, Size: 250},
 		{Name: "two_fa_completed", Type: field.TypeBool, Default: false},
+		{Name: "token", Type: field.TypeString, Nullable: true, Size: 250},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "user_id", Type: field.TypeUUID, Unique: true, Nullable: true},
@@ -65,7 +66,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "admins_users_admin",
-				Columns:    []*schema.Column{AdminsColumns[5]},
+				Columns:    []*schema.Column{AdminsColumns[6]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -448,7 +449,7 @@ var (
 		{Name: "id", Type: field.TypeUUID, Unique: true},
 		{Name: "employee_id", Type: field.TypeString, Size: 50},
 		{Name: "licence_number", Type: field.TypeString, Size: 50},
-		{Name: "flight_hours", Type: field.TypeInt},
+		{Name: "flight_hours", Type: field.TypeInt, Default: 0},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "airline_id", Type: field.TypeUUID, Nullable: true},
@@ -477,7 +478,7 @@ var (
 	// RolesColumns holds the columns for the "roles" table.
 	RolesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID, Unique: true},
-		{Name: "name", Type: field.TypeString, Size: 250},
+		{Name: "name", Type: field.TypeEnum, Enums: []string{"ADMIN", "PILOT", "CREW", "FRONT_DESK", "CUSTOMER"}},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 	}

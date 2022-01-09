@@ -92,12 +92,16 @@ func init() {
 	adminDescTwoFaCompleted := adminFields[2].Descriptor()
 	// admin.DefaultTwoFaCompleted holds the default value on creation for the two_fa_completed field.
 	admin.DefaultTwoFaCompleted = adminDescTwoFaCompleted.Default.(bool)
+	// adminDescToken is the schema descriptor for token field.
+	adminDescToken := adminFields[3].Descriptor()
+	// admin.TokenValidator is a validator for the "token" field. It is called by the builders before save.
+	admin.TokenValidator = adminDescToken.Validators[0].(func(string) error)
 	// adminDescCreatedAt is the schema descriptor for created_at field.
-	adminDescCreatedAt := adminFields[3].Descriptor()
+	adminDescCreatedAt := adminFields[4].Descriptor()
 	// admin.DefaultCreatedAt holds the default value on creation for the created_at field.
 	admin.DefaultCreatedAt = adminDescCreatedAt.Default.(func() time.Time)
 	// adminDescUpdatedAt is the schema descriptor for updated_at field.
-	adminDescUpdatedAt := adminFields[4].Descriptor()
+	adminDescUpdatedAt := adminFields[5].Descriptor()
 	// admin.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	admin.DefaultUpdatedAt = adminDescUpdatedAt.Default.(func() time.Time)
 	// admin.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
@@ -442,6 +446,8 @@ func init() {
 	pilot.LicenceNumberValidator = pilotDescLicenceNumber.Validators[0].(func(string) error)
 	// pilotDescFlightHours is the schema descriptor for flight_hours field.
 	pilotDescFlightHours := pilotFields[3].Descriptor()
+	// pilot.DefaultFlightHours holds the default value on creation for the flight_hours field.
+	pilot.DefaultFlightHours = pilotDescFlightHours.Default.(int)
 	// pilot.FlightHoursValidator is a validator for the "flight_hours" field. It is called by the builders before save.
 	pilot.FlightHoursValidator = pilotDescFlightHours.Validators[0].(func(int) error)
 	// pilotDescCreatedAt is the schema descriptor for created_at field.
@@ -460,10 +466,6 @@ func init() {
 	pilot.DefaultID = pilotDescID.Default.(func() uuid.UUID)
 	roleFields := schema.Role{}.Fields()
 	_ = roleFields
-	// roleDescName is the schema descriptor for name field.
-	roleDescName := roleFields[1].Descriptor()
-	// role.NameValidator is a validator for the "name" field. It is called by the builders before save.
-	role.NameValidator = roleDescName.Validators[0].(func(string) error)
 	// roleDescCreatedAt is the schema descriptor for created_at field.
 	roleDescCreatedAt := roleFields[2].Descriptor()
 	// role.DefaultCreatedAt holds the default value on creation for the created_at field.
