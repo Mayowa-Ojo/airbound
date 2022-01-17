@@ -6,6 +6,7 @@ import (
 	"airbound/handlers/actors"
 	"airbound/handlers/flights"
 	"airbound/internal/config"
+	"airbound/internal/email"
 	"airbound/internal/ent"
 	"airbound/internal/ent/user"
 	"airbound/internal/log"
@@ -18,23 +19,29 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/ses"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 )
 
-func Run(client *ent.Client, cfg *config.Config) *gin.Engine {
+func Run(client *ent.Client, cfg *config.Config, sess *session.Session) *gin.Engine {
 	router := gin.New()
 
 	router.Use(log.Logger(logrus.New()), gin.Recovery())
 
-	registerRoutes(router, client, cfg)
+	registerRoutes(router, client, cfg, sess)
 
 	// doRapidTest(client)
+	// doRapidSESTest(sess)
 
 	return router
 }
 
-func registerRoutes(router *gin.Engine, client *ent.Client, cfg *config.Config) {
+func registerRoutes(router *gin.Engine, client *ent.Client, cfg *config.Config, sess *session.Session) {
+	emailService := email.NewEmailService(sess, cfg)
+
 	flightRepo := flightRepository.NewFlightRepository(client)
 	userRepo := actorRepository.NewUserRepository(client)
 	adminRepo := actorRepository.NewAdminRepository(client)
@@ -47,16 +54,18 @@ func registerRoutes(router *gin.Engine, client *ent.Client, cfg *config.Config) 
 	roleRepo := acRepository.NewRoleRepository(client)
 	permissionRepo := acRepository.NewPermissionRepository(client)
 
-	flightHandler := flights.NewFlightHandler(flightRepo, cfg)
+	flightHandler := flights.NewFlightHandler(flightRepo, cfg, emailService)
 	actorHandler := actors.NewActorHandler(
 		userRepo, adminRepo, customerRepo, pilotRepo, crewRepo,
-		frontDeskRepo, accountRepo, addressRepo, roleRepo, cfg,
+		frontDeskRepo, accountRepo, addressRepo, roleRepo, cfg, emailService,
 	)
-	accessControlHandler := accesscontrol.NewAccessControlHandler(roleRepo, permissionRepo, cfg)
+	accessControlHandler := accesscontrol.NewAccessControlHandler(roleRepo, permissionRepo, cfg, emailService)
 
 	flightFacade := facade.NewFlightFacade(flightHandler)
 	actorFacade := facade.NewActorFacade(*actorHandler)
 	accessControlFacade := facade.NewAccessControlFacade(*accessControlHandler)
+
+	router.LoadHTMLGlob("templates/*")
 
 	// health-check
 	router.GET("/health", func(c *gin.Context) {
@@ -70,6 +79,9 @@ func registerRoutes(router *gin.Engine, client *ent.Client, cfg *config.Config) 
 	{
 		v1 := router.Group("/api/v1")
 
+		v1.GET("/flights", flightFacade.GetFlights)
+		v1.GET("/users/verify-account", actorFacade.VerifyAccount)
+
 		v1.POST("/users/register-admin", actorFacade.RegisterUserAsAdmin)
 		v1.POST("/users/register-customer", actorFacade.RegisterUserAsCustomer)
 		v1.POST("/users/register-pilot", actorFacade.RegisterUserAsPilot)
@@ -78,7 +90,6 @@ func registerRoutes(router *gin.Engine, client *ent.Client, cfg *config.Config) 
 		v1.POST("/users/login", actorFacade.LoginUser)
 
 		v1.Use(middleware.AuthenticateUser(cfg))
-		v1.GET("/flights", middleware.AuthorizeUser(rbac.Flights.GetFlights), flightFacade.GetFlights)
 
 		v1.GET("/roles/:role-id", middleware.AuthorizeUser(rbac.AccessControl.GetRole), accessControlFacade.GetRole)
 
@@ -106,4 +117,17 @@ func doRapidTest(c *ent.Client) {
 	user.Edges.Account = account
 
 	log.Info("[DEBUG]: User -- %+v", user.Edges.Account)
+}
+
+func doRapidSESTest(sess *session.Session) {
+	srv := ses.New(sess)
+
+	res, err := srv.ListIdentities(&ses.ListIdentitiesInput{
+		IdentityType: aws.String("EmailAddress"),
+	})
+	if err != nil {
+		log.Fatal("[Rapid-Test-SES]: %s", err)
+	}
+
+	log.Info("[Rapid-Test-SES]: result - %+v", *res.Identities[0])
 }
