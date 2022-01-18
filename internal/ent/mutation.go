@@ -72,20 +72,21 @@ const (
 // AccountMutation represents an operation that mutates the Account nodes in the graph.
 type AccountMutation struct {
 	config
-	op             Op
-	typ            string
-	id             *uuid.UUID
-	account_status *enums.AccountStatus
-	password       *[]byte
-	salt           *[]byte
-	created_at     *time.Time
-	updated_at     *time.Time
-	clearedFields  map[string]struct{}
-	user           *uuid.UUID
-	cleareduser    bool
-	done           bool
-	oldValue       func(context.Context) (*Account, error)
-	predicates     []predicate.Account
+	op                 Op
+	typ                string
+	id                 *uuid.UUID
+	account_status     *enums.AccountStatus
+	password           *[]byte
+	salt               *[]byte
+	verification_token *string
+	created_at         *time.Time
+	updated_at         *time.Time
+	clearedFields      map[string]struct{}
+	user               *uuid.UUID
+	cleareduser        bool
+	done               bool
+	oldValue           func(context.Context) (*Account, error)
+	predicates         []predicate.Account
 }
 
 var _ ent.Mutation = (*AccountMutation)(nil)
@@ -281,6 +282,55 @@ func (m *AccountMutation) ResetSalt() {
 	m.salt = nil
 }
 
+// SetVerificationToken sets the "verification_token" field.
+func (m *AccountMutation) SetVerificationToken(s string) {
+	m.verification_token = &s
+}
+
+// VerificationToken returns the value of the "verification_token" field in the mutation.
+func (m *AccountMutation) VerificationToken() (r string, exists bool) {
+	v := m.verification_token
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldVerificationToken returns the old "verification_token" field's value of the Account entity.
+// If the Account object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AccountMutation) OldVerificationToken(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldVerificationToken is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldVerificationToken requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldVerificationToken: %w", err)
+	}
+	return oldValue.VerificationToken, nil
+}
+
+// ClearVerificationToken clears the value of the "verification_token" field.
+func (m *AccountMutation) ClearVerificationToken() {
+	m.verification_token = nil
+	m.clearedFields[account.FieldVerificationToken] = struct{}{}
+}
+
+// VerificationTokenCleared returns if the "verification_token" field was cleared in this mutation.
+func (m *AccountMutation) VerificationTokenCleared() bool {
+	_, ok := m.clearedFields[account.FieldVerificationToken]
+	return ok
+}
+
+// ResetVerificationToken resets all changes to the "verification_token" field.
+func (m *AccountMutation) ResetVerificationToken() {
+	m.verification_token = nil
+	delete(m.clearedFields, account.FieldVerificationToken)
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (m *AccountMutation) SetCreatedAt(t time.Time) {
 	m.created_at = &t
@@ -411,7 +461,7 @@ func (m *AccountMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *AccountMutation) Fields() []string {
-	fields := make([]string, 0, 5)
+	fields := make([]string, 0, 6)
 	if m.account_status != nil {
 		fields = append(fields, account.FieldAccountStatus)
 	}
@@ -420,6 +470,9 @@ func (m *AccountMutation) Fields() []string {
 	}
 	if m.salt != nil {
 		fields = append(fields, account.FieldSalt)
+	}
+	if m.verification_token != nil {
+		fields = append(fields, account.FieldVerificationToken)
 	}
 	if m.created_at != nil {
 		fields = append(fields, account.FieldCreatedAt)
@@ -441,6 +494,8 @@ func (m *AccountMutation) Field(name string) (ent.Value, bool) {
 		return m.Password()
 	case account.FieldSalt:
 		return m.Salt()
+	case account.FieldVerificationToken:
+		return m.VerificationToken()
 	case account.FieldCreatedAt:
 		return m.CreatedAt()
 	case account.FieldUpdatedAt:
@@ -460,6 +515,8 @@ func (m *AccountMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldPassword(ctx)
 	case account.FieldSalt:
 		return m.OldSalt(ctx)
+	case account.FieldVerificationToken:
+		return m.OldVerificationToken(ctx)
 	case account.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case account.FieldUpdatedAt:
@@ -493,6 +550,13 @@ func (m *AccountMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetSalt(v)
+		return nil
+	case account.FieldVerificationToken:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetVerificationToken(v)
 		return nil
 	case account.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -537,7 +601,11 @@ func (m *AccountMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *AccountMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(account.FieldVerificationToken) {
+		fields = append(fields, account.FieldVerificationToken)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -550,6 +618,11 @@ func (m *AccountMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *AccountMutation) ClearField(name string) error {
+	switch name {
+	case account.FieldVerificationToken:
+		m.ClearVerificationToken()
+		return nil
+	}
 	return fmt.Errorf("unknown Account nullable field %s", name)
 }
 
@@ -565,6 +638,9 @@ func (m *AccountMutation) ResetField(name string) error {
 		return nil
 	case account.FieldSalt:
 		m.ResetSalt()
+		return nil
+	case account.FieldVerificationToken:
+		m.ResetVerificationToken()
 		return nil
 	case account.FieldCreatedAt:
 		m.ResetCreatedAt()

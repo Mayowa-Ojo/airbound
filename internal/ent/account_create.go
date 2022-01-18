@@ -41,6 +41,20 @@ func (ac *AccountCreate) SetSalt(b []byte) *AccountCreate {
 	return ac
 }
 
+// SetVerificationToken sets the "verification_token" field.
+func (ac *AccountCreate) SetVerificationToken(s string) *AccountCreate {
+	ac.mutation.SetVerificationToken(s)
+	return ac
+}
+
+// SetNillableVerificationToken sets the "verification_token" field if the given value is not nil.
+func (ac *AccountCreate) SetNillableVerificationToken(s *string) *AccountCreate {
+	if s != nil {
+		ac.SetVerificationToken(*s)
+	}
+	return ac
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (ac *AccountCreate) SetCreatedAt(t time.Time) *AccountCreate {
 	ac.mutation.SetCreatedAt(t)
@@ -256,6 +270,14 @@ func (ac *AccountCreate) createSpec() (*Account, *sqlgraph.CreateSpec) {
 			Column: account.FieldSalt,
 		})
 		_node.Salt = value
+	}
+	if value, ok := ac.mutation.VerificationToken(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: account.FieldVerificationToken,
+		})
+		_node.VerificationToken = value
 	}
 	if value, ok := ac.mutation.CreatedAt(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{

@@ -21,6 +21,8 @@ const (
 	FieldPassword = "password"
 	// FieldSalt holds the string denoting the salt field in the database.
 	FieldSalt = "salt"
+	// FieldVerificationToken holds the string denoting the verification_token field in the database.
+	FieldVerificationToken = "verification_token"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
@@ -44,6 +46,7 @@ var Columns = []string{
 	FieldAccountStatus,
 	FieldPassword,
 	FieldSalt,
+	FieldVerificationToken,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }

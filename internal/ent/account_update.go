@@ -48,6 +48,26 @@ func (au *AccountUpdate) SetSalt(b []byte) *AccountUpdate {
 	return au
 }
 
+// SetVerificationToken sets the "verification_token" field.
+func (au *AccountUpdate) SetVerificationToken(s string) *AccountUpdate {
+	au.mutation.SetVerificationToken(s)
+	return au
+}
+
+// SetNillableVerificationToken sets the "verification_token" field if the given value is not nil.
+func (au *AccountUpdate) SetNillableVerificationToken(s *string) *AccountUpdate {
+	if s != nil {
+		au.SetVerificationToken(*s)
+	}
+	return au
+}
+
+// ClearVerificationToken clears the value of the "verification_token" field.
+func (au *AccountUpdate) ClearVerificationToken() *AccountUpdate {
+	au.mutation.ClearVerificationToken()
+	return au
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (au *AccountUpdate) SetCreatedAt(t time.Time) *AccountUpdate {
 	au.mutation.SetCreatedAt(t)
@@ -216,6 +236,19 @@ func (au *AccountUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: account.FieldSalt,
 		})
 	}
+	if value, ok := au.mutation.VerificationToken(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: account.FieldVerificationToken,
+		})
+	}
+	if au.mutation.VerificationTokenCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: account.FieldVerificationToken,
+		})
+	}
 	if value, ok := au.mutation.CreatedAt(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
@@ -299,6 +332,26 @@ func (auo *AccountUpdateOne) SetPassword(b []byte) *AccountUpdateOne {
 // SetSalt sets the "salt" field.
 func (auo *AccountUpdateOne) SetSalt(b []byte) *AccountUpdateOne {
 	auo.mutation.SetSalt(b)
+	return auo
+}
+
+// SetVerificationToken sets the "verification_token" field.
+func (auo *AccountUpdateOne) SetVerificationToken(s string) *AccountUpdateOne {
+	auo.mutation.SetVerificationToken(s)
+	return auo
+}
+
+// SetNillableVerificationToken sets the "verification_token" field if the given value is not nil.
+func (auo *AccountUpdateOne) SetNillableVerificationToken(s *string) *AccountUpdateOne {
+	if s != nil {
+		auo.SetVerificationToken(*s)
+	}
+	return auo
+}
+
+// ClearVerificationToken clears the value of the "verification_token" field.
+func (auo *AccountUpdateOne) ClearVerificationToken() *AccountUpdateOne {
+	auo.mutation.ClearVerificationToken()
 	return auo
 }
 
@@ -492,6 +545,19 @@ func (auo *AccountUpdateOne) sqlSave(ctx context.Context) (_node *Account, err e
 			Type:   field.TypeBytes,
 			Value:  value,
 			Column: account.FieldSalt,
+		})
+	}
+	if value, ok := auo.mutation.VerificationToken(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: account.FieldVerificationToken,
+		})
+	}
+	if auo.mutation.VerificationTokenCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: account.FieldVerificationToken,
 		})
 	}
 	if value, ok := auo.mutation.CreatedAt(); ok {

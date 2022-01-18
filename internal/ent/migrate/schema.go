@@ -14,6 +14,7 @@ var (
 		{Name: "account_status", Type: field.TypeEnum, Enums: []string{"ACTIVE", "CLOSED", "BLACKLISTED", "BLOCKED", "NONE"}},
 		{Name: "password", Type: field.TypeBytes},
 		{Name: "salt", Type: field.TypeBytes},
+		{Name: "verification_token", Type: field.TypeString, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "user_id", Type: field.TypeUUID, Unique: true, Nullable: true},
@@ -26,7 +27,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "accounts_users_account",
-				Columns:    []*schema.Column{AccountsColumns[6]},
+				Columns:    []*schema.Column{AccountsColumns[7]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},

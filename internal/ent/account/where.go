@@ -109,6 +109,13 @@ func Salt(v []byte) predicate.Account {
 	})
 }
 
+// VerificationToken applies equality check predicate on the "verification_token" field. It's identical to VerificationTokenEQ.
+func VerificationToken(v string) predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldVerificationToken), v))
+	})
+}
+
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.Account {
 	return predicate.Account(func(s *sql.Selector) {
@@ -322,6 +329,131 @@ func SaltLT(v []byte) predicate.Account {
 func SaltLTE(v []byte) predicate.Account {
 	return predicate.Account(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldSalt), v))
+	})
+}
+
+// VerificationTokenEQ applies the EQ predicate on the "verification_token" field.
+func VerificationTokenEQ(v string) predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldVerificationToken), v))
+	})
+}
+
+// VerificationTokenNEQ applies the NEQ predicate on the "verification_token" field.
+func VerificationTokenNEQ(v string) predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldVerificationToken), v))
+	})
+}
+
+// VerificationTokenIn applies the In predicate on the "verification_token" field.
+func VerificationTokenIn(vs ...string) predicate.Account {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Account(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldVerificationToken), v...))
+	})
+}
+
+// VerificationTokenNotIn applies the NotIn predicate on the "verification_token" field.
+func VerificationTokenNotIn(vs ...string) predicate.Account {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Account(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldVerificationToken), v...))
+	})
+}
+
+// VerificationTokenGT applies the GT predicate on the "verification_token" field.
+func VerificationTokenGT(v string) predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldVerificationToken), v))
+	})
+}
+
+// VerificationTokenGTE applies the GTE predicate on the "verification_token" field.
+func VerificationTokenGTE(v string) predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldVerificationToken), v))
+	})
+}
+
+// VerificationTokenLT applies the LT predicate on the "verification_token" field.
+func VerificationTokenLT(v string) predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldVerificationToken), v))
+	})
+}
+
+// VerificationTokenLTE applies the LTE predicate on the "verification_token" field.
+func VerificationTokenLTE(v string) predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldVerificationToken), v))
+	})
+}
+
+// VerificationTokenContains applies the Contains predicate on the "verification_token" field.
+func VerificationTokenContains(v string) predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		s.Where(sql.Contains(s.C(FieldVerificationToken), v))
+	})
+}
+
+// VerificationTokenHasPrefix applies the HasPrefix predicate on the "verification_token" field.
+func VerificationTokenHasPrefix(v string) predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		s.Where(sql.HasPrefix(s.C(FieldVerificationToken), v))
+	})
+}
+
+// VerificationTokenHasSuffix applies the HasSuffix predicate on the "verification_token" field.
+func VerificationTokenHasSuffix(v string) predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		s.Where(sql.HasSuffix(s.C(FieldVerificationToken), v))
+	})
+}
+
+// VerificationTokenIsNil applies the IsNil predicate on the "verification_token" field.
+func VerificationTokenIsNil() predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldVerificationToken)))
+	})
+}
+
+// VerificationTokenNotNil applies the NotNil predicate on the "verification_token" field.
+func VerificationTokenNotNil() predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldVerificationToken)))
+	})
+}
+
+// VerificationTokenEqualFold applies the EqualFold predicate on the "verification_token" field.
+func VerificationTokenEqualFold(v string) predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		s.Where(sql.EqualFold(s.C(FieldVerificationToken), v))
+	})
+}
+
+// VerificationTokenContainsFold applies the ContainsFold predicate on the "verification_token" field.
+func VerificationTokenContainsFold(v string) predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		s.Where(sql.ContainsFold(s.C(FieldVerificationToken), v))
 	})
 }
 

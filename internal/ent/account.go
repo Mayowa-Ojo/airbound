@@ -25,6 +25,8 @@ type Account struct {
 	Password []byte `json:"password,omitempty"`
 	// Salt holds the value of the "salt" field.
 	Salt []byte `json:"salt,omitempty"`
+	// VerificationToken holds the value of the "verification_token" field.
+	VerificationToken string `json:"verification_token,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -65,7 +67,7 @@ func (*Account) scanValues(columns []string) ([]interface{}, error) {
 		switch columns[i] {
 		case account.FieldPassword, account.FieldSalt:
 			values[i] = new([]byte)
-		case account.FieldAccountStatus:
+		case account.FieldAccountStatus, account.FieldVerificationToken:
 			values[i] = new(sql.NullString)
 		case account.FieldCreatedAt, account.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -111,6 +113,12 @@ func (a *Account) assignValues(columns []string, values []interface{}) error {
 				return fmt.Errorf("unexpected type %T for field salt", values[i])
 			} else if value != nil {
 				a.Salt = *value
+			}
+		case account.FieldVerificationToken:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field verification_token", values[i])
+			} else if value.Valid {
+				a.VerificationToken = value.String
 			}
 		case account.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -170,6 +178,8 @@ func (a *Account) String() string {
 	builder.WriteString(fmt.Sprintf("%v", a.Password))
 	builder.WriteString(", salt=")
 	builder.WriteString(fmt.Sprintf("%v", a.Salt))
+	builder.WriteString(", verification_token=")
+	builder.WriteString(a.VerificationToken)
 	builder.WriteString(", created_at=")
 	builder.WriteString(a.CreatedAt.Format(time.ANSIC))
 	builder.WriteString(", updated_at=")
