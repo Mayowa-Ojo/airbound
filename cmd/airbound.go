@@ -20,9 +20,11 @@ func Execute() {
 	client := config.NewEntClient(cfg)
 	defer client.Close()
 
+	awsSESSession := config.NewSESSession(cfg)
+
 	config.SchemaMigrateUp(context, client)
 
-	router := api.Run(client, cfg)
+	router := api.Run(client, cfg, awsSESSession)
 
 	srv := &http.Server{
 		Addr:    fmt.Sprintf(":%d", cfg.Port),
