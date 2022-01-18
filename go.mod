@@ -5,6 +5,7 @@ go 1.16
 require (
 	cloud.google.com/go v0.99.0
 	entgo.io/ent v0.9.1
+	github.com/aws/aws-sdk-go v1.42.35 // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/fatih/structs v1.1.0
 	github.com/gin-gonic/gin v1.7.7
