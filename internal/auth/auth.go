@@ -4,15 +4,18 @@ import (
 	"airbound/internal/config"
 	"airbound/internal/ent/enums"
 	"airbound/internal/errors"
+	"airbound/internal/log"
 	"airbound/repository/actors"
 	"crypto/rand"
 	"crypto/subtle"
 	"encoding/json"
 	"fmt"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/google/uuid"
 	"golang.org/x/crypto/scrypt"
 )
 
@@ -127,4 +130,49 @@ func VerifyToken(t string, cfg *config.Config) (*TokenData, error) {
 	}
 
 	return data, nil
+}
+
+func GenerateAccountVerificationLink(userID uuid.UUID, cfg *config.Config) (string, error) {
+	token := jwt.New(jwt.SigningMethodHS256)
+
+	claims := token.Claims.(jwt.MapClaims)
+	claims["data"] = userID
+	claims["exp"] = time.Now().Add(cfg.AccountVerificationTTL).Unix()
+
+	t, err := token.SignedString([]byte(cfg.JwtSecret))
+	if err != nil {
+		return "", err
+	}
+
+	// make token url-safe
+	t = strings.Replace(t, ".", "@", -1)
+
+	link := fmt.Sprintf("%s/users/verify-account?tk=%s", cfg.APIBaseURL, t)
+
+	return link, nil
+}
+
+func ValidateAccountVerificationToken(tk string, cfg *config.Config) (uuid.UUID, error) {
+	tk = strings.Replace(tk, "@", ".", -1)
+
+	token, err := jwt.ParseWithClaims(tk, jwt.MapClaims{}, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %s", token.Header["alg"])
+		}
+		return []byte(cfg.JwtSecret), nil
+	})
+	if err != nil {
+		log.Info("[[token]]: --- %s", tk)
+		log.Error("error parsing jwt - %s", err)
+		return uuid.Nil, err
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok || !token.Valid {
+		return uuid.Nil, fmt.Errorf("invalid auth token")
+	}
+
+	userID := uuid.MustParse(claims["data"].(string))
+
+	return userID, nil
 }
