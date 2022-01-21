@@ -88,8 +88,11 @@ func registerRoutes(router *gin.Engine, client *ent.Client, cfg *config.Config, 
 		v1.POST("/users/register-crew", actorFacade.RegisterUserAsCrew)
 		v1.POST("/users/register-frontdesk", actorFacade.RegisterUserAsFrontDesk)
 		v1.POST("/users/login", actorFacade.LoginUser)
+		v1.POST("/users/begin-2fa-setup", actorFacade.BeginTwoFaSetup)
+		v1.POST("/users/complete-2fa-setup", actorFacade.CompleteTwoFaSetup)
 
 		v1.Use(middleware.AuthenticateUser(cfg))
+		v1.Use(middleware.EnsureTwoFa())
 
 		v1.GET("/roles/:role-id", middleware.AuthorizeUser(rbac.AccessControl.GetRole), accessControlFacade.GetRole)
 
