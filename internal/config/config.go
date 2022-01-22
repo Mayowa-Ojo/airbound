@@ -26,6 +26,9 @@ type Config struct {
 	EmailFromName          string        `envconfig:"EMAIL_FROM_NAME"`
 	EmailFromAddress       string        `envconfig:"EMAIL_FROM_ADDRESS"`
 	AccountVerificationTTL time.Duration `envconfig:"ACCOUNT_VERIFICATION_TTL"`
+	TwoFaIssuer            string        `envconfig:"TWO_FA_ISSUER"`
+	TwoFaTTL               time.Duration `envconfig:"TWO_FA_TTL"`
+	TwoFaLength            int           `envconfig:"TWO_FA_LENGTH"`
 }
 
 func LoadConfig() *Config {
