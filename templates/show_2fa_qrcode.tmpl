@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+
+   <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Scan QR Code | Airbound</title>
+      <style>
+         body {
+            background-color: #f8fafc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+         }
+         .container img {
+            max-width: 100%;
+            height: auto;
+         }
+         .container p {
+            font-size: 15px;
+            color: #334155;
+            marging-top: 20px;
+            text-align: center;
+         }
+      </style>
+   </head>
+
+   <body>
+      <div class="container">
+         <img src="data:image/jpeg;base64,{{ .qrCodeLink }}" alt="two-fa qr code">
+         <p>Scan this QR Code with your authenticator app (e.g Google Authenticator)</p>
+      </div>
+   </body>
+</html>
