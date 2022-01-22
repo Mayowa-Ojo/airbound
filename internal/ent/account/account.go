@@ -21,8 +21,14 @@ const (
 	FieldPassword = "password"
 	// FieldSalt holds the string denoting the salt field in the database.
 	FieldSalt = "salt"
+	// FieldTwoFaSecret holds the string denoting the two_fa_secret field in the database.
+	FieldTwoFaSecret = "two_fa_secret"
+	// FieldTwoFaCompleted holds the string denoting the two_fa_completed field in the database.
+	FieldTwoFaCompleted = "two_fa_completed"
 	// FieldVerificationToken holds the string denoting the verification_token field in the database.
 	FieldVerificationToken = "verification_token"
+	// FieldForgotPasswordToken holds the string denoting the forgot_password_token field in the database.
+	FieldForgotPasswordToken = "forgot_password_token"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
@@ -46,7 +52,10 @@ var Columns = []string{
 	FieldAccountStatus,
 	FieldPassword,
 	FieldSalt,
+	FieldTwoFaSecret,
+	FieldTwoFaCompleted,
 	FieldVerificationToken,
+	FieldForgotPasswordToken,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }
@@ -73,6 +82,10 @@ func ValidColumn(column string) bool {
 }
 
 var (
+	// TwoFaSecretValidator is a validator for the "two_fa_secret" field. It is called by the builders before save.
+	TwoFaSecretValidator func(string) error
+	// DefaultTwoFaCompleted holds the default value on creation for the "two_fa_completed" field.
+	DefaultTwoFaCompleted bool
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.

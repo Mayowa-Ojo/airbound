@@ -30,57 +30,64 @@ func (au *AdminUpdate) Where(ps ...predicate.Admin) *AdminUpdate {
 	return au
 }
 
-// SetTwoFaSecret sets the "two_fa_secret" field.
-func (au *AdminUpdate) SetTwoFaSecret(s string) *AdminUpdate {
-	au.mutation.SetTwoFaSecret(s)
+// SetLevel sets the "level" field.
+func (au *AdminUpdate) SetLevel(i int) *AdminUpdate {
+	au.mutation.ResetLevel()
+	au.mutation.SetLevel(i)
 	return au
 }
 
-// SetNillableTwoFaSecret sets the "two_fa_secret" field if the given value is not nil.
-func (au *AdminUpdate) SetNillableTwoFaSecret(s *string) *AdminUpdate {
+// SetNillableLevel sets the "level" field if the given value is not nil.
+func (au *AdminUpdate) SetNillableLevel(i *int) *AdminUpdate {
+	if i != nil {
+		au.SetLevel(*i)
+	}
+	return au
+}
+
+// AddLevel adds i to the "level" field.
+func (au *AdminUpdate) AddLevel(i int) *AdminUpdate {
+	au.mutation.AddLevel(i)
+	return au
+}
+
+// SetSecurityQuestion sets the "security_question" field.
+func (au *AdminUpdate) SetSecurityQuestion(s string) *AdminUpdate {
+	au.mutation.SetSecurityQuestion(s)
+	return au
+}
+
+// SetNillableSecurityQuestion sets the "security_question" field if the given value is not nil.
+func (au *AdminUpdate) SetNillableSecurityQuestion(s *string) *AdminUpdate {
 	if s != nil {
-		au.SetTwoFaSecret(*s)
+		au.SetSecurityQuestion(*s)
 	}
 	return au
 }
 
-// ClearTwoFaSecret clears the value of the "two_fa_secret" field.
-func (au *AdminUpdate) ClearTwoFaSecret() *AdminUpdate {
-	au.mutation.ClearTwoFaSecret()
+// ClearSecurityQuestion clears the value of the "security_question" field.
+func (au *AdminUpdate) ClearSecurityQuestion() *AdminUpdate {
+	au.mutation.ClearSecurityQuestion()
 	return au
 }
 
-// SetTwoFaCompleted sets the "two_fa_completed" field.
-func (au *AdminUpdate) SetTwoFaCompleted(b bool) *AdminUpdate {
-	au.mutation.SetTwoFaCompleted(b)
+// SetSecurityAnswer sets the "security_answer" field.
+func (au *AdminUpdate) SetSecurityAnswer(s string) *AdminUpdate {
+	au.mutation.SetSecurityAnswer(s)
 	return au
 }
 
-// SetNillableTwoFaCompleted sets the "two_fa_completed" field if the given value is not nil.
-func (au *AdminUpdate) SetNillableTwoFaCompleted(b *bool) *AdminUpdate {
-	if b != nil {
-		au.SetTwoFaCompleted(*b)
-	}
-	return au
-}
-
-// SetToken sets the "token" field.
-func (au *AdminUpdate) SetToken(s string) *AdminUpdate {
-	au.mutation.SetToken(s)
-	return au
-}
-
-// SetNillableToken sets the "token" field if the given value is not nil.
-func (au *AdminUpdate) SetNillableToken(s *string) *AdminUpdate {
+// SetNillableSecurityAnswer sets the "security_answer" field if the given value is not nil.
+func (au *AdminUpdate) SetNillableSecurityAnswer(s *string) *AdminUpdate {
 	if s != nil {
-		au.SetToken(*s)
+		au.SetSecurityAnswer(*s)
 	}
 	return au
 }
 
-// ClearToken clears the value of the "token" field.
-func (au *AdminUpdate) ClearToken() *AdminUpdate {
-	au.mutation.ClearToken()
+// ClearSecurityAnswer clears the value of the "security_answer" field.
+func (au *AdminUpdate) ClearSecurityAnswer() *AdminUpdate {
+	au.mutation.ClearSecurityAnswer()
 	return au
 }
 
@@ -197,14 +204,14 @@ func (au *AdminUpdate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (au *AdminUpdate) check() error {
-	if v, ok := au.mutation.TwoFaSecret(); ok {
-		if err := admin.TwoFaSecretValidator(v); err != nil {
-			return &ValidationError{Name: "two_fa_secret", err: fmt.Errorf("ent: validator failed for field \"two_fa_secret\": %w", err)}
+	if v, ok := au.mutation.SecurityQuestion(); ok {
+		if err := admin.SecurityQuestionValidator(v); err != nil {
+			return &ValidationError{Name: "security_question", err: fmt.Errorf("ent: validator failed for field \"security_question\": %w", err)}
 		}
 	}
-	if v, ok := au.mutation.Token(); ok {
-		if err := admin.TokenValidator(v); err != nil {
-			return &ValidationError{Name: "token", err: fmt.Errorf("ent: validator failed for field \"token\": %w", err)}
+	if v, ok := au.mutation.SecurityAnswer(); ok {
+		if err := admin.SecurityAnswerValidator(v); err != nil {
+			return &ValidationError{Name: "security_answer", err: fmt.Errorf("ent: validator failed for field \"security_answer\": %w", err)}
 		}
 	}
 	if _, ok := au.mutation.UserID(); au.mutation.UserCleared() && !ok {
@@ -231,37 +238,44 @@ func (au *AdminUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if value, ok := au.mutation.TwoFaSecret(); ok {
+	if value, ok := au.mutation.Level(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: admin.FieldLevel,
+		})
+	}
+	if value, ok := au.mutation.AddedLevel(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: admin.FieldLevel,
+		})
+	}
+	if value, ok := au.mutation.SecurityQuestion(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  value,
-			Column: admin.FieldTwoFaSecret,
+			Column: admin.FieldSecurityQuestion,
 		})
 	}
-	if au.mutation.TwoFaSecretCleared() {
+	if au.mutation.SecurityQuestionCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Column: admin.FieldTwoFaSecret,
+			Column: admin.FieldSecurityQuestion,
 		})
 	}
-	if value, ok := au.mutation.TwoFaCompleted(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeBool,
-			Value:  value,
-			Column: admin.FieldTwoFaCompleted,
-		})
-	}
-	if value, ok := au.mutation.Token(); ok {
+	if value, ok := au.mutation.SecurityAnswer(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  value,
-			Column: admin.FieldToken,
+			Column: admin.FieldSecurityAnswer,
 		})
 	}
-	if au.mutation.TokenCleared() {
+	if au.mutation.SecurityAnswerCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Column: admin.FieldToken,
+			Column: admin.FieldSecurityAnswer,
 		})
 	}
 	if value, ok := au.mutation.CreatedAt(); ok {
@@ -332,57 +346,64 @@ type AdminUpdateOne struct {
 	mutation *AdminMutation
 }
 
-// SetTwoFaSecret sets the "two_fa_secret" field.
-func (auo *AdminUpdateOne) SetTwoFaSecret(s string) *AdminUpdateOne {
-	auo.mutation.SetTwoFaSecret(s)
+// SetLevel sets the "level" field.
+func (auo *AdminUpdateOne) SetLevel(i int) *AdminUpdateOne {
+	auo.mutation.ResetLevel()
+	auo.mutation.SetLevel(i)
 	return auo
 }
 
-// SetNillableTwoFaSecret sets the "two_fa_secret" field if the given value is not nil.
-func (auo *AdminUpdateOne) SetNillableTwoFaSecret(s *string) *AdminUpdateOne {
+// SetNillableLevel sets the "level" field if the given value is not nil.
+func (auo *AdminUpdateOne) SetNillableLevel(i *int) *AdminUpdateOne {
+	if i != nil {
+		auo.SetLevel(*i)
+	}
+	return auo
+}
+
+// AddLevel adds i to the "level" field.
+func (auo *AdminUpdateOne) AddLevel(i int) *AdminUpdateOne {
+	auo.mutation.AddLevel(i)
+	return auo
+}
+
+// SetSecurityQuestion sets the "security_question" field.
+func (auo *AdminUpdateOne) SetSecurityQuestion(s string) *AdminUpdateOne {
+	auo.mutation.SetSecurityQuestion(s)
+	return auo
+}
+
+// SetNillableSecurityQuestion sets the "security_question" field if the given value is not nil.
+func (auo *AdminUpdateOne) SetNillableSecurityQuestion(s *string) *AdminUpdateOne {
 	if s != nil {
-		auo.SetTwoFaSecret(*s)
+		auo.SetSecurityQuestion(*s)
 	}
 	return auo
 }
 
-// ClearTwoFaSecret clears the value of the "two_fa_secret" field.
-func (auo *AdminUpdateOne) ClearTwoFaSecret() *AdminUpdateOne {
-	auo.mutation.ClearTwoFaSecret()
+// ClearSecurityQuestion clears the value of the "security_question" field.
+func (auo *AdminUpdateOne) ClearSecurityQuestion() *AdminUpdateOne {
+	auo.mutation.ClearSecurityQuestion()
 	return auo
 }
 
-// SetTwoFaCompleted sets the "two_fa_completed" field.
-func (auo *AdminUpdateOne) SetTwoFaCompleted(b bool) *AdminUpdateOne {
-	auo.mutation.SetTwoFaCompleted(b)
+// SetSecurityAnswer sets the "security_answer" field.
+func (auo *AdminUpdateOne) SetSecurityAnswer(s string) *AdminUpdateOne {
+	auo.mutation.SetSecurityAnswer(s)
 	return auo
 }
 
-// SetNillableTwoFaCompleted sets the "two_fa_completed" field if the given value is not nil.
-func (auo *AdminUpdateOne) SetNillableTwoFaCompleted(b *bool) *AdminUpdateOne {
-	if b != nil {
-		auo.SetTwoFaCompleted(*b)
-	}
-	return auo
-}
-
-// SetToken sets the "token" field.
-func (auo *AdminUpdateOne) SetToken(s string) *AdminUpdateOne {
-	auo.mutation.SetToken(s)
-	return auo
-}
-
-// SetNillableToken sets the "token" field if the given value is not nil.
-func (auo *AdminUpdateOne) SetNillableToken(s *string) *AdminUpdateOne {
+// SetNillableSecurityAnswer sets the "security_answer" field if the given value is not nil.
+func (auo *AdminUpdateOne) SetNillableSecurityAnswer(s *string) *AdminUpdateOne {
 	if s != nil {
-		auo.SetToken(*s)
+		auo.SetSecurityAnswer(*s)
 	}
 	return auo
 }
 
-// ClearToken clears the value of the "token" field.
-func (auo *AdminUpdateOne) ClearToken() *AdminUpdateOne {
-	auo.mutation.ClearToken()
+// ClearSecurityAnswer clears the value of the "security_answer" field.
+func (auo *AdminUpdateOne) ClearSecurityAnswer() *AdminUpdateOne {
+	auo.mutation.ClearSecurityAnswer()
 	return auo
 }
 
@@ -506,14 +527,14 @@ func (auo *AdminUpdateOne) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (auo *AdminUpdateOne) check() error {
-	if v, ok := auo.mutation.TwoFaSecret(); ok {
-		if err := admin.TwoFaSecretValidator(v); err != nil {
-			return &ValidationError{Name: "two_fa_secret", err: fmt.Errorf("ent: validator failed for field \"two_fa_secret\": %w", err)}
+	if v, ok := auo.mutation.SecurityQuestion(); ok {
+		if err := admin.SecurityQuestionValidator(v); err != nil {
+			return &ValidationError{Name: "security_question", err: fmt.Errorf("ent: validator failed for field \"security_question\": %w", err)}
 		}
 	}
-	if v, ok := auo.mutation.Token(); ok {
-		if err := admin.TokenValidator(v); err != nil {
-			return &ValidationError{Name: "token", err: fmt.Errorf("ent: validator failed for field \"token\": %w", err)}
+	if v, ok := auo.mutation.SecurityAnswer(); ok {
+		if err := admin.SecurityAnswerValidator(v); err != nil {
+			return &ValidationError{Name: "security_answer", err: fmt.Errorf("ent: validator failed for field \"security_answer\": %w", err)}
 		}
 	}
 	if _, ok := auo.mutation.UserID(); auo.mutation.UserCleared() && !ok {
@@ -557,37 +578,44 @@ func (auo *AdminUpdateOne) sqlSave(ctx context.Context) (_node *Admin, err error
 			}
 		}
 	}
-	if value, ok := auo.mutation.TwoFaSecret(); ok {
+	if value, ok := auo.mutation.Level(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: admin.FieldLevel,
+		})
+	}
+	if value, ok := auo.mutation.AddedLevel(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: admin.FieldLevel,
+		})
+	}
+	if value, ok := auo.mutation.SecurityQuestion(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  value,
-			Column: admin.FieldTwoFaSecret,
+			Column: admin.FieldSecurityQuestion,
 		})
 	}
-	if auo.mutation.TwoFaSecretCleared() {
+	if auo.mutation.SecurityQuestionCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Column: admin.FieldTwoFaSecret,
+			Column: admin.FieldSecurityQuestion,
 		})
 	}
-	if value, ok := auo.mutation.TwoFaCompleted(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeBool,
-			Value:  value,
-			Column: admin.FieldTwoFaCompleted,
-		})
-	}
-	if value, ok := auo.mutation.Token(); ok {
+	if value, ok := auo.mutation.SecurityAnswer(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  value,
-			Column: admin.FieldToken,
+			Column: admin.FieldSecurityAnswer,
 		})
 	}
-	if auo.mutation.TokenCleared() {
+	if auo.mutation.SecurityAnswerCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
-			Column: admin.FieldToken,
+			Column: admin.FieldSecurityAnswer,
 		})
 	}
 	if value, ok := auo.mutation.CreatedAt(); ok {

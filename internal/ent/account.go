@@ -25,8 +25,14 @@ type Account struct {
 	Password []byte `json:"password,omitempty"`
 	// Salt holds the value of the "salt" field.
 	Salt []byte `json:"salt,omitempty"`
+	// TwoFaSecret holds the value of the "two_fa_secret" field.
+	TwoFaSecret string `json:"two_fa_secret,omitempty"`
+	// TwoFaCompleted holds the value of the "two_fa_completed" field.
+	TwoFaCompleted bool `json:"two_fa_completed,omitempty"`
 	// VerificationToken holds the value of the "verification_token" field.
 	VerificationToken string `json:"verification_token,omitempty"`
+	// ForgotPasswordToken holds the value of the "forgot_password_token" field.
+	ForgotPasswordToken string `json:"forgot_password_token,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -67,7 +73,9 @@ func (*Account) scanValues(columns []string) ([]interface{}, error) {
 		switch columns[i] {
 		case account.FieldPassword, account.FieldSalt:
 			values[i] = new([]byte)
-		case account.FieldAccountStatus, account.FieldVerificationToken:
+		case account.FieldTwoFaCompleted:
+			values[i] = new(sql.NullBool)
+		case account.FieldAccountStatus, account.FieldTwoFaSecret, account.FieldVerificationToken, account.FieldForgotPasswordToken:
 			values[i] = new(sql.NullString)
 		case account.FieldCreatedAt, account.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -114,11 +122,29 @@ func (a *Account) assignValues(columns []string, values []interface{}) error {
 			} else if value != nil {
 				a.Salt = *value
 			}
+		case account.FieldTwoFaSecret:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field two_fa_secret", values[i])
+			} else if value.Valid {
+				a.TwoFaSecret = value.String
+			}
+		case account.FieldTwoFaCompleted:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field two_fa_completed", values[i])
+			} else if value.Valid {
+				a.TwoFaCompleted = value.Bool
+			}
 		case account.FieldVerificationToken:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field verification_token", values[i])
 			} else if value.Valid {
 				a.VerificationToken = value.String
+			}
+		case account.FieldForgotPasswordToken:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field forgot_password_token", values[i])
+			} else if value.Valid {
+				a.ForgotPasswordToken = value.String
 			}
 		case account.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -178,8 +204,14 @@ func (a *Account) String() string {
 	builder.WriteString(fmt.Sprintf("%v", a.Password))
 	builder.WriteString(", salt=")
 	builder.WriteString(fmt.Sprintf("%v", a.Salt))
+	builder.WriteString(", two_fa_secret=")
+	builder.WriteString(a.TwoFaSecret)
+	builder.WriteString(", two_fa_completed=")
+	builder.WriteString(fmt.Sprintf("%v", a.TwoFaCompleted))
 	builder.WriteString(", verification_token=")
 	builder.WriteString(a.VerificationToken)
+	builder.WriteString(", forgot_password_token=")
+	builder.WriteString(a.ForgotPasswordToken)
 	builder.WriteString(", created_at=")
 	builder.WriteString(a.CreatedAt.Format(time.ANSIC))
 	builder.WriteString(", updated_at=")

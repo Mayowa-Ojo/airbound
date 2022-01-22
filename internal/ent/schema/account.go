@@ -22,7 +22,10 @@ func (Account) Fields() []ent.Field {
 		field.Enum("account_status").GoType(enums.AccountStatus("")),
 		field.Bytes("password"),
 		field.Bytes("salt"),
+		field.String("two_fa_secret").MaxLen(250).Optional(),
+		field.Bool("two_fa_completed").Default(false),
 		field.String("verification_token").Optional(),
+		field.String("forgot_password_token").Optional(),
 		field.Time("created_at").Default(time.Now),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 	}

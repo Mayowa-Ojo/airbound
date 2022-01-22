@@ -41,6 +41,34 @@ func (ac *AccountCreate) SetSalt(b []byte) *AccountCreate {
 	return ac
 }
 
+// SetTwoFaSecret sets the "two_fa_secret" field.
+func (ac *AccountCreate) SetTwoFaSecret(s string) *AccountCreate {
+	ac.mutation.SetTwoFaSecret(s)
+	return ac
+}
+
+// SetNillableTwoFaSecret sets the "two_fa_secret" field if the given value is not nil.
+func (ac *AccountCreate) SetNillableTwoFaSecret(s *string) *AccountCreate {
+	if s != nil {
+		ac.SetTwoFaSecret(*s)
+	}
+	return ac
+}
+
+// SetTwoFaCompleted sets the "two_fa_completed" field.
+func (ac *AccountCreate) SetTwoFaCompleted(b bool) *AccountCreate {
+	ac.mutation.SetTwoFaCompleted(b)
+	return ac
+}
+
+// SetNillableTwoFaCompleted sets the "two_fa_completed" field if the given value is not nil.
+func (ac *AccountCreate) SetNillableTwoFaCompleted(b *bool) *AccountCreate {
+	if b != nil {
+		ac.SetTwoFaCompleted(*b)
+	}
+	return ac
+}
+
 // SetVerificationToken sets the "verification_token" field.
 func (ac *AccountCreate) SetVerificationToken(s string) *AccountCreate {
 	ac.mutation.SetVerificationToken(s)
@@ -51,6 +79,20 @@ func (ac *AccountCreate) SetVerificationToken(s string) *AccountCreate {
 func (ac *AccountCreate) SetNillableVerificationToken(s *string) *AccountCreate {
 	if s != nil {
 		ac.SetVerificationToken(*s)
+	}
+	return ac
+}
+
+// SetForgotPasswordToken sets the "forgot_password_token" field.
+func (ac *AccountCreate) SetForgotPasswordToken(s string) *AccountCreate {
+	ac.mutation.SetForgotPasswordToken(s)
+	return ac
+}
+
+// SetNillableForgotPasswordToken sets the "forgot_password_token" field if the given value is not nil.
+func (ac *AccountCreate) SetNillableForgotPasswordToken(s *string) *AccountCreate {
+	if s != nil {
+		ac.SetForgotPasswordToken(*s)
 	}
 	return ac
 }
@@ -179,6 +221,10 @@ func (ac *AccountCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (ac *AccountCreate) defaults() {
+	if _, ok := ac.mutation.TwoFaCompleted(); !ok {
+		v := account.DefaultTwoFaCompleted
+		ac.mutation.SetTwoFaCompleted(v)
+	}
 	if _, ok := ac.mutation.CreatedAt(); !ok {
 		v := account.DefaultCreatedAt()
 		ac.mutation.SetCreatedAt(v)
@@ -208,6 +254,14 @@ func (ac *AccountCreate) check() error {
 	}
 	if _, ok := ac.mutation.Salt(); !ok {
 		return &ValidationError{Name: "salt", err: errors.New(`ent: missing required field "salt"`)}
+	}
+	if v, ok := ac.mutation.TwoFaSecret(); ok {
+		if err := account.TwoFaSecretValidator(v); err != nil {
+			return &ValidationError{Name: "two_fa_secret", err: fmt.Errorf(`ent: validator failed for field "two_fa_secret": %w`, err)}
+		}
+	}
+	if _, ok := ac.mutation.TwoFaCompleted(); !ok {
+		return &ValidationError{Name: "two_fa_completed", err: errors.New(`ent: missing required field "two_fa_completed"`)}
 	}
 	if _, ok := ac.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "created_at"`)}
@@ -271,6 +325,22 @@ func (ac *AccountCreate) createSpec() (*Account, *sqlgraph.CreateSpec) {
 		})
 		_node.Salt = value
 	}
+	if value, ok := ac.mutation.TwoFaSecret(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: account.FieldTwoFaSecret,
+		})
+		_node.TwoFaSecret = value
+	}
+	if value, ok := ac.mutation.TwoFaCompleted(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeBool,
+			Value:  value,
+			Column: account.FieldTwoFaCompleted,
+		})
+		_node.TwoFaCompleted = value
+	}
 	if value, ok := ac.mutation.VerificationToken(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
@@ -278,6 +348,14 @@ func (ac *AccountCreate) createSpec() (*Account, *sqlgraph.CreateSpec) {
 			Column: account.FieldVerificationToken,
 		})
 		_node.VerificationToken = value
+	}
+	if value, ok := ac.mutation.ForgotPasswordToken(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: account.FieldForgotPasswordToken,
+		})
+		_node.ForgotPasswordToken = value
 	}
 	if value, ok := ac.mutation.CreatedAt(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{

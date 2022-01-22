@@ -22,44 +22,44 @@ type AdminCreate struct {
 	hooks    []Hook
 }
 
-// SetTwoFaSecret sets the "two_fa_secret" field.
-func (ac *AdminCreate) SetTwoFaSecret(s string) *AdminCreate {
-	ac.mutation.SetTwoFaSecret(s)
+// SetLevel sets the "level" field.
+func (ac *AdminCreate) SetLevel(i int) *AdminCreate {
+	ac.mutation.SetLevel(i)
 	return ac
 }
 
-// SetNillableTwoFaSecret sets the "two_fa_secret" field if the given value is not nil.
-func (ac *AdminCreate) SetNillableTwoFaSecret(s *string) *AdminCreate {
-	if s != nil {
-		ac.SetTwoFaSecret(*s)
+// SetNillableLevel sets the "level" field if the given value is not nil.
+func (ac *AdminCreate) SetNillableLevel(i *int) *AdminCreate {
+	if i != nil {
+		ac.SetLevel(*i)
 	}
 	return ac
 }
 
-// SetTwoFaCompleted sets the "two_fa_completed" field.
-func (ac *AdminCreate) SetTwoFaCompleted(b bool) *AdminCreate {
-	ac.mutation.SetTwoFaCompleted(b)
+// SetSecurityQuestion sets the "security_question" field.
+func (ac *AdminCreate) SetSecurityQuestion(s string) *AdminCreate {
+	ac.mutation.SetSecurityQuestion(s)
 	return ac
 }
 
-// SetNillableTwoFaCompleted sets the "two_fa_completed" field if the given value is not nil.
-func (ac *AdminCreate) SetNillableTwoFaCompleted(b *bool) *AdminCreate {
-	if b != nil {
-		ac.SetTwoFaCompleted(*b)
+// SetNillableSecurityQuestion sets the "security_question" field if the given value is not nil.
+func (ac *AdminCreate) SetNillableSecurityQuestion(s *string) *AdminCreate {
+	if s != nil {
+		ac.SetSecurityQuestion(*s)
 	}
 	return ac
 }
 
-// SetToken sets the "token" field.
-func (ac *AdminCreate) SetToken(s string) *AdminCreate {
-	ac.mutation.SetToken(s)
+// SetSecurityAnswer sets the "security_answer" field.
+func (ac *AdminCreate) SetSecurityAnswer(s string) *AdminCreate {
+	ac.mutation.SetSecurityAnswer(s)
 	return ac
 }
 
-// SetNillableToken sets the "token" field if the given value is not nil.
-func (ac *AdminCreate) SetNillableToken(s *string) *AdminCreate {
+// SetNillableSecurityAnswer sets the "security_answer" field if the given value is not nil.
+func (ac *AdminCreate) SetNillableSecurityAnswer(s *string) *AdminCreate {
 	if s != nil {
-		ac.SetToken(*s)
+		ac.SetSecurityAnswer(*s)
 	}
 	return ac
 }
@@ -180,9 +180,9 @@ func (ac *AdminCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (ac *AdminCreate) defaults() {
-	if _, ok := ac.mutation.TwoFaCompleted(); !ok {
-		v := admin.DefaultTwoFaCompleted
-		ac.mutation.SetTwoFaCompleted(v)
+	if _, ok := ac.mutation.Level(); !ok {
+		v := admin.DefaultLevel
+		ac.mutation.SetLevel(v)
 	}
 	if _, ok := ac.mutation.CreatedAt(); !ok {
 		v := admin.DefaultCreatedAt()
@@ -200,17 +200,17 @@ func (ac *AdminCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (ac *AdminCreate) check() error {
-	if v, ok := ac.mutation.TwoFaSecret(); ok {
-		if err := admin.TwoFaSecretValidator(v); err != nil {
-			return &ValidationError{Name: "two_fa_secret", err: fmt.Errorf(`ent: validator failed for field "two_fa_secret": %w`, err)}
+	if _, ok := ac.mutation.Level(); !ok {
+		return &ValidationError{Name: "level", err: errors.New(`ent: missing required field "level"`)}
+	}
+	if v, ok := ac.mutation.SecurityQuestion(); ok {
+		if err := admin.SecurityQuestionValidator(v); err != nil {
+			return &ValidationError{Name: "security_question", err: fmt.Errorf(`ent: validator failed for field "security_question": %w`, err)}
 		}
 	}
-	if _, ok := ac.mutation.TwoFaCompleted(); !ok {
-		return &ValidationError{Name: "two_fa_completed", err: errors.New(`ent: missing required field "two_fa_completed"`)}
-	}
-	if v, ok := ac.mutation.Token(); ok {
-		if err := admin.TokenValidator(v); err != nil {
-			return &ValidationError{Name: "token", err: fmt.Errorf(`ent: validator failed for field "token": %w`, err)}
+	if v, ok := ac.mutation.SecurityAnswer(); ok {
+		if err := admin.SecurityAnswerValidator(v); err != nil {
+			return &ValidationError{Name: "security_answer", err: fmt.Errorf(`ent: validator failed for field "security_answer": %w`, err)}
 		}
 	}
 	if _, ok := ac.mutation.CreatedAt(); !ok {
@@ -254,29 +254,29 @@ func (ac *AdminCreate) createSpec() (*Admin, *sqlgraph.CreateSpec) {
 		_node.ID = id
 		_spec.ID.Value = id
 	}
-	if value, ok := ac.mutation.TwoFaSecret(); ok {
+	if value, ok := ac.mutation.Level(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: admin.FieldLevel,
+		})
+		_node.Level = value
+	}
+	if value, ok := ac.mutation.SecurityQuestion(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  value,
-			Column: admin.FieldTwoFaSecret,
+			Column: admin.FieldSecurityQuestion,
 		})
-		_node.TwoFaSecret = value
+		_node.SecurityQuestion = value
 	}
-	if value, ok := ac.mutation.TwoFaCompleted(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeBool,
-			Value:  value,
-			Column: admin.FieldTwoFaCompleted,
-		})
-		_node.TwoFaCompleted = value
-	}
-	if value, ok := ac.mutation.Token(); ok {
+	if value, ok := ac.mutation.SecurityAnswer(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  value,
-			Column: admin.FieldToken,
+			Column: admin.FieldSecurityAnswer,
 		})
-		_node.Token = value
+		_node.SecurityAnswer = value
 	}
 	if value, ok := ac.mutation.CreatedAt(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{

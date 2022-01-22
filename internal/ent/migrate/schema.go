@@ -14,7 +14,10 @@ var (
 		{Name: "account_status", Type: field.TypeEnum, Enums: []string{"ACTIVE", "CLOSED", "BLACKLISTED", "BLOCKED", "NONE"}},
 		{Name: "password", Type: field.TypeBytes},
 		{Name: "salt", Type: field.TypeBytes},
+		{Name: "two_fa_secret", Type: field.TypeString, Nullable: true, Size: 250},
+		{Name: "two_fa_completed", Type: field.TypeBool, Default: false},
 		{Name: "verification_token", Type: field.TypeString, Nullable: true},
+		{Name: "forgot_password_token", Type: field.TypeString, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "user_id", Type: field.TypeUUID, Unique: true, Nullable: true},
@@ -27,7 +30,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "accounts_users_account",
-				Columns:    []*schema.Column{AccountsColumns[7]},
+				Columns:    []*schema.Column{AccountsColumns[10]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -52,9 +55,9 @@ var (
 	// AdminsColumns holds the columns for the "admins" table.
 	AdminsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID, Unique: true},
-		{Name: "two_fa_secret", Type: field.TypeString, Nullable: true, Size: 250},
-		{Name: "two_fa_completed", Type: field.TypeBool, Default: false},
-		{Name: "token", Type: field.TypeString, Nullable: true, Size: 250},
+		{Name: "level", Type: field.TypeInt, Default: 1},
+		{Name: "security_question", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "security_answer", Type: field.TypeString, Nullable: true, Size: 250},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "user_id", Type: field.TypeUUID, Unique: true, Nullable: true},

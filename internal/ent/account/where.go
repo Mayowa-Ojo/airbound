@@ -109,10 +109,31 @@ func Salt(v []byte) predicate.Account {
 	})
 }
 
+// TwoFaSecret applies equality check predicate on the "two_fa_secret" field. It's identical to TwoFaSecretEQ.
+func TwoFaSecret(v string) predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldTwoFaSecret), v))
+	})
+}
+
+// TwoFaCompleted applies equality check predicate on the "two_fa_completed" field. It's identical to TwoFaCompletedEQ.
+func TwoFaCompleted(v bool) predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldTwoFaCompleted), v))
+	})
+}
+
 // VerificationToken applies equality check predicate on the "verification_token" field. It's identical to VerificationTokenEQ.
 func VerificationToken(v string) predicate.Account {
 	return predicate.Account(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldVerificationToken), v))
+	})
+}
+
+// ForgotPasswordToken applies equality check predicate on the "forgot_password_token" field. It's identical to ForgotPasswordTokenEQ.
+func ForgotPasswordToken(v string) predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldForgotPasswordToken), v))
 	})
 }
 
@@ -332,6 +353,145 @@ func SaltLTE(v []byte) predicate.Account {
 	})
 }
 
+// TwoFaSecretEQ applies the EQ predicate on the "two_fa_secret" field.
+func TwoFaSecretEQ(v string) predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldTwoFaSecret), v))
+	})
+}
+
+// TwoFaSecretNEQ applies the NEQ predicate on the "two_fa_secret" field.
+func TwoFaSecretNEQ(v string) predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldTwoFaSecret), v))
+	})
+}
+
+// TwoFaSecretIn applies the In predicate on the "two_fa_secret" field.
+func TwoFaSecretIn(vs ...string) predicate.Account {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Account(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldTwoFaSecret), v...))
+	})
+}
+
+// TwoFaSecretNotIn applies the NotIn predicate on the "two_fa_secret" field.
+func TwoFaSecretNotIn(vs ...string) predicate.Account {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Account(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldTwoFaSecret), v...))
+	})
+}
+
+// TwoFaSecretGT applies the GT predicate on the "two_fa_secret" field.
+func TwoFaSecretGT(v string) predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldTwoFaSecret), v))
+	})
+}
+
+// TwoFaSecretGTE applies the GTE predicate on the "two_fa_secret" field.
+func TwoFaSecretGTE(v string) predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldTwoFaSecret), v))
+	})
+}
+
+// TwoFaSecretLT applies the LT predicate on the "two_fa_secret" field.
+func TwoFaSecretLT(v string) predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldTwoFaSecret), v))
+	})
+}
+
+// TwoFaSecretLTE applies the LTE predicate on the "two_fa_secret" field.
+func TwoFaSecretLTE(v string) predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldTwoFaSecret), v))
+	})
+}
+
+// TwoFaSecretContains applies the Contains predicate on the "two_fa_secret" field.
+func TwoFaSecretContains(v string) predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		s.Where(sql.Contains(s.C(FieldTwoFaSecret), v))
+	})
+}
+
+// TwoFaSecretHasPrefix applies the HasPrefix predicate on the "two_fa_secret" field.
+func TwoFaSecretHasPrefix(v string) predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		s.Where(sql.HasPrefix(s.C(FieldTwoFaSecret), v))
+	})
+}
+
+// TwoFaSecretHasSuffix applies the HasSuffix predicate on the "two_fa_secret" field.
+func TwoFaSecretHasSuffix(v string) predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		s.Where(sql.HasSuffix(s.C(FieldTwoFaSecret), v))
+	})
+}
+
+// TwoFaSecretIsNil applies the IsNil predicate on the "two_fa_secret" field.
+func TwoFaSecretIsNil() predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldTwoFaSecret)))
+	})
+}
+
+// TwoFaSecretNotNil applies the NotNil predicate on the "two_fa_secret" field.
+func TwoFaSecretNotNil() predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldTwoFaSecret)))
+	})
+}
+
+// TwoFaSecretEqualFold applies the EqualFold predicate on the "two_fa_secret" field.
+func TwoFaSecretEqualFold(v string) predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		s.Where(sql.EqualFold(s.C(FieldTwoFaSecret), v))
+	})
+}
+
+// TwoFaSecretContainsFold applies the ContainsFold predicate on the "two_fa_secret" field.
+func TwoFaSecretContainsFold(v string) predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		s.Where(sql.ContainsFold(s.C(FieldTwoFaSecret), v))
+	})
+}
+
+// TwoFaCompletedEQ applies the EQ predicate on the "two_fa_completed" field.
+func TwoFaCompletedEQ(v bool) predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldTwoFaCompleted), v))
+	})
+}
+
+// TwoFaCompletedNEQ applies the NEQ predicate on the "two_fa_completed" field.
+func TwoFaCompletedNEQ(v bool) predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldTwoFaCompleted), v))
+	})
+}
+
 // VerificationTokenEQ applies the EQ predicate on the "verification_token" field.
 func VerificationTokenEQ(v string) predicate.Account {
 	return predicate.Account(func(s *sql.Selector) {
@@ -454,6 +614,131 @@ func VerificationTokenEqualFold(v string) predicate.Account {
 func VerificationTokenContainsFold(v string) predicate.Account {
 	return predicate.Account(func(s *sql.Selector) {
 		s.Where(sql.ContainsFold(s.C(FieldVerificationToken), v))
+	})
+}
+
+// ForgotPasswordTokenEQ applies the EQ predicate on the "forgot_password_token" field.
+func ForgotPasswordTokenEQ(v string) predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldForgotPasswordToken), v))
+	})
+}
+
+// ForgotPasswordTokenNEQ applies the NEQ predicate on the "forgot_password_token" field.
+func ForgotPasswordTokenNEQ(v string) predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldForgotPasswordToken), v))
+	})
+}
+
+// ForgotPasswordTokenIn applies the In predicate on the "forgot_password_token" field.
+func ForgotPasswordTokenIn(vs ...string) predicate.Account {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Account(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldForgotPasswordToken), v...))
+	})
+}
+
+// ForgotPasswordTokenNotIn applies the NotIn predicate on the "forgot_password_token" field.
+func ForgotPasswordTokenNotIn(vs ...string) predicate.Account {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Account(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldForgotPasswordToken), v...))
+	})
+}
+
+// ForgotPasswordTokenGT applies the GT predicate on the "forgot_password_token" field.
+func ForgotPasswordTokenGT(v string) predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldForgotPasswordToken), v))
+	})
+}
+
+// ForgotPasswordTokenGTE applies the GTE predicate on the "forgot_password_token" field.
+func ForgotPasswordTokenGTE(v string) predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldForgotPasswordToken), v))
+	})
+}
+
+// ForgotPasswordTokenLT applies the LT predicate on the "forgot_password_token" field.
+func ForgotPasswordTokenLT(v string) predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldForgotPasswordToken), v))
+	})
+}
+
+// ForgotPasswordTokenLTE applies the LTE predicate on the "forgot_password_token" field.
+func ForgotPasswordTokenLTE(v string) predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldForgotPasswordToken), v))
+	})
+}
+
+// ForgotPasswordTokenContains applies the Contains predicate on the "forgot_password_token" field.
+func ForgotPasswordTokenContains(v string) predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		s.Where(sql.Contains(s.C(FieldForgotPasswordToken), v))
+	})
+}
+
+// ForgotPasswordTokenHasPrefix applies the HasPrefix predicate on the "forgot_password_token" field.
+func ForgotPasswordTokenHasPrefix(v string) predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		s.Where(sql.HasPrefix(s.C(FieldForgotPasswordToken), v))
+	})
+}
+
+// ForgotPasswordTokenHasSuffix applies the HasSuffix predicate on the "forgot_password_token" field.
+func ForgotPasswordTokenHasSuffix(v string) predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		s.Where(sql.HasSuffix(s.C(FieldForgotPasswordToken), v))
+	})
+}
+
+// ForgotPasswordTokenIsNil applies the IsNil predicate on the "forgot_password_token" field.
+func ForgotPasswordTokenIsNil() predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldForgotPasswordToken)))
+	})
+}
+
+// ForgotPasswordTokenNotNil applies the NotNil predicate on the "forgot_password_token" field.
+func ForgotPasswordTokenNotNil() predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldForgotPasswordToken)))
+	})
+}
+
+// ForgotPasswordTokenEqualFold applies the EqualFold predicate on the "forgot_password_token" field.
+func ForgotPasswordTokenEqualFold(v string) predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		s.Where(sql.EqualFold(s.C(FieldForgotPasswordToken), v))
+	})
+}
+
+// ForgotPasswordTokenContainsFold applies the ContainsFold predicate on the "forgot_password_token" field.
+func ForgotPasswordTokenContainsFold(v string) predicate.Account {
+	return predicate.Account(func(s *sql.Selector) {
+		s.Where(sql.ContainsFold(s.C(FieldForgotPasswordToken), v))
 	})
 }
 

@@ -13,12 +13,12 @@ const (
 	Label = "admin"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
-	// FieldTwoFaSecret holds the string denoting the two_fa_secret field in the database.
-	FieldTwoFaSecret = "two_fa_secret"
-	// FieldTwoFaCompleted holds the string denoting the two_fa_completed field in the database.
-	FieldTwoFaCompleted = "two_fa_completed"
-	// FieldToken holds the string denoting the token field in the database.
-	FieldToken = "token"
+	// FieldLevel holds the string denoting the level field in the database.
+	FieldLevel = "level"
+	// FieldSecurityQuestion holds the string denoting the security_question field in the database.
+	FieldSecurityQuestion = "security_question"
+	// FieldSecurityAnswer holds the string denoting the security_answer field in the database.
+	FieldSecurityAnswer = "security_answer"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
@@ -39,9 +39,9 @@ const (
 // Columns holds all SQL columns for admin fields.
 var Columns = []string{
 	FieldID,
-	FieldTwoFaSecret,
-	FieldTwoFaCompleted,
-	FieldToken,
+	FieldLevel,
+	FieldSecurityQuestion,
+	FieldSecurityAnswer,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }
@@ -68,12 +68,12 @@ func ValidColumn(column string) bool {
 }
 
 var (
-	// TwoFaSecretValidator is a validator for the "two_fa_secret" field. It is called by the builders before save.
-	TwoFaSecretValidator func(string) error
-	// DefaultTwoFaCompleted holds the default value on creation for the "two_fa_completed" field.
-	DefaultTwoFaCompleted bool
-	// TokenValidator is a validator for the "token" field. It is called by the builders before save.
-	TokenValidator func(string) error
+	// DefaultLevel holds the default value on creation for the "level" field.
+	DefaultLevel int
+	// SecurityQuestionValidator is a validator for the "security_question" field. It is called by the builders before save.
+	SecurityQuestionValidator func(string) error
+	// SecurityAnswerValidator is a validator for the "security_answer" field. It is called by the builders before save.
+	SecurityAnswerValidator func(string) error
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.

@@ -36,12 +36,20 @@ import (
 func init() {
 	accountFields := schema.Account{}.Fields()
 	_ = accountFields
+	// accountDescTwoFaSecret is the schema descriptor for two_fa_secret field.
+	accountDescTwoFaSecret := accountFields[4].Descriptor()
+	// account.TwoFaSecretValidator is a validator for the "two_fa_secret" field. It is called by the builders before save.
+	account.TwoFaSecretValidator = accountDescTwoFaSecret.Validators[0].(func(string) error)
+	// accountDescTwoFaCompleted is the schema descriptor for two_fa_completed field.
+	accountDescTwoFaCompleted := accountFields[5].Descriptor()
+	// account.DefaultTwoFaCompleted holds the default value on creation for the two_fa_completed field.
+	account.DefaultTwoFaCompleted = accountDescTwoFaCompleted.Default.(bool)
 	// accountDescCreatedAt is the schema descriptor for created_at field.
-	accountDescCreatedAt := accountFields[5].Descriptor()
+	accountDescCreatedAt := accountFields[8].Descriptor()
 	// account.DefaultCreatedAt holds the default value on creation for the created_at field.
 	account.DefaultCreatedAt = accountDescCreatedAt.Default.(func() time.Time)
 	// accountDescUpdatedAt is the schema descriptor for updated_at field.
-	accountDescUpdatedAt := accountFields[6].Descriptor()
+	accountDescUpdatedAt := accountFields[9].Descriptor()
 	// account.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	account.DefaultUpdatedAt = accountDescUpdatedAt.Default.(func() time.Time)
 	// account.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
@@ -84,18 +92,18 @@ func init() {
 	address.DefaultID = addressDescID.Default.(func() uuid.UUID)
 	adminFields := schema.Admin{}.Fields()
 	_ = adminFields
-	// adminDescTwoFaSecret is the schema descriptor for two_fa_secret field.
-	adminDescTwoFaSecret := adminFields[1].Descriptor()
-	// admin.TwoFaSecretValidator is a validator for the "two_fa_secret" field. It is called by the builders before save.
-	admin.TwoFaSecretValidator = adminDescTwoFaSecret.Validators[0].(func(string) error)
-	// adminDescTwoFaCompleted is the schema descriptor for two_fa_completed field.
-	adminDescTwoFaCompleted := adminFields[2].Descriptor()
-	// admin.DefaultTwoFaCompleted holds the default value on creation for the two_fa_completed field.
-	admin.DefaultTwoFaCompleted = adminDescTwoFaCompleted.Default.(bool)
-	// adminDescToken is the schema descriptor for token field.
-	adminDescToken := adminFields[3].Descriptor()
-	// admin.TokenValidator is a validator for the "token" field. It is called by the builders before save.
-	admin.TokenValidator = adminDescToken.Validators[0].(func(string) error)
+	// adminDescLevel is the schema descriptor for level field.
+	adminDescLevel := adminFields[1].Descriptor()
+	// admin.DefaultLevel holds the default value on creation for the level field.
+	admin.DefaultLevel = adminDescLevel.Default.(int)
+	// adminDescSecurityQuestion is the schema descriptor for security_question field.
+	adminDescSecurityQuestion := adminFields[2].Descriptor()
+	// admin.SecurityQuestionValidator is a validator for the "security_question" field. It is called by the builders before save.
+	admin.SecurityQuestionValidator = adminDescSecurityQuestion.Validators[0].(func(string) error)
+	// adminDescSecurityAnswer is the schema descriptor for security_answer field.
+	adminDescSecurityAnswer := adminFields[3].Descriptor()
+	// admin.SecurityAnswerValidator is a validator for the "security_answer" field. It is called by the builders before save.
+	admin.SecurityAnswerValidator = adminDescSecurityAnswer.Validators[0].(func(string) error)
 	// adminDescCreatedAt is the schema descriptor for created_at field.
 	adminDescCreatedAt := adminFields[4].Descriptor()
 	// admin.DefaultCreatedAt holds the default value on creation for the created_at field.

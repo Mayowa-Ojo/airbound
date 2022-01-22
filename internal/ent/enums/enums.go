@@ -140,6 +140,14 @@ func (Role) Values() (kinds []string) {
 	return
 }
 
+type AdminLevel int
+
+const (
+	AdminLevelI AdminLevel = iota + 1
+	AdminLevelII
+	AdminLevelIII
+)
+
 type WeekDay int
 
 const (

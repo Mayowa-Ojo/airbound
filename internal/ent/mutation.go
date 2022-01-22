@@ -72,21 +72,24 @@ const (
 // AccountMutation represents an operation that mutates the Account nodes in the graph.
 type AccountMutation struct {
 	config
-	op                 Op
-	typ                string
-	id                 *uuid.UUID
-	account_status     *enums.AccountStatus
-	password           *[]byte
-	salt               *[]byte
-	verification_token *string
-	created_at         *time.Time
-	updated_at         *time.Time
-	clearedFields      map[string]struct{}
-	user               *uuid.UUID
-	cleareduser        bool
-	done               bool
-	oldValue           func(context.Context) (*Account, error)
-	predicates         []predicate.Account
+	op                    Op
+	typ                   string
+	id                    *uuid.UUID
+	account_status        *enums.AccountStatus
+	password              *[]byte
+	salt                  *[]byte
+	two_fa_secret         *string
+	two_fa_completed      *bool
+	verification_token    *string
+	forgot_password_token *string
+	created_at            *time.Time
+	updated_at            *time.Time
+	clearedFields         map[string]struct{}
+	user                  *uuid.UUID
+	cleareduser           bool
+	done                  bool
+	oldValue              func(context.Context) (*Account, error)
+	predicates            []predicate.Account
 }
 
 var _ ent.Mutation = (*AccountMutation)(nil)
@@ -282,6 +285,91 @@ func (m *AccountMutation) ResetSalt() {
 	m.salt = nil
 }
 
+// SetTwoFaSecret sets the "two_fa_secret" field.
+func (m *AccountMutation) SetTwoFaSecret(s string) {
+	m.two_fa_secret = &s
+}
+
+// TwoFaSecret returns the value of the "two_fa_secret" field in the mutation.
+func (m *AccountMutation) TwoFaSecret() (r string, exists bool) {
+	v := m.two_fa_secret
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTwoFaSecret returns the old "two_fa_secret" field's value of the Account entity.
+// If the Account object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AccountMutation) OldTwoFaSecret(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldTwoFaSecret is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldTwoFaSecret requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTwoFaSecret: %w", err)
+	}
+	return oldValue.TwoFaSecret, nil
+}
+
+// ClearTwoFaSecret clears the value of the "two_fa_secret" field.
+func (m *AccountMutation) ClearTwoFaSecret() {
+	m.two_fa_secret = nil
+	m.clearedFields[account.FieldTwoFaSecret] = struct{}{}
+}
+
+// TwoFaSecretCleared returns if the "two_fa_secret" field was cleared in this mutation.
+func (m *AccountMutation) TwoFaSecretCleared() bool {
+	_, ok := m.clearedFields[account.FieldTwoFaSecret]
+	return ok
+}
+
+// ResetTwoFaSecret resets all changes to the "two_fa_secret" field.
+func (m *AccountMutation) ResetTwoFaSecret() {
+	m.two_fa_secret = nil
+	delete(m.clearedFields, account.FieldTwoFaSecret)
+}
+
+// SetTwoFaCompleted sets the "two_fa_completed" field.
+func (m *AccountMutation) SetTwoFaCompleted(b bool) {
+	m.two_fa_completed = &b
+}
+
+// TwoFaCompleted returns the value of the "two_fa_completed" field in the mutation.
+func (m *AccountMutation) TwoFaCompleted() (r bool, exists bool) {
+	v := m.two_fa_completed
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTwoFaCompleted returns the old "two_fa_completed" field's value of the Account entity.
+// If the Account object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AccountMutation) OldTwoFaCompleted(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldTwoFaCompleted is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldTwoFaCompleted requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTwoFaCompleted: %w", err)
+	}
+	return oldValue.TwoFaCompleted, nil
+}
+
+// ResetTwoFaCompleted resets all changes to the "two_fa_completed" field.
+func (m *AccountMutation) ResetTwoFaCompleted() {
+	m.two_fa_completed = nil
+}
+
 // SetVerificationToken sets the "verification_token" field.
 func (m *AccountMutation) SetVerificationToken(s string) {
 	m.verification_token = &s
@@ -329,6 +417,55 @@ func (m *AccountMutation) VerificationTokenCleared() bool {
 func (m *AccountMutation) ResetVerificationToken() {
 	m.verification_token = nil
 	delete(m.clearedFields, account.FieldVerificationToken)
+}
+
+// SetForgotPasswordToken sets the "forgot_password_token" field.
+func (m *AccountMutation) SetForgotPasswordToken(s string) {
+	m.forgot_password_token = &s
+}
+
+// ForgotPasswordToken returns the value of the "forgot_password_token" field in the mutation.
+func (m *AccountMutation) ForgotPasswordToken() (r string, exists bool) {
+	v := m.forgot_password_token
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldForgotPasswordToken returns the old "forgot_password_token" field's value of the Account entity.
+// If the Account object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AccountMutation) OldForgotPasswordToken(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldForgotPasswordToken is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldForgotPasswordToken requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldForgotPasswordToken: %w", err)
+	}
+	return oldValue.ForgotPasswordToken, nil
+}
+
+// ClearForgotPasswordToken clears the value of the "forgot_password_token" field.
+func (m *AccountMutation) ClearForgotPasswordToken() {
+	m.forgot_password_token = nil
+	m.clearedFields[account.FieldForgotPasswordToken] = struct{}{}
+}
+
+// ForgotPasswordTokenCleared returns if the "forgot_password_token" field was cleared in this mutation.
+func (m *AccountMutation) ForgotPasswordTokenCleared() bool {
+	_, ok := m.clearedFields[account.FieldForgotPasswordToken]
+	return ok
+}
+
+// ResetForgotPasswordToken resets all changes to the "forgot_password_token" field.
+func (m *AccountMutation) ResetForgotPasswordToken() {
+	m.forgot_password_token = nil
+	delete(m.clearedFields, account.FieldForgotPasswordToken)
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -461,7 +598,7 @@ func (m *AccountMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *AccountMutation) Fields() []string {
-	fields := make([]string, 0, 6)
+	fields := make([]string, 0, 9)
 	if m.account_status != nil {
 		fields = append(fields, account.FieldAccountStatus)
 	}
@@ -471,8 +608,17 @@ func (m *AccountMutation) Fields() []string {
 	if m.salt != nil {
 		fields = append(fields, account.FieldSalt)
 	}
+	if m.two_fa_secret != nil {
+		fields = append(fields, account.FieldTwoFaSecret)
+	}
+	if m.two_fa_completed != nil {
+		fields = append(fields, account.FieldTwoFaCompleted)
+	}
 	if m.verification_token != nil {
 		fields = append(fields, account.FieldVerificationToken)
+	}
+	if m.forgot_password_token != nil {
+		fields = append(fields, account.FieldForgotPasswordToken)
 	}
 	if m.created_at != nil {
 		fields = append(fields, account.FieldCreatedAt)
@@ -494,8 +640,14 @@ func (m *AccountMutation) Field(name string) (ent.Value, bool) {
 		return m.Password()
 	case account.FieldSalt:
 		return m.Salt()
+	case account.FieldTwoFaSecret:
+		return m.TwoFaSecret()
+	case account.FieldTwoFaCompleted:
+		return m.TwoFaCompleted()
 	case account.FieldVerificationToken:
 		return m.VerificationToken()
+	case account.FieldForgotPasswordToken:
+		return m.ForgotPasswordToken()
 	case account.FieldCreatedAt:
 		return m.CreatedAt()
 	case account.FieldUpdatedAt:
@@ -515,8 +667,14 @@ func (m *AccountMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldPassword(ctx)
 	case account.FieldSalt:
 		return m.OldSalt(ctx)
+	case account.FieldTwoFaSecret:
+		return m.OldTwoFaSecret(ctx)
+	case account.FieldTwoFaCompleted:
+		return m.OldTwoFaCompleted(ctx)
 	case account.FieldVerificationToken:
 		return m.OldVerificationToken(ctx)
+	case account.FieldForgotPasswordToken:
+		return m.OldForgotPasswordToken(ctx)
 	case account.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case account.FieldUpdatedAt:
@@ -551,12 +709,33 @@ func (m *AccountMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetSalt(v)
 		return nil
+	case account.FieldTwoFaSecret:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTwoFaSecret(v)
+		return nil
+	case account.FieldTwoFaCompleted:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTwoFaCompleted(v)
+		return nil
 	case account.FieldVerificationToken:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetVerificationToken(v)
+		return nil
+	case account.FieldForgotPasswordToken:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetForgotPasswordToken(v)
 		return nil
 	case account.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -602,8 +781,14 @@ func (m *AccountMutation) AddField(name string, value ent.Value) error {
 // mutation.
 func (m *AccountMutation) ClearedFields() []string {
 	var fields []string
+	if m.FieldCleared(account.FieldTwoFaSecret) {
+		fields = append(fields, account.FieldTwoFaSecret)
+	}
 	if m.FieldCleared(account.FieldVerificationToken) {
 		fields = append(fields, account.FieldVerificationToken)
+	}
+	if m.FieldCleared(account.FieldForgotPasswordToken) {
+		fields = append(fields, account.FieldForgotPasswordToken)
 	}
 	return fields
 }
@@ -619,8 +804,14 @@ func (m *AccountMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *AccountMutation) ClearField(name string) error {
 	switch name {
+	case account.FieldTwoFaSecret:
+		m.ClearTwoFaSecret()
+		return nil
 	case account.FieldVerificationToken:
 		m.ClearVerificationToken()
+		return nil
+	case account.FieldForgotPasswordToken:
+		m.ClearForgotPasswordToken()
 		return nil
 	}
 	return fmt.Errorf("unknown Account nullable field %s", name)
@@ -639,8 +830,17 @@ func (m *AccountMutation) ResetField(name string) error {
 	case account.FieldSalt:
 		m.ResetSalt()
 		return nil
+	case account.FieldTwoFaSecret:
+		m.ResetTwoFaSecret()
+		return nil
+	case account.FieldTwoFaCompleted:
+		m.ResetTwoFaCompleted()
+		return nil
 	case account.FieldVerificationToken:
 		m.ResetVerificationToken()
+		return nil
+	case account.FieldForgotPasswordToken:
+		m.ResetForgotPasswordToken()
 		return nil
 	case account.FieldCreatedAt:
 		m.ResetCreatedAt()
@@ -1427,20 +1627,21 @@ func (m *AddressMutation) ResetEdge(name string) error {
 // AdminMutation represents an operation that mutates the Admin nodes in the graph.
 type AdminMutation struct {
 	config
-	op               Op
-	typ              string
-	id               *uuid.UUID
-	two_fa_secret    *string
-	two_fa_completed *bool
-	token            *string
-	created_at       *time.Time
-	updated_at       *time.Time
-	clearedFields    map[string]struct{}
-	user             *uuid.UUID
-	cleareduser      bool
-	done             bool
-	oldValue         func(context.Context) (*Admin, error)
-	predicates       []predicate.Admin
+	op                Op
+	typ               string
+	id                *uuid.UUID
+	level             *int
+	addlevel          *int
+	security_question *string
+	security_answer   *string
+	created_at        *time.Time
+	updated_at        *time.Time
+	clearedFields     map[string]struct{}
+	user              *uuid.UUID
+	cleareduser       bool
+	done              bool
+	oldValue          func(context.Context) (*Admin, error)
+	predicates        []predicate.Admin
 }
 
 var _ ent.Mutation = (*AdminMutation)(nil)
@@ -1528,138 +1729,158 @@ func (m *AdminMutation) ID() (id uuid.UUID, exists bool) {
 	return *m.id, true
 }
 
-// SetTwoFaSecret sets the "two_fa_secret" field.
-func (m *AdminMutation) SetTwoFaSecret(s string) {
-	m.two_fa_secret = &s
+// SetLevel sets the "level" field.
+func (m *AdminMutation) SetLevel(i int) {
+	m.level = &i
+	m.addlevel = nil
 }
 
-// TwoFaSecret returns the value of the "two_fa_secret" field in the mutation.
-func (m *AdminMutation) TwoFaSecret() (r string, exists bool) {
-	v := m.two_fa_secret
+// Level returns the value of the "level" field in the mutation.
+func (m *AdminMutation) Level() (r int, exists bool) {
+	v := m.level
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldTwoFaSecret returns the old "two_fa_secret" field's value of the Admin entity.
+// OldLevel returns the old "level" field's value of the Admin entity.
 // If the Admin object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AdminMutation) OldTwoFaSecret(ctx context.Context) (v string, err error) {
+func (m *AdminMutation) OldLevel(ctx context.Context) (v int, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, fmt.Errorf("OldTwoFaSecret is only allowed on UpdateOne operations")
+		return v, fmt.Errorf("OldLevel is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, fmt.Errorf("OldTwoFaSecret requires an ID field in the mutation")
+		return v, fmt.Errorf("OldLevel requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldTwoFaSecret: %w", err)
+		return v, fmt.Errorf("querying old value for OldLevel: %w", err)
 	}
-	return oldValue.TwoFaSecret, nil
+	return oldValue.Level, nil
 }
 
-// ClearTwoFaSecret clears the value of the "two_fa_secret" field.
-func (m *AdminMutation) ClearTwoFaSecret() {
-	m.two_fa_secret = nil
-	m.clearedFields[admin.FieldTwoFaSecret] = struct{}{}
+// AddLevel adds i to the "level" field.
+func (m *AdminMutation) AddLevel(i int) {
+	if m.addlevel != nil {
+		*m.addlevel += i
+	} else {
+		m.addlevel = &i
+	}
 }
 
-// TwoFaSecretCleared returns if the "two_fa_secret" field was cleared in this mutation.
-func (m *AdminMutation) TwoFaSecretCleared() bool {
-	_, ok := m.clearedFields[admin.FieldTwoFaSecret]
+// AddedLevel returns the value that was added to the "level" field in this mutation.
+func (m *AdminMutation) AddedLevel() (r int, exists bool) {
+	v := m.addlevel
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetLevel resets all changes to the "level" field.
+func (m *AdminMutation) ResetLevel() {
+	m.level = nil
+	m.addlevel = nil
+}
+
+// SetSecurityQuestion sets the "security_question" field.
+func (m *AdminMutation) SetSecurityQuestion(s string) {
+	m.security_question = &s
+}
+
+// SecurityQuestion returns the value of the "security_question" field in the mutation.
+func (m *AdminMutation) SecurityQuestion() (r string, exists bool) {
+	v := m.security_question
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSecurityQuestion returns the old "security_question" field's value of the Admin entity.
+// If the Admin object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AdminMutation) OldSecurityQuestion(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldSecurityQuestion is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldSecurityQuestion requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSecurityQuestion: %w", err)
+	}
+	return oldValue.SecurityQuestion, nil
+}
+
+// ClearSecurityQuestion clears the value of the "security_question" field.
+func (m *AdminMutation) ClearSecurityQuestion() {
+	m.security_question = nil
+	m.clearedFields[admin.FieldSecurityQuestion] = struct{}{}
+}
+
+// SecurityQuestionCleared returns if the "security_question" field was cleared in this mutation.
+func (m *AdminMutation) SecurityQuestionCleared() bool {
+	_, ok := m.clearedFields[admin.FieldSecurityQuestion]
 	return ok
 }
 
-// ResetTwoFaSecret resets all changes to the "two_fa_secret" field.
-func (m *AdminMutation) ResetTwoFaSecret() {
-	m.two_fa_secret = nil
-	delete(m.clearedFields, admin.FieldTwoFaSecret)
+// ResetSecurityQuestion resets all changes to the "security_question" field.
+func (m *AdminMutation) ResetSecurityQuestion() {
+	m.security_question = nil
+	delete(m.clearedFields, admin.FieldSecurityQuestion)
 }
 
-// SetTwoFaCompleted sets the "two_fa_completed" field.
-func (m *AdminMutation) SetTwoFaCompleted(b bool) {
-	m.two_fa_completed = &b
+// SetSecurityAnswer sets the "security_answer" field.
+func (m *AdminMutation) SetSecurityAnswer(s string) {
+	m.security_answer = &s
 }
 
-// TwoFaCompleted returns the value of the "two_fa_completed" field in the mutation.
-func (m *AdminMutation) TwoFaCompleted() (r bool, exists bool) {
-	v := m.two_fa_completed
+// SecurityAnswer returns the value of the "security_answer" field in the mutation.
+func (m *AdminMutation) SecurityAnswer() (r string, exists bool) {
+	v := m.security_answer
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldTwoFaCompleted returns the old "two_fa_completed" field's value of the Admin entity.
+// OldSecurityAnswer returns the old "security_answer" field's value of the Admin entity.
 // If the Admin object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AdminMutation) OldTwoFaCompleted(ctx context.Context) (v bool, err error) {
+func (m *AdminMutation) OldSecurityAnswer(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, fmt.Errorf("OldTwoFaCompleted is only allowed on UpdateOne operations")
+		return v, fmt.Errorf("OldSecurityAnswer is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, fmt.Errorf("OldTwoFaCompleted requires an ID field in the mutation")
+		return v, fmt.Errorf("OldSecurityAnswer requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldTwoFaCompleted: %w", err)
+		return v, fmt.Errorf("querying old value for OldSecurityAnswer: %w", err)
 	}
-	return oldValue.TwoFaCompleted, nil
+	return oldValue.SecurityAnswer, nil
 }
 
-// ResetTwoFaCompleted resets all changes to the "two_fa_completed" field.
-func (m *AdminMutation) ResetTwoFaCompleted() {
-	m.two_fa_completed = nil
+// ClearSecurityAnswer clears the value of the "security_answer" field.
+func (m *AdminMutation) ClearSecurityAnswer() {
+	m.security_answer = nil
+	m.clearedFields[admin.FieldSecurityAnswer] = struct{}{}
 }
 
-// SetToken sets the "token" field.
-func (m *AdminMutation) SetToken(s string) {
-	m.token = &s
-}
-
-// Token returns the value of the "token" field in the mutation.
-func (m *AdminMutation) Token() (r string, exists bool) {
-	v := m.token
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldToken returns the old "token" field's value of the Admin entity.
-// If the Admin object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AdminMutation) OldToken(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, fmt.Errorf("OldToken is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, fmt.Errorf("OldToken requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldToken: %w", err)
-	}
-	return oldValue.Token, nil
-}
-
-// ClearToken clears the value of the "token" field.
-func (m *AdminMutation) ClearToken() {
-	m.token = nil
-	m.clearedFields[admin.FieldToken] = struct{}{}
-}
-
-// TokenCleared returns if the "token" field was cleared in this mutation.
-func (m *AdminMutation) TokenCleared() bool {
-	_, ok := m.clearedFields[admin.FieldToken]
+// SecurityAnswerCleared returns if the "security_answer" field was cleared in this mutation.
+func (m *AdminMutation) SecurityAnswerCleared() bool {
+	_, ok := m.clearedFields[admin.FieldSecurityAnswer]
 	return ok
 }
 
-// ResetToken resets all changes to the "token" field.
-func (m *AdminMutation) ResetToken() {
-	m.token = nil
-	delete(m.clearedFields, admin.FieldToken)
+// ResetSecurityAnswer resets all changes to the "security_answer" field.
+func (m *AdminMutation) ResetSecurityAnswer() {
+	m.security_answer = nil
+	delete(m.clearedFields, admin.FieldSecurityAnswer)
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -1793,14 +2014,14 @@ func (m *AdminMutation) Type() string {
 // AddedFields().
 func (m *AdminMutation) Fields() []string {
 	fields := make([]string, 0, 5)
-	if m.two_fa_secret != nil {
-		fields = append(fields, admin.FieldTwoFaSecret)
+	if m.level != nil {
+		fields = append(fields, admin.FieldLevel)
 	}
-	if m.two_fa_completed != nil {
-		fields = append(fields, admin.FieldTwoFaCompleted)
+	if m.security_question != nil {
+		fields = append(fields, admin.FieldSecurityQuestion)
 	}
-	if m.token != nil {
-		fields = append(fields, admin.FieldToken)
+	if m.security_answer != nil {
+		fields = append(fields, admin.FieldSecurityAnswer)
 	}
 	if m.created_at != nil {
 		fields = append(fields, admin.FieldCreatedAt)
@@ -1816,12 +2037,12 @@ func (m *AdminMutation) Fields() []string {
 // schema.
 func (m *AdminMutation) Field(name string) (ent.Value, bool) {
 	switch name {
-	case admin.FieldTwoFaSecret:
-		return m.TwoFaSecret()
-	case admin.FieldTwoFaCompleted:
-		return m.TwoFaCompleted()
-	case admin.FieldToken:
-		return m.Token()
+	case admin.FieldLevel:
+		return m.Level()
+	case admin.FieldSecurityQuestion:
+		return m.SecurityQuestion()
+	case admin.FieldSecurityAnswer:
+		return m.SecurityAnswer()
 	case admin.FieldCreatedAt:
 		return m.CreatedAt()
 	case admin.FieldUpdatedAt:
@@ -1835,12 +2056,12 @@ func (m *AdminMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *AdminMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
-	case admin.FieldTwoFaSecret:
-		return m.OldTwoFaSecret(ctx)
-	case admin.FieldTwoFaCompleted:
-		return m.OldTwoFaCompleted(ctx)
-	case admin.FieldToken:
-		return m.OldToken(ctx)
+	case admin.FieldLevel:
+		return m.OldLevel(ctx)
+	case admin.FieldSecurityQuestion:
+		return m.OldSecurityQuestion(ctx)
+	case admin.FieldSecurityAnswer:
+		return m.OldSecurityAnswer(ctx)
 	case admin.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case admin.FieldUpdatedAt:
@@ -1854,26 +2075,26 @@ func (m *AdminMutation) OldField(ctx context.Context, name string) (ent.Value, e
 // type.
 func (m *AdminMutation) SetField(name string, value ent.Value) error {
 	switch name {
-	case admin.FieldTwoFaSecret:
+	case admin.FieldLevel:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLevel(v)
+		return nil
+	case admin.FieldSecurityQuestion:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetTwoFaSecret(v)
+		m.SetSecurityQuestion(v)
 		return nil
-	case admin.FieldTwoFaCompleted:
-		v, ok := value.(bool)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetTwoFaCompleted(v)
-		return nil
-	case admin.FieldToken:
+	case admin.FieldSecurityAnswer:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetToken(v)
+		m.SetSecurityAnswer(v)
 		return nil
 	case admin.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -1896,13 +2117,21 @@ func (m *AdminMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *AdminMutation) AddedFields() []string {
-	return nil
+	var fields []string
+	if m.addlevel != nil {
+		fields = append(fields, admin.FieldLevel)
+	}
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *AdminMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case admin.FieldLevel:
+		return m.AddedLevel()
+	}
 	return nil, false
 }
 
@@ -1911,6 +2140,13 @@ func (m *AdminMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *AdminMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case admin.FieldLevel:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddLevel(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Admin numeric field %s", name)
 }
@@ -1919,11 +2155,11 @@ func (m *AdminMutation) AddField(name string, value ent.Value) error {
 // mutation.
 func (m *AdminMutation) ClearedFields() []string {
 	var fields []string
-	if m.FieldCleared(admin.FieldTwoFaSecret) {
-		fields = append(fields, admin.FieldTwoFaSecret)
+	if m.FieldCleared(admin.FieldSecurityQuestion) {
+		fields = append(fields, admin.FieldSecurityQuestion)
 	}
-	if m.FieldCleared(admin.FieldToken) {
-		fields = append(fields, admin.FieldToken)
+	if m.FieldCleared(admin.FieldSecurityAnswer) {
+		fields = append(fields, admin.FieldSecurityAnswer)
 	}
 	return fields
 }
@@ -1939,11 +2175,11 @@ func (m *AdminMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *AdminMutation) ClearField(name string) error {
 	switch name {
-	case admin.FieldTwoFaSecret:
-		m.ClearTwoFaSecret()
+	case admin.FieldSecurityQuestion:
+		m.ClearSecurityQuestion()
 		return nil
-	case admin.FieldToken:
-		m.ClearToken()
+	case admin.FieldSecurityAnswer:
+		m.ClearSecurityAnswer()
 		return nil
 	}
 	return fmt.Errorf("unknown Admin nullable field %s", name)
@@ -1953,14 +2189,14 @@ func (m *AdminMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *AdminMutation) ResetField(name string) error {
 	switch name {
-	case admin.FieldTwoFaSecret:
-		m.ResetTwoFaSecret()
+	case admin.FieldLevel:
+		m.ResetLevel()
 		return nil
-	case admin.FieldTwoFaCompleted:
-		m.ResetTwoFaCompleted()
+	case admin.FieldSecurityQuestion:
+		m.ResetSecurityQuestion()
 		return nil
-	case admin.FieldToken:
-		m.ResetToken()
+	case admin.FieldSecurityAnswer:
+		m.ResetSecurityAnswer()
 		return nil
 	case admin.FieldCreatedAt:
 		m.ResetCreatedAt()

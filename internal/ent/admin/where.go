@@ -94,24 +94,24 @@ func IDLTE(id uuid.UUID) predicate.Admin {
 	})
 }
 
-// TwoFaSecret applies equality check predicate on the "two_fa_secret" field. It's identical to TwoFaSecretEQ.
-func TwoFaSecret(v string) predicate.Admin {
+// Level applies equality check predicate on the "level" field. It's identical to LevelEQ.
+func Level(v int) predicate.Admin {
 	return predicate.Admin(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldTwoFaSecret), v))
+		s.Where(sql.EQ(s.C(FieldLevel), v))
 	})
 }
 
-// TwoFaCompleted applies equality check predicate on the "two_fa_completed" field. It's identical to TwoFaCompletedEQ.
-func TwoFaCompleted(v bool) predicate.Admin {
+// SecurityQuestion applies equality check predicate on the "security_question" field. It's identical to SecurityQuestionEQ.
+func SecurityQuestion(v string) predicate.Admin {
 	return predicate.Admin(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldTwoFaCompleted), v))
+		s.Where(sql.EQ(s.C(FieldSecurityQuestion), v))
 	})
 }
 
-// Token applies equality check predicate on the "token" field. It's identical to TokenEQ.
-func Token(v string) predicate.Admin {
+// SecurityAnswer applies equality check predicate on the "security_answer" field. It's identical to SecurityAnswerEQ.
+func SecurityAnswer(v string) predicate.Admin {
 	return predicate.Admin(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldToken), v))
+		s.Where(sql.EQ(s.C(FieldSecurityAnswer), v))
 	})
 }
 
@@ -129,22 +129,22 @@ func UpdatedAt(v time.Time) predicate.Admin {
 	})
 }
 
-// TwoFaSecretEQ applies the EQ predicate on the "two_fa_secret" field.
-func TwoFaSecretEQ(v string) predicate.Admin {
+// LevelEQ applies the EQ predicate on the "level" field.
+func LevelEQ(v int) predicate.Admin {
 	return predicate.Admin(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldTwoFaSecret), v))
+		s.Where(sql.EQ(s.C(FieldLevel), v))
 	})
 }
 
-// TwoFaSecretNEQ applies the NEQ predicate on the "two_fa_secret" field.
-func TwoFaSecretNEQ(v string) predicate.Admin {
+// LevelNEQ applies the NEQ predicate on the "level" field.
+func LevelNEQ(v int) predicate.Admin {
 	return predicate.Admin(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldTwoFaSecret), v))
+		s.Where(sql.NEQ(s.C(FieldLevel), v))
 	})
 }
 
-// TwoFaSecretIn applies the In predicate on the "two_fa_secret" field.
-func TwoFaSecretIn(vs ...string) predicate.Admin {
+// LevelIn applies the In predicate on the "level" field.
+func LevelIn(vs ...int) predicate.Admin {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -156,12 +156,12 @@ func TwoFaSecretIn(vs ...string) predicate.Admin {
 			s.Where(sql.False())
 			return
 		}
-		s.Where(sql.In(s.C(FieldTwoFaSecret), v...))
+		s.Where(sql.In(s.C(FieldLevel), v...))
 	})
 }
 
-// TwoFaSecretNotIn applies the NotIn predicate on the "two_fa_secret" field.
-func TwoFaSecretNotIn(vs ...string) predicate.Admin {
+// LevelNotIn applies the NotIn predicate on the "level" field.
+func LevelNotIn(vs ...int) predicate.Admin {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -173,117 +173,54 @@ func TwoFaSecretNotIn(vs ...string) predicate.Admin {
 			s.Where(sql.False())
 			return
 		}
-		s.Where(sql.NotIn(s.C(FieldTwoFaSecret), v...))
+		s.Where(sql.NotIn(s.C(FieldLevel), v...))
 	})
 }
 
-// TwoFaSecretGT applies the GT predicate on the "two_fa_secret" field.
-func TwoFaSecretGT(v string) predicate.Admin {
+// LevelGT applies the GT predicate on the "level" field.
+func LevelGT(v int) predicate.Admin {
 	return predicate.Admin(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldTwoFaSecret), v))
+		s.Where(sql.GT(s.C(FieldLevel), v))
 	})
 }
 
-// TwoFaSecretGTE applies the GTE predicate on the "two_fa_secret" field.
-func TwoFaSecretGTE(v string) predicate.Admin {
+// LevelGTE applies the GTE predicate on the "level" field.
+func LevelGTE(v int) predicate.Admin {
 	return predicate.Admin(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldTwoFaSecret), v))
+		s.Where(sql.GTE(s.C(FieldLevel), v))
 	})
 }
 
-// TwoFaSecretLT applies the LT predicate on the "two_fa_secret" field.
-func TwoFaSecretLT(v string) predicate.Admin {
+// LevelLT applies the LT predicate on the "level" field.
+func LevelLT(v int) predicate.Admin {
 	return predicate.Admin(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldTwoFaSecret), v))
+		s.Where(sql.LT(s.C(FieldLevel), v))
 	})
 }
 
-// TwoFaSecretLTE applies the LTE predicate on the "two_fa_secret" field.
-func TwoFaSecretLTE(v string) predicate.Admin {
+// LevelLTE applies the LTE predicate on the "level" field.
+func LevelLTE(v int) predicate.Admin {
 	return predicate.Admin(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldTwoFaSecret), v))
+		s.Where(sql.LTE(s.C(FieldLevel), v))
 	})
 }
 
-// TwoFaSecretContains applies the Contains predicate on the "two_fa_secret" field.
-func TwoFaSecretContains(v string) predicate.Admin {
+// SecurityQuestionEQ applies the EQ predicate on the "security_question" field.
+func SecurityQuestionEQ(v string) predicate.Admin {
 	return predicate.Admin(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldTwoFaSecret), v))
+		s.Where(sql.EQ(s.C(FieldSecurityQuestion), v))
 	})
 }
 
-// TwoFaSecretHasPrefix applies the HasPrefix predicate on the "two_fa_secret" field.
-func TwoFaSecretHasPrefix(v string) predicate.Admin {
+// SecurityQuestionNEQ applies the NEQ predicate on the "security_question" field.
+func SecurityQuestionNEQ(v string) predicate.Admin {
 	return predicate.Admin(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldTwoFaSecret), v))
+		s.Where(sql.NEQ(s.C(FieldSecurityQuestion), v))
 	})
 }
 
-// TwoFaSecretHasSuffix applies the HasSuffix predicate on the "two_fa_secret" field.
-func TwoFaSecretHasSuffix(v string) predicate.Admin {
-	return predicate.Admin(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldTwoFaSecret), v))
-	})
-}
-
-// TwoFaSecretIsNil applies the IsNil predicate on the "two_fa_secret" field.
-func TwoFaSecretIsNil() predicate.Admin {
-	return predicate.Admin(func(s *sql.Selector) {
-		s.Where(sql.IsNull(s.C(FieldTwoFaSecret)))
-	})
-}
-
-// TwoFaSecretNotNil applies the NotNil predicate on the "two_fa_secret" field.
-func TwoFaSecretNotNil() predicate.Admin {
-	return predicate.Admin(func(s *sql.Selector) {
-		s.Where(sql.NotNull(s.C(FieldTwoFaSecret)))
-	})
-}
-
-// TwoFaSecretEqualFold applies the EqualFold predicate on the "two_fa_secret" field.
-func TwoFaSecretEqualFold(v string) predicate.Admin {
-	return predicate.Admin(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldTwoFaSecret), v))
-	})
-}
-
-// TwoFaSecretContainsFold applies the ContainsFold predicate on the "two_fa_secret" field.
-func TwoFaSecretContainsFold(v string) predicate.Admin {
-	return predicate.Admin(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldTwoFaSecret), v))
-	})
-}
-
-// TwoFaCompletedEQ applies the EQ predicate on the "two_fa_completed" field.
-func TwoFaCompletedEQ(v bool) predicate.Admin {
-	return predicate.Admin(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldTwoFaCompleted), v))
-	})
-}
-
-// TwoFaCompletedNEQ applies the NEQ predicate on the "two_fa_completed" field.
-func TwoFaCompletedNEQ(v bool) predicate.Admin {
-	return predicate.Admin(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldTwoFaCompleted), v))
-	})
-}
-
-// TokenEQ applies the EQ predicate on the "token" field.
-func TokenEQ(v string) predicate.Admin {
-	return predicate.Admin(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldToken), v))
-	})
-}
-
-// TokenNEQ applies the NEQ predicate on the "token" field.
-func TokenNEQ(v string) predicate.Admin {
-	return predicate.Admin(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldToken), v))
-	})
-}
-
-// TokenIn applies the In predicate on the "token" field.
-func TokenIn(vs ...string) predicate.Admin {
+// SecurityQuestionIn applies the In predicate on the "security_question" field.
+func SecurityQuestionIn(vs ...string) predicate.Admin {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -295,12 +232,12 @@ func TokenIn(vs ...string) predicate.Admin {
 			s.Where(sql.False())
 			return
 		}
-		s.Where(sql.In(s.C(FieldToken), v...))
+		s.Where(sql.In(s.C(FieldSecurityQuestion), v...))
 	})
 }
 
-// TokenNotIn applies the NotIn predicate on the "token" field.
-func TokenNotIn(vs ...string) predicate.Admin {
+// SecurityQuestionNotIn applies the NotIn predicate on the "security_question" field.
+func SecurityQuestionNotIn(vs ...string) predicate.Admin {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -312,84 +249,209 @@ func TokenNotIn(vs ...string) predicate.Admin {
 			s.Where(sql.False())
 			return
 		}
-		s.Where(sql.NotIn(s.C(FieldToken), v...))
+		s.Where(sql.NotIn(s.C(FieldSecurityQuestion), v...))
 	})
 }
 
-// TokenGT applies the GT predicate on the "token" field.
-func TokenGT(v string) predicate.Admin {
+// SecurityQuestionGT applies the GT predicate on the "security_question" field.
+func SecurityQuestionGT(v string) predicate.Admin {
 	return predicate.Admin(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldToken), v))
+		s.Where(sql.GT(s.C(FieldSecurityQuestion), v))
 	})
 }
 
-// TokenGTE applies the GTE predicate on the "token" field.
-func TokenGTE(v string) predicate.Admin {
+// SecurityQuestionGTE applies the GTE predicate on the "security_question" field.
+func SecurityQuestionGTE(v string) predicate.Admin {
 	return predicate.Admin(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldToken), v))
+		s.Where(sql.GTE(s.C(FieldSecurityQuestion), v))
 	})
 }
 
-// TokenLT applies the LT predicate on the "token" field.
-func TokenLT(v string) predicate.Admin {
+// SecurityQuestionLT applies the LT predicate on the "security_question" field.
+func SecurityQuestionLT(v string) predicate.Admin {
 	return predicate.Admin(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldToken), v))
+		s.Where(sql.LT(s.C(FieldSecurityQuestion), v))
 	})
 }
 
-// TokenLTE applies the LTE predicate on the "token" field.
-func TokenLTE(v string) predicate.Admin {
+// SecurityQuestionLTE applies the LTE predicate on the "security_question" field.
+func SecurityQuestionLTE(v string) predicate.Admin {
 	return predicate.Admin(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldToken), v))
+		s.Where(sql.LTE(s.C(FieldSecurityQuestion), v))
 	})
 }
 
-// TokenContains applies the Contains predicate on the "token" field.
-func TokenContains(v string) predicate.Admin {
+// SecurityQuestionContains applies the Contains predicate on the "security_question" field.
+func SecurityQuestionContains(v string) predicate.Admin {
 	return predicate.Admin(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldToken), v))
+		s.Where(sql.Contains(s.C(FieldSecurityQuestion), v))
 	})
 }
 
-// TokenHasPrefix applies the HasPrefix predicate on the "token" field.
-func TokenHasPrefix(v string) predicate.Admin {
+// SecurityQuestionHasPrefix applies the HasPrefix predicate on the "security_question" field.
+func SecurityQuestionHasPrefix(v string) predicate.Admin {
 	return predicate.Admin(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldToken), v))
+		s.Where(sql.HasPrefix(s.C(FieldSecurityQuestion), v))
 	})
 }
 
-// TokenHasSuffix applies the HasSuffix predicate on the "token" field.
-func TokenHasSuffix(v string) predicate.Admin {
+// SecurityQuestionHasSuffix applies the HasSuffix predicate on the "security_question" field.
+func SecurityQuestionHasSuffix(v string) predicate.Admin {
 	return predicate.Admin(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldToken), v))
+		s.Where(sql.HasSuffix(s.C(FieldSecurityQuestion), v))
 	})
 }
 
-// TokenIsNil applies the IsNil predicate on the "token" field.
-func TokenIsNil() predicate.Admin {
+// SecurityQuestionIsNil applies the IsNil predicate on the "security_question" field.
+func SecurityQuestionIsNil() predicate.Admin {
 	return predicate.Admin(func(s *sql.Selector) {
-		s.Where(sql.IsNull(s.C(FieldToken)))
+		s.Where(sql.IsNull(s.C(FieldSecurityQuestion)))
 	})
 }
 
-// TokenNotNil applies the NotNil predicate on the "token" field.
-func TokenNotNil() predicate.Admin {
+// SecurityQuestionNotNil applies the NotNil predicate on the "security_question" field.
+func SecurityQuestionNotNil() predicate.Admin {
 	return predicate.Admin(func(s *sql.Selector) {
-		s.Where(sql.NotNull(s.C(FieldToken)))
+		s.Where(sql.NotNull(s.C(FieldSecurityQuestion)))
 	})
 }
 
-// TokenEqualFold applies the EqualFold predicate on the "token" field.
-func TokenEqualFold(v string) predicate.Admin {
+// SecurityQuestionEqualFold applies the EqualFold predicate on the "security_question" field.
+func SecurityQuestionEqualFold(v string) predicate.Admin {
 	return predicate.Admin(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldToken), v))
+		s.Where(sql.EqualFold(s.C(FieldSecurityQuestion), v))
 	})
 }
 
-// TokenContainsFold applies the ContainsFold predicate on the "token" field.
-func TokenContainsFold(v string) predicate.Admin {
+// SecurityQuestionContainsFold applies the ContainsFold predicate on the "security_question" field.
+func SecurityQuestionContainsFold(v string) predicate.Admin {
 	return predicate.Admin(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldToken), v))
+		s.Where(sql.ContainsFold(s.C(FieldSecurityQuestion), v))
+	})
+}
+
+// SecurityAnswerEQ applies the EQ predicate on the "security_answer" field.
+func SecurityAnswerEQ(v string) predicate.Admin {
+	return predicate.Admin(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldSecurityAnswer), v))
+	})
+}
+
+// SecurityAnswerNEQ applies the NEQ predicate on the "security_answer" field.
+func SecurityAnswerNEQ(v string) predicate.Admin {
+	return predicate.Admin(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldSecurityAnswer), v))
+	})
+}
+
+// SecurityAnswerIn applies the In predicate on the "security_answer" field.
+func SecurityAnswerIn(vs ...string) predicate.Admin {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Admin(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldSecurityAnswer), v...))
+	})
+}
+
+// SecurityAnswerNotIn applies the NotIn predicate on the "security_answer" field.
+func SecurityAnswerNotIn(vs ...string) predicate.Admin {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Admin(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldSecurityAnswer), v...))
+	})
+}
+
+// SecurityAnswerGT applies the GT predicate on the "security_answer" field.
+func SecurityAnswerGT(v string) predicate.Admin {
+	return predicate.Admin(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldSecurityAnswer), v))
+	})
+}
+
+// SecurityAnswerGTE applies the GTE predicate on the "security_answer" field.
+func SecurityAnswerGTE(v string) predicate.Admin {
+	return predicate.Admin(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldSecurityAnswer), v))
+	})
+}
+
+// SecurityAnswerLT applies the LT predicate on the "security_answer" field.
+func SecurityAnswerLT(v string) predicate.Admin {
+	return predicate.Admin(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldSecurityAnswer), v))
+	})
+}
+
+// SecurityAnswerLTE applies the LTE predicate on the "security_answer" field.
+func SecurityAnswerLTE(v string) predicate.Admin {
+	return predicate.Admin(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldSecurityAnswer), v))
+	})
+}
+
+// SecurityAnswerContains applies the Contains predicate on the "security_answer" field.
+func SecurityAnswerContains(v string) predicate.Admin {
+	return predicate.Admin(func(s *sql.Selector) {
+		s.Where(sql.Contains(s.C(FieldSecurityAnswer), v))
+	})
+}
+
+// SecurityAnswerHasPrefix applies the HasPrefix predicate on the "security_answer" field.
+func SecurityAnswerHasPrefix(v string) predicate.Admin {
+	return predicate.Admin(func(s *sql.Selector) {
+		s.Where(sql.HasPrefix(s.C(FieldSecurityAnswer), v))
+	})
+}
+
+// SecurityAnswerHasSuffix applies the HasSuffix predicate on the "security_answer" field.
+func SecurityAnswerHasSuffix(v string) predicate.Admin {
+	return predicate.Admin(func(s *sql.Selector) {
+		s.Where(sql.HasSuffix(s.C(FieldSecurityAnswer), v))
+	})
+}
+
+// SecurityAnswerIsNil applies the IsNil predicate on the "security_answer" field.
+func SecurityAnswerIsNil() predicate.Admin {
+	return predicate.Admin(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldSecurityAnswer)))
+	})
+}
+
+// SecurityAnswerNotNil applies the NotNil predicate on the "security_answer" field.
+func SecurityAnswerNotNil() predicate.Admin {
+	return predicate.Admin(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldSecurityAnswer)))
+	})
+}
+
+// SecurityAnswerEqualFold applies the EqualFold predicate on the "security_answer" field.
+func SecurityAnswerEqualFold(v string) predicate.Admin {
+	return predicate.Admin(func(s *sql.Selector) {
+		s.Where(sql.EqualFold(s.C(FieldSecurityAnswer), v))
+	})
+}
+
+// SecurityAnswerContainsFold applies the ContainsFold predicate on the "security_answer" field.
+func SecurityAnswerContainsFold(v string) predicate.Admin {
+	return predicate.Admin(func(s *sql.Selector) {
+		s.Where(sql.ContainsFold(s.C(FieldSecurityAnswer), v))
 	})
 }
 

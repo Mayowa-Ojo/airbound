@@ -18,12 +18,12 @@ type Admin struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID uuid.UUID `json:"id,omitempty"`
-	// TwoFaSecret holds the value of the "two_fa_secret" field.
-	TwoFaSecret string `json:"two_fa_secret,omitempty"`
-	// TwoFaCompleted holds the value of the "two_fa_completed" field.
-	TwoFaCompleted bool `json:"two_fa_completed,omitempty"`
-	// Token holds the value of the "token" field.
-	Token string `json:"token,omitempty"`
+	// Level holds the value of the "level" field.
+	Level int `json:"level,omitempty"`
+	// SecurityQuestion holds the value of the "security_question" field.
+	SecurityQuestion string `json:"security_question,omitempty"`
+	// SecurityAnswer holds the value of the "security_answer" field.
+	SecurityAnswer string `json:"security_answer,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -62,9 +62,9 @@ func (*Admin) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case admin.FieldTwoFaCompleted:
-			values[i] = new(sql.NullBool)
-		case admin.FieldTwoFaSecret, admin.FieldToken:
+		case admin.FieldLevel:
+			values[i] = new(sql.NullInt64)
+		case admin.FieldSecurityQuestion, admin.FieldSecurityAnswer:
 			values[i] = new(sql.NullString)
 		case admin.FieldCreatedAt, admin.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -93,23 +93,23 @@ func (a *Admin) assignValues(columns []string, values []interface{}) error {
 			} else if value != nil {
 				a.ID = *value
 			}
-		case admin.FieldTwoFaSecret:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field two_fa_secret", values[i])
+		case admin.FieldLevel:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field level", values[i])
 			} else if value.Valid {
-				a.TwoFaSecret = value.String
+				a.Level = int(value.Int64)
 			}
-		case admin.FieldTwoFaCompleted:
-			if value, ok := values[i].(*sql.NullBool); !ok {
-				return fmt.Errorf("unexpected type %T for field two_fa_completed", values[i])
-			} else if value.Valid {
-				a.TwoFaCompleted = value.Bool
-			}
-		case admin.FieldToken:
+		case admin.FieldSecurityQuestion:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field token", values[i])
+				return fmt.Errorf("unexpected type %T for field security_question", values[i])
 			} else if value.Valid {
-				a.Token = value.String
+				a.SecurityQuestion = value.String
+			}
+		case admin.FieldSecurityAnswer:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field security_answer", values[i])
+			} else if value.Valid {
+				a.SecurityAnswer = value.String
 			}
 		case admin.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -163,12 +163,12 @@ func (a *Admin) String() string {
 	var builder strings.Builder
 	builder.WriteString("Admin(")
 	builder.WriteString(fmt.Sprintf("id=%v", a.ID))
-	builder.WriteString(", two_fa_secret=")
-	builder.WriteString(a.TwoFaSecret)
-	builder.WriteString(", two_fa_completed=")
-	builder.WriteString(fmt.Sprintf("%v", a.TwoFaCompleted))
-	builder.WriteString(", token=")
-	builder.WriteString(a.Token)
+	builder.WriteString(", level=")
+	builder.WriteString(fmt.Sprintf("%v", a.Level))
+	builder.WriteString(", security_question=")
+	builder.WriteString(a.SecurityQuestion)
+	builder.WriteString(", security_answer=")
+	builder.WriteString(a.SecurityAnswer)
 	builder.WriteString(", created_at=")
 	builder.WriteString(a.CreatedAt.Format(time.ANSIC))
 	builder.WriteString(", updated_at=")

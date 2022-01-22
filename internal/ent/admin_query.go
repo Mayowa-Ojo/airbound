@@ -292,12 +292,12 @@ func (aq *AdminQuery) WithUser(opts ...func(*UserQuery)) *AdminQuery {
 // Example:
 //
 //	var v []struct {
-//		TwoFaSecret string `json:"two_fa_secret,omitempty"`
+//		Level int `json:"level,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.Admin.Query().
-//		GroupBy(admin.FieldTwoFaSecret).
+//		GroupBy(admin.FieldLevel).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 //
@@ -319,11 +319,11 @@ func (aq *AdminQuery) GroupBy(field string, fields ...string) *AdminGroupBy {
 // Example:
 //
 //	var v []struct {
-//		TwoFaSecret string `json:"two_fa_secret,omitempty"`
+//		Level int `json:"level,omitempty"`
 //	}
 //
 //	client.Admin.Query().
-//		Select(admin.FieldTwoFaSecret).
+//		Select(admin.FieldLevel).
 //		Scan(ctx, &v)
 //
 func (aq *AdminQuery) Select(fields ...string) *AdminSelect {

@@ -48,6 +48,40 @@ func (au *AccountUpdate) SetSalt(b []byte) *AccountUpdate {
 	return au
 }
 
+// SetTwoFaSecret sets the "two_fa_secret" field.
+func (au *AccountUpdate) SetTwoFaSecret(s string) *AccountUpdate {
+	au.mutation.SetTwoFaSecret(s)
+	return au
+}
+
+// SetNillableTwoFaSecret sets the "two_fa_secret" field if the given value is not nil.
+func (au *AccountUpdate) SetNillableTwoFaSecret(s *string) *AccountUpdate {
+	if s != nil {
+		au.SetTwoFaSecret(*s)
+	}
+	return au
+}
+
+// ClearTwoFaSecret clears the value of the "two_fa_secret" field.
+func (au *AccountUpdate) ClearTwoFaSecret() *AccountUpdate {
+	au.mutation.ClearTwoFaSecret()
+	return au
+}
+
+// SetTwoFaCompleted sets the "two_fa_completed" field.
+func (au *AccountUpdate) SetTwoFaCompleted(b bool) *AccountUpdate {
+	au.mutation.SetTwoFaCompleted(b)
+	return au
+}
+
+// SetNillableTwoFaCompleted sets the "two_fa_completed" field if the given value is not nil.
+func (au *AccountUpdate) SetNillableTwoFaCompleted(b *bool) *AccountUpdate {
+	if b != nil {
+		au.SetTwoFaCompleted(*b)
+	}
+	return au
+}
+
 // SetVerificationToken sets the "verification_token" field.
 func (au *AccountUpdate) SetVerificationToken(s string) *AccountUpdate {
 	au.mutation.SetVerificationToken(s)
@@ -65,6 +99,26 @@ func (au *AccountUpdate) SetNillableVerificationToken(s *string) *AccountUpdate 
 // ClearVerificationToken clears the value of the "verification_token" field.
 func (au *AccountUpdate) ClearVerificationToken() *AccountUpdate {
 	au.mutation.ClearVerificationToken()
+	return au
+}
+
+// SetForgotPasswordToken sets the "forgot_password_token" field.
+func (au *AccountUpdate) SetForgotPasswordToken(s string) *AccountUpdate {
+	au.mutation.SetForgotPasswordToken(s)
+	return au
+}
+
+// SetNillableForgotPasswordToken sets the "forgot_password_token" field if the given value is not nil.
+func (au *AccountUpdate) SetNillableForgotPasswordToken(s *string) *AccountUpdate {
+	if s != nil {
+		au.SetForgotPasswordToken(*s)
+	}
+	return au
+}
+
+// ClearForgotPasswordToken clears the value of the "forgot_password_token" field.
+func (au *AccountUpdate) ClearForgotPasswordToken() *AccountUpdate {
+	au.mutation.ClearForgotPasswordToken()
 	return au
 }
 
@@ -194,6 +248,11 @@ func (au *AccountUpdate) check() error {
 			return &ValidationError{Name: "account_status", err: fmt.Errorf("ent: validator failed for field \"account_status\": %w", err)}
 		}
 	}
+	if v, ok := au.mutation.TwoFaSecret(); ok {
+		if err := account.TwoFaSecretValidator(v); err != nil {
+			return &ValidationError{Name: "two_fa_secret", err: fmt.Errorf("ent: validator failed for field \"two_fa_secret\": %w", err)}
+		}
+	}
 	return nil
 }
 
@@ -236,6 +295,26 @@ func (au *AccountUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: account.FieldSalt,
 		})
 	}
+	if value, ok := au.mutation.TwoFaSecret(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: account.FieldTwoFaSecret,
+		})
+	}
+	if au.mutation.TwoFaSecretCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: account.FieldTwoFaSecret,
+		})
+	}
+	if value, ok := au.mutation.TwoFaCompleted(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeBool,
+			Value:  value,
+			Column: account.FieldTwoFaCompleted,
+		})
+	}
 	if value, ok := au.mutation.VerificationToken(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
@@ -247,6 +326,19 @@ func (au *AccountUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: account.FieldVerificationToken,
+		})
+	}
+	if value, ok := au.mutation.ForgotPasswordToken(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: account.FieldForgotPasswordToken,
+		})
+	}
+	if au.mutation.ForgotPasswordTokenCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: account.FieldForgotPasswordToken,
 		})
 	}
 	if value, ok := au.mutation.CreatedAt(); ok {
@@ -335,6 +427,40 @@ func (auo *AccountUpdateOne) SetSalt(b []byte) *AccountUpdateOne {
 	return auo
 }
 
+// SetTwoFaSecret sets the "two_fa_secret" field.
+func (auo *AccountUpdateOne) SetTwoFaSecret(s string) *AccountUpdateOne {
+	auo.mutation.SetTwoFaSecret(s)
+	return auo
+}
+
+// SetNillableTwoFaSecret sets the "two_fa_secret" field if the given value is not nil.
+func (auo *AccountUpdateOne) SetNillableTwoFaSecret(s *string) *AccountUpdateOne {
+	if s != nil {
+		auo.SetTwoFaSecret(*s)
+	}
+	return auo
+}
+
+// ClearTwoFaSecret clears the value of the "two_fa_secret" field.
+func (auo *AccountUpdateOne) ClearTwoFaSecret() *AccountUpdateOne {
+	auo.mutation.ClearTwoFaSecret()
+	return auo
+}
+
+// SetTwoFaCompleted sets the "two_fa_completed" field.
+func (auo *AccountUpdateOne) SetTwoFaCompleted(b bool) *AccountUpdateOne {
+	auo.mutation.SetTwoFaCompleted(b)
+	return auo
+}
+
+// SetNillableTwoFaCompleted sets the "two_fa_completed" field if the given value is not nil.
+func (auo *AccountUpdateOne) SetNillableTwoFaCompleted(b *bool) *AccountUpdateOne {
+	if b != nil {
+		auo.SetTwoFaCompleted(*b)
+	}
+	return auo
+}
+
 // SetVerificationToken sets the "verification_token" field.
 func (auo *AccountUpdateOne) SetVerificationToken(s string) *AccountUpdateOne {
 	auo.mutation.SetVerificationToken(s)
@@ -352,6 +478,26 @@ func (auo *AccountUpdateOne) SetNillableVerificationToken(s *string) *AccountUpd
 // ClearVerificationToken clears the value of the "verification_token" field.
 func (auo *AccountUpdateOne) ClearVerificationToken() *AccountUpdateOne {
 	auo.mutation.ClearVerificationToken()
+	return auo
+}
+
+// SetForgotPasswordToken sets the "forgot_password_token" field.
+func (auo *AccountUpdateOne) SetForgotPasswordToken(s string) *AccountUpdateOne {
+	auo.mutation.SetForgotPasswordToken(s)
+	return auo
+}
+
+// SetNillableForgotPasswordToken sets the "forgot_password_token" field if the given value is not nil.
+func (auo *AccountUpdateOne) SetNillableForgotPasswordToken(s *string) *AccountUpdateOne {
+	if s != nil {
+		auo.SetForgotPasswordToken(*s)
+	}
+	return auo
+}
+
+// ClearForgotPasswordToken clears the value of the "forgot_password_token" field.
+func (auo *AccountUpdateOne) ClearForgotPasswordToken() *AccountUpdateOne {
+	auo.mutation.ClearForgotPasswordToken()
 	return auo
 }
 
@@ -488,6 +634,11 @@ func (auo *AccountUpdateOne) check() error {
 			return &ValidationError{Name: "account_status", err: fmt.Errorf("ent: validator failed for field \"account_status\": %w", err)}
 		}
 	}
+	if v, ok := auo.mutation.TwoFaSecret(); ok {
+		if err := account.TwoFaSecretValidator(v); err != nil {
+			return &ValidationError{Name: "two_fa_secret", err: fmt.Errorf("ent: validator failed for field \"two_fa_secret\": %w", err)}
+		}
+	}
 	return nil
 }
 
@@ -547,6 +698,26 @@ func (auo *AccountUpdateOne) sqlSave(ctx context.Context) (_node *Account, err e
 			Column: account.FieldSalt,
 		})
 	}
+	if value, ok := auo.mutation.TwoFaSecret(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: account.FieldTwoFaSecret,
+		})
+	}
+	if auo.mutation.TwoFaSecretCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: account.FieldTwoFaSecret,
+		})
+	}
+	if value, ok := auo.mutation.TwoFaCompleted(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeBool,
+			Value:  value,
+			Column: account.FieldTwoFaCompleted,
+		})
+	}
 	if value, ok := auo.mutation.VerificationToken(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
@@ -558,6 +729,19 @@ func (auo *AccountUpdateOne) sqlSave(ctx context.Context) (_node *Account, err e
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: account.FieldVerificationToken,
+		})
+	}
+	if value, ok := auo.mutation.ForgotPasswordToken(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: account.FieldForgotPasswordToken,
+		})
+	}
+	if auo.mutation.ForgotPasswordTokenCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: account.FieldForgotPasswordToken,
 		})
 	}
 	if value, ok := auo.mutation.CreatedAt(); ok {
