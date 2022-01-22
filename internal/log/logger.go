@@ -15,6 +15,12 @@ const (
 	FormatDateLayout = "2006-01-02 15:04:05"
 )
 
+type LogField string
+
+const (
+	LogFieldFunctionName LogField = "FunctionName"
+)
+
 var logger = NewCustomLogger()
 
 type CustomLogger struct {
