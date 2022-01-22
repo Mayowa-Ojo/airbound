@@ -12,4 +12,8 @@ var (
 	ErrAccountClosed          = errors.New("account is closed")
 	ErrInvalidPermission      = errors.New("invalid permission")
 	ErrAccountAlreadyVerified = errors.New("account is already verified")
+	ErrTwoFaSetupCompleted    = errors.New("two-factor authentication setup is already completed")
+	ErrTwoFaSetupIncomplete   = errors.New("two-factor authentication setup is not completed")
+	ErrInvalidTwoFaCode       = errors.New("two-factor code is invalid/missing")
+	ErrInvalidInternalEmail   = errors.New("email is not a valid internal domain")
 )
