@@ -4,6 +4,9 @@ import (
 	"airbound/internal"
 	"airbound/internal/auth"
 	"airbound/internal/config"
+	"airbound/internal/ent/enums"
+	"airbound/internal/errors"
+	"airbound/internal/log"
 	"fmt"
 	"net/http"
 	"strings"
@@ -22,9 +25,12 @@ type AuthorizationHeader struct {
 func AuthenticateUser(cfg *config.Config) gin.HandlerFunc {
 	// check auth status
 	return func(c *gin.Context) {
+		logger := log.WithField(string(log.LogFieldFunctionName), "<Middleware>AuthenticateUser")
+
 		var h AuthorizationHeader
 
 		if err := c.ShouldBindHeader(&h); err != nil {
+			logger.Error("error occurred while binding header - %s", err)
 			c.AbortWithStatusJSON(http.StatusPreconditionFailed, gin.H{
 				"status":  "error",
 				"message": fmt.Sprint(err),
@@ -35,6 +41,7 @@ func AuthenticateUser(cfg *config.Config) gin.HandlerFunc {
 
 		t := strings.Split(h.Authorization, AuthorizationHeaderPrefix)
 		if len(t) != 2 {
+			logger.Warn("invalid authorization header")
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 				"status":  "error",
 				"message": "missing/malformed token",
@@ -47,6 +54,7 @@ func AuthenticateUser(cfg *config.Config) gin.HandlerFunc {
 
 		tokenData, err := auth.VerifyToken(token, cfg)
 		if err != nil {
+			logger.Error("error verifying auth token - %s", err)
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 				"status":  "error",
 				"message": fmt.Sprint(err),
@@ -96,6 +104,42 @@ func AuthorizeUser(permission string) gin.HandlerFunc {
 			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{
 				"status":  "error",
 				"message": "action not allowed",
+				"data":    nil,
+			})
+			return
+		}
+
+		c.Next()
+	}
+}
+
+func EnsureTwoFa() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		logger := log.WithField(string(log.LogFieldFunctionName), "EnsureTwoFa")
+
+		td, ok := c.Get("token-data")
+		if !ok {
+			logger.Error("error fetching token data")
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+				"status":  "error",
+				"message": "missing/malformed token",
+				"data":    nil,
+			})
+			return
+		}
+
+		tokenData := td.(*auth.TokenData)
+
+		if tokenData.User.Role.Name == enums.RoleCustomer {
+			c.Next()
+			return
+		}
+
+		if !tokenData.User.Account.TwoFaCompleted {
+			logger.Error("two-factor authentication setup not complete")
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+				"status":  "error",
+				"message": fmt.Sprint(errors.ErrTwoFaSetupIncomplete),
 				"data":    nil,
 			})
 			return
