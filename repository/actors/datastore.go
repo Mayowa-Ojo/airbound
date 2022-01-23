@@ -211,6 +211,7 @@ func (d *Datastore) CreateCustomer(ctx context.Context, c *Customer, userID uuid
 	entity, err := d.c.Customer.
 		Create().
 		SetFrequentFlyerNumber(c.FrequentFlyerNumber).
+		SetUserID(userID).
 		Save(ctx)
 	if err != nil {
 		return nil, err
@@ -228,6 +229,7 @@ func (d *Datastore) CreatePilot(ctx context.Context, p *Pilot, userID uuid.UUID)
 		Create().
 		SetEmployeeID(p.EmployeeID).
 		SetLicenceNumber(p.LicenceNumber).
+		SetUserID(userID).
 		Save(ctx)
 	if err != nil {
 		return nil, err
@@ -244,6 +246,7 @@ func (d *Datastore) CreateCrew(ctx context.Context, c *Crew, userID uuid.UUID) (
 	entity, err := d.c.Crew.
 		Create().
 		SetEmployeeID(c.EmployeeID).
+		SetUserID(userID).
 		Save(ctx)
 	if err != nil {
 		return nil, err
@@ -260,6 +263,7 @@ func (d *Datastore) CreateFrontDesk(ctx context.Context, f *FrontDesk, userID uu
 	entity, err := d.c.FrontDesk.
 		Create().
 		SetEmployeeID(f.EmployeeID).
+		SetUserID(userID).
 		Save(ctx)
 	if err != nil {
 		return nil, err

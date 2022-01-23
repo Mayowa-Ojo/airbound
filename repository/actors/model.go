@@ -71,8 +71,10 @@ func ParseToUser(model *ent.User, token string) *User {
 }
 
 func sanitizeUser(u *User) *User {
-	u.Account.Password = nil
-	u.Account.Salt = nil
+	if u.Account != nil {
+		u.Account.Password = nil
+		u.Account.Salt = nil
+	}
 
 	return u
 }
