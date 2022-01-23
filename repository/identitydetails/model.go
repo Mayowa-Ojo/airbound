@@ -18,6 +18,10 @@ type AddressRepository interface {
 type AccountRepository interface {
 	transaction.TxRunner
 	CreateAccountWithTx(ctx context.Context, txClient *ent.Client, a *Account) (*ent.Account, error)
+	UpdateAccountStatus(ctx context.Context, accountID uuid.UUID, status enums.AccountStatus) (*ent.Account, error)
+	UpdateAccountVerificationToken(ctx context.Context, accountID uuid.UUID, token string) (*ent.Account, error)
+	UpdateAccount2FaSecret(ctx context.Context, accountID uuid.UUID, secret string) (*ent.Account, error)
+	UpdateAccount2FaStatus(ctx context.Context, accountID uuid.UUID, status bool) (*ent.Account, error)
 }
 
 type Address struct {
@@ -43,21 +47,28 @@ func ParseToAddress(model *ent.Address) *Address {
 }
 
 type Account struct {
-	ID            uuid.UUID           `json:"id"`
-	Password      []byte              `json:"password"`
-	Salt          []byte              `json:"salt"`
-	AccountStatus enums.AccountStatus `json:"account_status"`
-	CreatedAt     time.Time           `json:"created_at"`
-	UpdatedAt     time.Time           `json:"updated_at"`
+	ID                  uuid.UUID           `json:"id"`
+	Password            []byte              `json:"password"`
+	Salt                []byte              `json:"salt"`
+	AccountStatus       enums.AccountStatus `json:"account_status"`
+	VerificationToken   string              `json:"verification_token"`
+	ForgotPasswordToken string              `json:"forgot_password_token"`
+	TwoFaSecret         string              `json:"two_fa_secret"`
+	TwoFaCompleted      bool                `json:"two_fa_completed"`
+	CreatedAt           time.Time           `json:"created_at"`
+	UpdatedAt           time.Time           `json:"updated_at"`
 }
 
 func ParseToAccount(model *ent.Account) *Account {
 	return &Account{
-		ID:            model.ID,
-		Password:      model.Password,
-		Salt:          model.Salt,
-		AccountStatus: model.AccountStatus,
-		CreatedAt:     model.CreatedAt,
-		UpdatedAt:     model.UpdatedAt,
+		ID:                model.ID,
+		Password:          model.Password,
+		Salt:              model.Salt,
+		AccountStatus:     model.AccountStatus,
+		VerificationToken: model.VerificationToken,
+		TwoFaSecret:       model.TwoFaSecret,
+		TwoFaCompleted:    model.TwoFaCompleted,
+		CreatedAt:         model.CreatedAt,
+		UpdatedAt:         model.UpdatedAt,
 	}
 }
