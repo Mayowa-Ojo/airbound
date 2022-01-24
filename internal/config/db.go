@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 
+	"entgo.io/ent/dialect/sql/schema"
 	_ "github.com/lib/pq"
 )
 
@@ -28,7 +29,7 @@ func NewEntClient(cfg *Config) *ent.Client {
 }
 
 func SchemaMigrateUp(ctx context.Context, client *ent.Client) {
-	if err := client.Schema.Create(ctx); err != nil {
+	if err := client.Schema.Create(ctx, schema.WithAtlas(true)); err != nil {
 		log.Fatal("[ENT]: error running migration %s", err)
 	}
 }
