@@ -131,6 +131,14 @@ func (ac *AccountCreate) SetID(u uuid.UUID) *AccountCreate {
 	return ac
 }
 
+// SetNillableID sets the "id" field if the given value is not nil.
+func (ac *AccountCreate) SetNillableID(u *uuid.UUID) *AccountCreate {
+	if u != nil {
+		ac.SetID(*u)
+	}
+	return ac
+}
+
 // SetUserID sets the "user" edge to the User entity by ID.
 func (ac *AccountCreate) SetUserID(id uuid.UUID) *AccountCreate {
 	ac.mutation.SetUserID(id)
@@ -242,32 +250,32 @@ func (ac *AccountCreate) defaults() {
 // check runs all checks and user-defined validators on the builder.
 func (ac *AccountCreate) check() error {
 	if _, ok := ac.mutation.AccountStatus(); !ok {
-		return &ValidationError{Name: "account_status", err: errors.New(`ent: missing required field "account_status"`)}
+		return &ValidationError{Name: "account_status", err: errors.New(`ent: missing required field "Account.account_status"`)}
 	}
 	if v, ok := ac.mutation.AccountStatus(); ok {
 		if err := account.AccountStatusValidator(v); err != nil {
-			return &ValidationError{Name: "account_status", err: fmt.Errorf(`ent: validator failed for field "account_status": %w`, err)}
+			return &ValidationError{Name: "account_status", err: fmt.Errorf(`ent: validator failed for field "Account.account_status": %w`, err)}
 		}
 	}
 	if _, ok := ac.mutation.Password(); !ok {
-		return &ValidationError{Name: "password", err: errors.New(`ent: missing required field "password"`)}
+		return &ValidationError{Name: "password", err: errors.New(`ent: missing required field "Account.password"`)}
 	}
 	if _, ok := ac.mutation.Salt(); !ok {
-		return &ValidationError{Name: "salt", err: errors.New(`ent: missing required field "salt"`)}
+		return &ValidationError{Name: "salt", err: errors.New(`ent: missing required field "Account.salt"`)}
 	}
 	if v, ok := ac.mutation.TwoFaSecret(); ok {
 		if err := account.TwoFaSecretValidator(v); err != nil {
-			return &ValidationError{Name: "two_fa_secret", err: fmt.Errorf(`ent: validator failed for field "two_fa_secret": %w`, err)}
+			return &ValidationError{Name: "two_fa_secret", err: fmt.Errorf(`ent: validator failed for field "Account.two_fa_secret": %w`, err)}
 		}
 	}
 	if _, ok := ac.mutation.TwoFaCompleted(); !ok {
-		return &ValidationError{Name: "two_fa_completed", err: errors.New(`ent: missing required field "two_fa_completed"`)}
+		return &ValidationError{Name: "two_fa_completed", err: errors.New(`ent: missing required field "Account.two_fa_completed"`)}
 	}
 	if _, ok := ac.mutation.CreatedAt(); !ok {
-		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "created_at"`)}
+		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Account.created_at"`)}
 	}
 	if _, ok := ac.mutation.UpdatedAt(); !ok {
-		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "updated_at"`)}
+		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "Account.updated_at"`)}
 	}
 	return nil
 }
@@ -281,7 +289,11 @@ func (ac *AccountCreate) sqlSave(ctx context.Context) (*Account, error) {
 		return nil, err
 	}
 	if _spec.ID.Value != nil {
-		_node.ID = _spec.ID.Value.(uuid.UUID)
+		if id, ok := _spec.ID.Value.(*uuid.UUID); ok {
+			_node.ID = *id
+		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
+			return nil, err
+		}
 	}
 	return _node, nil
 }
@@ -299,7 +311,7 @@ func (ac *AccountCreate) createSpec() (*Account, *sqlgraph.CreateSpec) {
 	)
 	if id, ok := ac.mutation.ID(); ok {
 		_node.ID = id
-		_spec.ID.Value = id
+		_spec.ID.Value = &id
 	}
 	if value, ok := ac.mutation.AccountStatus(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{

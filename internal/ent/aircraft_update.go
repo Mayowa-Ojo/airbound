@@ -9,6 +9,7 @@ import (
 	"airbound/internal/ent/predicate"
 	"airbound/internal/ent/seat"
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -72,6 +73,12 @@ func (au *AircraftUpdate) SetRange(i int) *AircraftUpdate {
 // AddRange adds i to the "range" field.
 func (au *AircraftUpdate) AddRange(i int) *AircraftUpdate {
 	au.mutation.AddRange(i)
+	return au
+}
+
+// SetManufacturedAt sets the "manufactured_at" field.
+func (au *AircraftUpdate) SetManufacturedAt(t time.Time) *AircraftUpdate {
+	au.mutation.SetManufacturedAt(t)
 	return au
 }
 
@@ -259,27 +266,27 @@ func (au *AircraftUpdate) defaults() {
 func (au *AircraftUpdate) check() error {
 	if v, ok := au.mutation.TailNumber(); ok {
 		if err := aircraft.TailNumberValidator(v); err != nil {
-			return &ValidationError{Name: "tail_number", err: fmt.Errorf("ent: validator failed for field \"tail_number\": %w", err)}
+			return &ValidationError{Name: "tail_number", err: fmt.Errorf(`ent: validator failed for field "Aircraft.tail_number": %w`, err)}
 		}
 	}
 	if v, ok := au.mutation.Manufacturer(); ok {
 		if err := aircraft.ManufacturerValidator(v); err != nil {
-			return &ValidationError{Name: "manufacturer", err: fmt.Errorf("ent: validator failed for field \"manufacturer\": %w", err)}
+			return &ValidationError{Name: "manufacturer", err: fmt.Errorf(`ent: validator failed for field "Aircraft.manufacturer": %w`, err)}
 		}
 	}
 	if v, ok := au.mutation.Model(); ok {
 		if err := aircraft.ModelValidator(v); err != nil {
-			return &ValidationError{Name: "model", err: fmt.Errorf("ent: validator failed for field \"model\": %w", err)}
+			return &ValidationError{Name: "model", err: fmt.Errorf(`ent: validator failed for field "Aircraft.model": %w`, err)}
 		}
 	}
 	if v, ok := au.mutation.Capacity(); ok {
 		if err := aircraft.CapacityValidator(v); err != nil {
-			return &ValidationError{Name: "capacity", err: fmt.Errorf("ent: validator failed for field \"capacity\": %w", err)}
+			return &ValidationError{Name: "capacity", err: fmt.Errorf(`ent: validator failed for field "Aircraft.capacity": %w`, err)}
 		}
 	}
 	if v, ok := au.mutation.Range(); ok {
 		if err := aircraft.RangeValidator(v); err != nil {
-			return &ValidationError{Name: "range", err: fmt.Errorf("ent: validator failed for field \"range\": %w", err)}
+			return &ValidationError{Name: "range", err: fmt.Errorf(`ent: validator failed for field "Aircraft.range": %w`, err)}
 		}
 	}
 	return nil
@@ -350,6 +357,13 @@ func (au *AircraftUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Type:   field.TypeInt,
 			Value:  value,
 			Column: aircraft.FieldRange,
+		})
+	}
+	if value, ok := au.mutation.ManufacturedAt(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  value,
+			Column: aircraft.FieldManufacturedAt,
 		})
 	}
 	if value, ok := au.mutation.CreatedAt(); ok {
@@ -553,6 +567,12 @@ func (auo *AircraftUpdateOne) AddRange(i int) *AircraftUpdateOne {
 	return auo
 }
 
+// SetManufacturedAt sets the "manufactured_at" field.
+func (auo *AircraftUpdateOne) SetManufacturedAt(t time.Time) *AircraftUpdateOne {
+	auo.mutation.SetManufacturedAt(t)
+	return auo
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (auo *AircraftUpdateOne) SetCreatedAt(t time.Time) *AircraftUpdateOne {
 	auo.mutation.SetCreatedAt(t)
@@ -744,27 +764,27 @@ func (auo *AircraftUpdateOne) defaults() {
 func (auo *AircraftUpdateOne) check() error {
 	if v, ok := auo.mutation.TailNumber(); ok {
 		if err := aircraft.TailNumberValidator(v); err != nil {
-			return &ValidationError{Name: "tail_number", err: fmt.Errorf("ent: validator failed for field \"tail_number\": %w", err)}
+			return &ValidationError{Name: "tail_number", err: fmt.Errorf(`ent: validator failed for field "Aircraft.tail_number": %w`, err)}
 		}
 	}
 	if v, ok := auo.mutation.Manufacturer(); ok {
 		if err := aircraft.ManufacturerValidator(v); err != nil {
-			return &ValidationError{Name: "manufacturer", err: fmt.Errorf("ent: validator failed for field \"manufacturer\": %w", err)}
+			return &ValidationError{Name: "manufacturer", err: fmt.Errorf(`ent: validator failed for field "Aircraft.manufacturer": %w`, err)}
 		}
 	}
 	if v, ok := auo.mutation.Model(); ok {
 		if err := aircraft.ModelValidator(v); err != nil {
-			return &ValidationError{Name: "model", err: fmt.Errorf("ent: validator failed for field \"model\": %w", err)}
+			return &ValidationError{Name: "model", err: fmt.Errorf(`ent: validator failed for field "Aircraft.model": %w`, err)}
 		}
 	}
 	if v, ok := auo.mutation.Capacity(); ok {
 		if err := aircraft.CapacityValidator(v); err != nil {
-			return &ValidationError{Name: "capacity", err: fmt.Errorf("ent: validator failed for field \"capacity\": %w", err)}
+			return &ValidationError{Name: "capacity", err: fmt.Errorf(`ent: validator failed for field "Aircraft.capacity": %w`, err)}
 		}
 	}
 	if v, ok := auo.mutation.Range(); ok {
 		if err := aircraft.RangeValidator(v); err != nil {
-			return &ValidationError{Name: "range", err: fmt.Errorf("ent: validator failed for field \"range\": %w", err)}
+			return &ValidationError{Name: "range", err: fmt.Errorf(`ent: validator failed for field "Aircraft.range": %w`, err)}
 		}
 	}
 	return nil
@@ -783,7 +803,7 @@ func (auo *AircraftUpdateOne) sqlSave(ctx context.Context) (_node *Aircraft, err
 	}
 	id, ok := auo.mutation.ID()
 	if !ok {
-		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing Aircraft.ID for update")}
+		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "Aircraft.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
 	if fields := auo.fields; len(fields) > 0 {
@@ -852,6 +872,13 @@ func (auo *AircraftUpdateOne) sqlSave(ctx context.Context) (_node *Aircraft, err
 			Type:   field.TypeInt,
 			Value:  value,
 			Column: aircraft.FieldRange,
+		})
+	}
+	if value, ok := auo.mutation.ManufacturedAt(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  value,
+			Column: aircraft.FieldManufacturedAt,
 		})
 	}
 	if value, ok := auo.mutation.CreatedAt(); ok {

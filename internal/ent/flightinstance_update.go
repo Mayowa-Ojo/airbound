@@ -4,13 +4,16 @@ package ent
 
 import (
 	"airbound/internal/ent/aircraft"
+	"airbound/internal/ent/customtypes"
 	"airbound/internal/ent/enums"
 	"airbound/internal/ent/flight"
 	"airbound/internal/ent/flightinstance"
 	"airbound/internal/ent/flightreservation"
+	"airbound/internal/ent/flightschedule"
 	"airbound/internal/ent/flightseat"
 	"airbound/internal/ent/predicate"
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -30,6 +33,18 @@ type FlightInstanceUpdate struct {
 // Where appends a list predicates to the FlightInstanceUpdate builder.
 func (fiu *FlightInstanceUpdate) Where(ps ...predicate.FlightInstance) *FlightInstanceUpdate {
 	fiu.mutation.Where(ps...)
+	return fiu
+}
+
+// SetDepartureDate sets the "departure_date" field.
+func (fiu *FlightInstanceUpdate) SetDepartureDate(c customtypes.Date) *FlightInstanceUpdate {
+	fiu.mutation.SetDepartureDate(c)
+	return fiu
+}
+
+// SetArrivalDate sets the "arrival_date" field.
+func (fiu *FlightInstanceUpdate) SetArrivalDate(c customtypes.Date) *FlightInstanceUpdate {
+	fiu.mutation.SetArrivalDate(c)
 	return fiu
 }
 
@@ -104,6 +119,25 @@ func (fiu *FlightInstanceUpdate) SetFlight(f *Flight) *FlightInstanceUpdate {
 	return fiu.SetFlightID(f.ID)
 }
 
+// SetFlightScheduleID sets the "flight_schedule" edge to the FlightSchedule entity by ID.
+func (fiu *FlightInstanceUpdate) SetFlightScheduleID(id uuid.UUID) *FlightInstanceUpdate {
+	fiu.mutation.SetFlightScheduleID(id)
+	return fiu
+}
+
+// SetNillableFlightScheduleID sets the "flight_schedule" edge to the FlightSchedule entity by ID if the given value is not nil.
+func (fiu *FlightInstanceUpdate) SetNillableFlightScheduleID(id *uuid.UUID) *FlightInstanceUpdate {
+	if id != nil {
+		fiu = fiu.SetFlightScheduleID(*id)
+	}
+	return fiu
+}
+
+// SetFlightSchedule sets the "flight_schedule" edge to the FlightSchedule entity.
+func (fiu *FlightInstanceUpdate) SetFlightSchedule(f *FlightSchedule) *FlightInstanceUpdate {
+	return fiu.SetFlightScheduleID(f.ID)
+}
+
 // SetAircraftID sets the "aircraft" edge to the Aircraft entity by ID.
 func (fiu *FlightInstanceUpdate) SetAircraftID(id uuid.UUID) *FlightInstanceUpdate {
 	fiu.mutation.SetAircraftID(id)
@@ -161,6 +195,12 @@ func (fiu *FlightInstanceUpdate) Mutation() *FlightInstanceMutation {
 // ClearFlight clears the "flight" edge to the Flight entity.
 func (fiu *FlightInstanceUpdate) ClearFlight() *FlightInstanceUpdate {
 	fiu.mutation.ClearFlight()
+	return fiu
+}
+
+// ClearFlightSchedule clears the "flight_schedule" edge to the FlightSchedule entity.
+func (fiu *FlightInstanceUpdate) ClearFlightSchedule() *FlightInstanceUpdate {
+	fiu.mutation.ClearFlightSchedule()
 	return fiu
 }
 
@@ -285,17 +325,17 @@ func (fiu *FlightInstanceUpdate) defaults() {
 func (fiu *FlightInstanceUpdate) check() error {
 	if v, ok := fiu.mutation.DepartureGate(); ok {
 		if err := flightinstance.DepartureGateValidator(v); err != nil {
-			return &ValidationError{Name: "departure_gate", err: fmt.Errorf("ent: validator failed for field \"departure_gate\": %w", err)}
+			return &ValidationError{Name: "departure_gate", err: fmt.Errorf(`ent: validator failed for field "FlightInstance.departure_gate": %w`, err)}
 		}
 	}
 	if v, ok := fiu.mutation.ArrivalGate(); ok {
 		if err := flightinstance.ArrivalGateValidator(v); err != nil {
-			return &ValidationError{Name: "arrival_gate", err: fmt.Errorf("ent: validator failed for field \"arrival_gate\": %w", err)}
+			return &ValidationError{Name: "arrival_gate", err: fmt.Errorf(`ent: validator failed for field "FlightInstance.arrival_gate": %w`, err)}
 		}
 	}
 	if v, ok := fiu.mutation.FlightStatus(); ok {
 		if err := flightinstance.FlightStatusValidator(v); err != nil {
-			return &ValidationError{Name: "flight_status", err: fmt.Errorf("ent: validator failed for field \"flight_status\": %w", err)}
+			return &ValidationError{Name: "flight_status", err: fmt.Errorf(`ent: validator failed for field "FlightInstance.flight_status": %w`, err)}
 		}
 	}
 	return nil
@@ -318,6 +358,20 @@ func (fiu *FlightInstanceUpdate) sqlSave(ctx context.Context) (n int, err error)
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := fiu.mutation.DepartureDate(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: flightinstance.FieldDepartureDate,
+		})
+	}
+	if value, ok := fiu.mutation.ArrivalDate(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: flightinstance.FieldArrivalDate,
+		})
 	}
 	if value, ok := fiu.mutation.DepartureGate(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
@@ -395,6 +449,41 @@ func (fiu *FlightInstanceUpdate) sqlSave(ctx context.Context) (n int, err error)
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: flight.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if fiu.mutation.FlightScheduleCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   flightinstance.FlightScheduleTable,
+			Columns: []string{flightinstance.FlightScheduleColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flightschedule.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fiu.mutation.FlightScheduleIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   flightinstance.FlightScheduleTable,
+			Columns: []string{flightinstance.FlightScheduleColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flightschedule.FieldID,
 				},
 			},
 		}
@@ -565,6 +654,18 @@ type FlightInstanceUpdateOne struct {
 	mutation *FlightInstanceMutation
 }
 
+// SetDepartureDate sets the "departure_date" field.
+func (fiuo *FlightInstanceUpdateOne) SetDepartureDate(c customtypes.Date) *FlightInstanceUpdateOne {
+	fiuo.mutation.SetDepartureDate(c)
+	return fiuo
+}
+
+// SetArrivalDate sets the "arrival_date" field.
+func (fiuo *FlightInstanceUpdateOne) SetArrivalDate(c customtypes.Date) *FlightInstanceUpdateOne {
+	fiuo.mutation.SetArrivalDate(c)
+	return fiuo
+}
+
 // SetDepartureGate sets the "departure_gate" field.
 func (fiuo *FlightInstanceUpdateOne) SetDepartureGate(i int) *FlightInstanceUpdateOne {
 	fiuo.mutation.ResetDepartureGate()
@@ -636,6 +737,25 @@ func (fiuo *FlightInstanceUpdateOne) SetFlight(f *Flight) *FlightInstanceUpdateO
 	return fiuo.SetFlightID(f.ID)
 }
 
+// SetFlightScheduleID sets the "flight_schedule" edge to the FlightSchedule entity by ID.
+func (fiuo *FlightInstanceUpdateOne) SetFlightScheduleID(id uuid.UUID) *FlightInstanceUpdateOne {
+	fiuo.mutation.SetFlightScheduleID(id)
+	return fiuo
+}
+
+// SetNillableFlightScheduleID sets the "flight_schedule" edge to the FlightSchedule entity by ID if the given value is not nil.
+func (fiuo *FlightInstanceUpdateOne) SetNillableFlightScheduleID(id *uuid.UUID) *FlightInstanceUpdateOne {
+	if id != nil {
+		fiuo = fiuo.SetFlightScheduleID(*id)
+	}
+	return fiuo
+}
+
+// SetFlightSchedule sets the "flight_schedule" edge to the FlightSchedule entity.
+func (fiuo *FlightInstanceUpdateOne) SetFlightSchedule(f *FlightSchedule) *FlightInstanceUpdateOne {
+	return fiuo.SetFlightScheduleID(f.ID)
+}
+
 // SetAircraftID sets the "aircraft" edge to the Aircraft entity by ID.
 func (fiuo *FlightInstanceUpdateOne) SetAircraftID(id uuid.UUID) *FlightInstanceUpdateOne {
 	fiuo.mutation.SetAircraftID(id)
@@ -693,6 +813,12 @@ func (fiuo *FlightInstanceUpdateOne) Mutation() *FlightInstanceMutation {
 // ClearFlight clears the "flight" edge to the Flight entity.
 func (fiuo *FlightInstanceUpdateOne) ClearFlight() *FlightInstanceUpdateOne {
 	fiuo.mutation.ClearFlight()
+	return fiuo
+}
+
+// ClearFlightSchedule clears the "flight_schedule" edge to the FlightSchedule entity.
+func (fiuo *FlightInstanceUpdateOne) ClearFlightSchedule() *FlightInstanceUpdateOne {
+	fiuo.mutation.ClearFlightSchedule()
 	return fiuo
 }
 
@@ -824,17 +950,17 @@ func (fiuo *FlightInstanceUpdateOne) defaults() {
 func (fiuo *FlightInstanceUpdateOne) check() error {
 	if v, ok := fiuo.mutation.DepartureGate(); ok {
 		if err := flightinstance.DepartureGateValidator(v); err != nil {
-			return &ValidationError{Name: "departure_gate", err: fmt.Errorf("ent: validator failed for field \"departure_gate\": %w", err)}
+			return &ValidationError{Name: "departure_gate", err: fmt.Errorf(`ent: validator failed for field "FlightInstance.departure_gate": %w`, err)}
 		}
 	}
 	if v, ok := fiuo.mutation.ArrivalGate(); ok {
 		if err := flightinstance.ArrivalGateValidator(v); err != nil {
-			return &ValidationError{Name: "arrival_gate", err: fmt.Errorf("ent: validator failed for field \"arrival_gate\": %w", err)}
+			return &ValidationError{Name: "arrival_gate", err: fmt.Errorf(`ent: validator failed for field "FlightInstance.arrival_gate": %w`, err)}
 		}
 	}
 	if v, ok := fiuo.mutation.FlightStatus(); ok {
 		if err := flightinstance.FlightStatusValidator(v); err != nil {
-			return &ValidationError{Name: "flight_status", err: fmt.Errorf("ent: validator failed for field \"flight_status\": %w", err)}
+			return &ValidationError{Name: "flight_status", err: fmt.Errorf(`ent: validator failed for field "FlightInstance.flight_status": %w`, err)}
 		}
 	}
 	return nil
@@ -853,7 +979,7 @@ func (fiuo *FlightInstanceUpdateOne) sqlSave(ctx context.Context) (_node *Flight
 	}
 	id, ok := fiuo.mutation.ID()
 	if !ok {
-		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing FlightInstance.ID for update")}
+		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "FlightInstance.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
 	if fields := fiuo.fields; len(fields) > 0 {
@@ -874,6 +1000,20 @@ func (fiuo *FlightInstanceUpdateOne) sqlSave(ctx context.Context) (_node *Flight
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := fiuo.mutation.DepartureDate(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: flightinstance.FieldDepartureDate,
+		})
+	}
+	if value, ok := fiuo.mutation.ArrivalDate(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: flightinstance.FieldArrivalDate,
+		})
 	}
 	if value, ok := fiuo.mutation.DepartureGate(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
@@ -951,6 +1091,41 @@ func (fiuo *FlightInstanceUpdateOne) sqlSave(ctx context.Context) (_node *Flight
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: flight.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if fiuo.mutation.FlightScheduleCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   flightinstance.FlightScheduleTable,
+			Columns: []string{flightinstance.FlightScheduleColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flightschedule.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fiuo.mutation.FlightScheduleIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   flightinstance.FlightScheduleTable,
+			Columns: []string{flightinstance.FlightScheduleColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flightschedule.FieldID,
 				},
 			},
 		}

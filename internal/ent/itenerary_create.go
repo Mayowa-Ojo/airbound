@@ -58,6 +58,14 @@ func (ic *IteneraryCreate) SetID(u uuid.UUID) *IteneraryCreate {
 	return ic
 }
 
+// SetNillableID sets the "id" field if the given value is not nil.
+func (ic *IteneraryCreate) SetNillableID(u *uuid.UUID) *IteneraryCreate {
+	if u != nil {
+		ic.SetID(*u)
+	}
+	return ic
+}
+
 // AddFlightReservationIDs adds the "flight_reservations" edge to the FlightReservation entity by IDs.
 func (ic *IteneraryCreate) AddFlightReservationIDs(ids ...uuid.UUID) *IteneraryCreate {
 	ic.mutation.AddFlightReservationIDs(ids...)
@@ -218,10 +226,10 @@ func (ic *IteneraryCreate) defaults() {
 // check runs all checks and user-defined validators on the builder.
 func (ic *IteneraryCreate) check() error {
 	if _, ok := ic.mutation.CreatedAt(); !ok {
-		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "created_at"`)}
+		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Itenerary.created_at"`)}
 	}
 	if _, ok := ic.mutation.UpdatedAt(); !ok {
-		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "updated_at"`)}
+		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "Itenerary.updated_at"`)}
 	}
 	return nil
 }
@@ -235,7 +243,11 @@ func (ic *IteneraryCreate) sqlSave(ctx context.Context) (*Itenerary, error) {
 		return nil, err
 	}
 	if _spec.ID.Value != nil {
-		_node.ID = _spec.ID.Value.(uuid.UUID)
+		if id, ok := _spec.ID.Value.(*uuid.UUID); ok {
+			_node.ID = *id
+		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
+			return nil, err
+		}
 	}
 	return _node, nil
 }
@@ -253,7 +265,7 @@ func (ic *IteneraryCreate) createSpec() (*Itenerary, *sqlgraph.CreateSpec) {
 	)
 	if id, ok := ic.mutation.ID(); ok {
 		_node.ID = id
-		_spec.ID.Value = id
+		_spec.ID.Value = &id
 	}
 	if value, ok := ic.mutation.CreatedAt(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{

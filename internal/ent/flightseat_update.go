@@ -210,11 +210,11 @@ func (fsu *FlightSeatUpdate) defaults() {
 func (fsu *FlightSeatUpdate) check() error {
 	if v, ok := fsu.mutation.Fare(); ok {
 		if err := flightseat.FareValidator(v); err != nil {
-			return &ValidationError{Name: "fare", err: fmt.Errorf("ent: validator failed for field \"fare\": %w", err)}
+			return &ValidationError{Name: "fare", err: fmt.Errorf(`ent: validator failed for field "FlightSeat.fare": %w`, err)}
 		}
 	}
 	if _, ok := fsu.mutation.SeatID(); fsu.mutation.SeatCleared() && !ok {
-		return errors.New("ent: clearing a required unique edge \"seat\"")
+		return errors.New(`ent: clearing a required unique edge "FlightSeat.seat"`)
 	}
 	return nil
 }
@@ -574,11 +574,11 @@ func (fsuo *FlightSeatUpdateOne) defaults() {
 func (fsuo *FlightSeatUpdateOne) check() error {
 	if v, ok := fsuo.mutation.Fare(); ok {
 		if err := flightseat.FareValidator(v); err != nil {
-			return &ValidationError{Name: "fare", err: fmt.Errorf("ent: validator failed for field \"fare\": %w", err)}
+			return &ValidationError{Name: "fare", err: fmt.Errorf(`ent: validator failed for field "FlightSeat.fare": %w`, err)}
 		}
 	}
 	if _, ok := fsuo.mutation.SeatID(); fsuo.mutation.SeatCleared() && !ok {
-		return errors.New("ent: clearing a required unique edge \"seat\"")
+		return errors.New(`ent: clearing a required unique edge "FlightSeat.seat"`)
 	}
 	return nil
 }
@@ -596,7 +596,7 @@ func (fsuo *FlightSeatUpdateOne) sqlSave(ctx context.Context) (_node *FlightSeat
 	}
 	id, ok := fsuo.mutation.ID()
 	if !ok {
-		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing FlightSeat.ID for update")}
+		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "FlightSeat.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
 	if fields := fsuo.fields; len(fields) > 0 {

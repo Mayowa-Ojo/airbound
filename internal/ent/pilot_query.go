@@ -482,6 +482,10 @@ func (pq *PilotQuery) sqlAll(ctx context.Context) ([]*Pilot, error) {
 
 func (pq *PilotQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := pq.querySpec()
+	_spec.Node.Columns = pq.fields
+	if len(pq.fields) > 0 {
+		_spec.Unique = pq.unique != nil && *pq.unique
+	}
 	return sqlgraph.CountNodes(ctx, pq.driver, _spec)
 }
 
@@ -552,6 +556,9 @@ func (pq *PilotQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	if pq.sql != nil {
 		selector = pq.sql
 		selector.Select(selector.Columns(columns...)...)
+	}
+	if pq.unique != nil && *pq.unique {
+		selector.Distinct()
 	}
 	for _, p := range pq.predicates {
 		p(selector)
@@ -831,9 +838,7 @@ func (pgb *PilotGroupBy) sqlQuery() *sql.Selector {
 		for _, f := range pgb.fields {
 			columns = append(columns, selector.C(f))
 		}
-		for _, c := range aggregation {
-			columns = append(columns, c)
-		}
+		columns = append(columns, aggregation...)
 		selector.Select(columns...)
 	}
 	return selector.GroupBy(selector.Columns(pgb.fields...)...)

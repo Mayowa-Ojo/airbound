@@ -64,6 +64,14 @@ func (cc *CrewCreate) SetID(u uuid.UUID) *CrewCreate {
 	return cc
 }
 
+// SetNillableID sets the "id" field if the given value is not nil.
+func (cc *CrewCreate) SetNillableID(u *uuid.UUID) *CrewCreate {
+	if u != nil {
+		cc.SetID(*u)
+	}
+	return cc
+}
+
 // SetUserID sets the "user" edge to the User entity by ID.
 func (cc *CrewCreate) SetUserID(id uuid.UUID) *CrewCreate {
 	cc.mutation.SetUserID(id)
@@ -197,21 +205,21 @@ func (cc *CrewCreate) defaults() {
 // check runs all checks and user-defined validators on the builder.
 func (cc *CrewCreate) check() error {
 	if _, ok := cc.mutation.EmployeeID(); !ok {
-		return &ValidationError{Name: "employee_id", err: errors.New(`ent: missing required field "employee_id"`)}
+		return &ValidationError{Name: "employee_id", err: errors.New(`ent: missing required field "Crew.employee_id"`)}
 	}
 	if v, ok := cc.mutation.EmployeeID(); ok {
 		if err := crew.EmployeeIDValidator(v); err != nil {
-			return &ValidationError{Name: "employee_id", err: fmt.Errorf(`ent: validator failed for field "employee_id": %w`, err)}
+			return &ValidationError{Name: "employee_id", err: fmt.Errorf(`ent: validator failed for field "Crew.employee_id": %w`, err)}
 		}
 	}
 	if _, ok := cc.mutation.CreatedAt(); !ok {
-		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "created_at"`)}
+		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Crew.created_at"`)}
 	}
 	if _, ok := cc.mutation.UpdatedAt(); !ok {
-		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "updated_at"`)}
+		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "Crew.updated_at"`)}
 	}
 	if _, ok := cc.mutation.UserID(); !ok {
-		return &ValidationError{Name: "user", err: errors.New("ent: missing required edge \"user\"")}
+		return &ValidationError{Name: "user", err: errors.New(`ent: missing required edge "Crew.user"`)}
 	}
 	return nil
 }
@@ -225,7 +233,11 @@ func (cc *CrewCreate) sqlSave(ctx context.Context) (*Crew, error) {
 		return nil, err
 	}
 	if _spec.ID.Value != nil {
-		_node.ID = _spec.ID.Value.(uuid.UUID)
+		if id, ok := _spec.ID.Value.(*uuid.UUID); ok {
+			_node.ID = *id
+		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
+			return nil, err
+		}
 	}
 	return _node, nil
 }
@@ -243,7 +255,7 @@ func (cc *CrewCreate) createSpec() (*Crew, *sqlgraph.CreateSpec) {
 	)
 	if id, ok := cc.mutation.ID(); ok {
 		_node.ID = id
-		_spec.ID.Value = id
+		_spec.ID.Value = &id
 	}
 	if value, ok := cc.mutation.EmployeeID(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{

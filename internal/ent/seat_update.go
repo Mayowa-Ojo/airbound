@@ -9,6 +9,7 @@ import (
 	"airbound/internal/ent/predicate"
 	"airbound/internal/ent/seat"
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -210,22 +211,22 @@ func (su *SeatUpdate) defaults() {
 func (su *SeatUpdate) check() error {
 	if v, ok := su.mutation.SeatNumber(); ok {
 		if err := seat.SeatNumberValidator(v); err != nil {
-			return &ValidationError{Name: "seat_number", err: fmt.Errorf("ent: validator failed for field \"seat_number\": %w", err)}
+			return &ValidationError{Name: "seat_number", err: fmt.Errorf(`ent: validator failed for field "Seat.seat_number": %w`, err)}
 		}
 	}
 	if v, ok := su.mutation.SeatRow(); ok {
 		if err := seat.SeatRowValidator(v); err != nil {
-			return &ValidationError{Name: "seat_row", err: fmt.Errorf("ent: validator failed for field \"seat_row\": %w", err)}
+			return &ValidationError{Name: "seat_row", err: fmt.Errorf(`ent: validator failed for field "Seat.seat_row": %w`, err)}
 		}
 	}
 	if v, ok := su.mutation.SeatType(); ok {
 		if err := seat.SeatTypeValidator(v); err != nil {
-			return &ValidationError{Name: "seat_type", err: fmt.Errorf("ent: validator failed for field \"seat_type\": %w", err)}
+			return &ValidationError{Name: "seat_type", err: fmt.Errorf(`ent: validator failed for field "Seat.seat_type": %w`, err)}
 		}
 	}
 	if v, ok := su.mutation.SeatClass(); ok {
 		if err := seat.SeatClassValidator(v); err != nil {
-			return &ValidationError{Name: "seat_class", err: fmt.Errorf("ent: validator failed for field \"seat_class\": %w", err)}
+			return &ValidationError{Name: "seat_class", err: fmt.Errorf(`ent: validator failed for field "Seat.seat_class": %w`, err)}
 		}
 	}
 	return nil
@@ -573,22 +574,22 @@ func (suo *SeatUpdateOne) defaults() {
 func (suo *SeatUpdateOne) check() error {
 	if v, ok := suo.mutation.SeatNumber(); ok {
 		if err := seat.SeatNumberValidator(v); err != nil {
-			return &ValidationError{Name: "seat_number", err: fmt.Errorf("ent: validator failed for field \"seat_number\": %w", err)}
+			return &ValidationError{Name: "seat_number", err: fmt.Errorf(`ent: validator failed for field "Seat.seat_number": %w`, err)}
 		}
 	}
 	if v, ok := suo.mutation.SeatRow(); ok {
 		if err := seat.SeatRowValidator(v); err != nil {
-			return &ValidationError{Name: "seat_row", err: fmt.Errorf("ent: validator failed for field \"seat_row\": %w", err)}
+			return &ValidationError{Name: "seat_row", err: fmt.Errorf(`ent: validator failed for field "Seat.seat_row": %w`, err)}
 		}
 	}
 	if v, ok := suo.mutation.SeatType(); ok {
 		if err := seat.SeatTypeValidator(v); err != nil {
-			return &ValidationError{Name: "seat_type", err: fmt.Errorf("ent: validator failed for field \"seat_type\": %w", err)}
+			return &ValidationError{Name: "seat_type", err: fmt.Errorf(`ent: validator failed for field "Seat.seat_type": %w`, err)}
 		}
 	}
 	if v, ok := suo.mutation.SeatClass(); ok {
 		if err := seat.SeatClassValidator(v); err != nil {
-			return &ValidationError{Name: "seat_class", err: fmt.Errorf("ent: validator failed for field \"seat_class\": %w", err)}
+			return &ValidationError{Name: "seat_class", err: fmt.Errorf(`ent: validator failed for field "Seat.seat_class": %w`, err)}
 		}
 	}
 	return nil
@@ -607,7 +608,7 @@ func (suo *SeatUpdateOne) sqlSave(ctx context.Context) (_node *Seat, err error) 
 	}
 	id, ok := suo.mutation.ID()
 	if !ok {
-		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing Seat.ID for update")}
+		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "Seat.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
 	if fields := suo.fields; len(fields) > 0 {

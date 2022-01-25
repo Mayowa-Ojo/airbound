@@ -71,6 +71,14 @@ func (frc *FlightReservationCreate) SetID(u uuid.UUID) *FlightReservationCreate 
 	return frc
 }
 
+// SetNillableID sets the "id" field if the given value is not nil.
+func (frc *FlightReservationCreate) SetNillableID(u *uuid.UUID) *FlightReservationCreate {
+	if u != nil {
+		frc.SetID(*u)
+	}
+	return frc
+}
+
 // SetFlightInstanceID sets the "flight_instance" edge to the FlightInstance entity by ID.
 func (frc *FlightReservationCreate) SetFlightInstanceID(id uuid.UUID) *FlightReservationCreate {
 	frc.mutation.SetFlightInstanceID(id)
@@ -212,26 +220,26 @@ func (frc *FlightReservationCreate) defaults() {
 // check runs all checks and user-defined validators on the builder.
 func (frc *FlightReservationCreate) check() error {
 	if _, ok := frc.mutation.ReservationNumber(); !ok {
-		return &ValidationError{Name: "reservation_number", err: errors.New(`ent: missing required field "reservation_number"`)}
+		return &ValidationError{Name: "reservation_number", err: errors.New(`ent: missing required field "FlightReservation.reservation_number"`)}
 	}
 	if v, ok := frc.mutation.ReservationNumber(); ok {
 		if err := flightreservation.ReservationNumberValidator(v); err != nil {
-			return &ValidationError{Name: "reservation_number", err: fmt.Errorf(`ent: validator failed for field "reservation_number": %w`, err)}
+			return &ValidationError{Name: "reservation_number", err: fmt.Errorf(`ent: validator failed for field "FlightReservation.reservation_number": %w`, err)}
 		}
 	}
 	if _, ok := frc.mutation.ReservationStatus(); !ok {
-		return &ValidationError{Name: "reservation_status", err: errors.New(`ent: missing required field "reservation_status"`)}
+		return &ValidationError{Name: "reservation_status", err: errors.New(`ent: missing required field "FlightReservation.reservation_status"`)}
 	}
 	if v, ok := frc.mutation.ReservationStatus(); ok {
 		if err := flightreservation.ReservationStatusValidator(v); err != nil {
-			return &ValidationError{Name: "reservation_status", err: fmt.Errorf(`ent: validator failed for field "reservation_status": %w`, err)}
+			return &ValidationError{Name: "reservation_status", err: fmt.Errorf(`ent: validator failed for field "FlightReservation.reservation_status": %w`, err)}
 		}
 	}
 	if _, ok := frc.mutation.CreatedAt(); !ok {
-		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "created_at"`)}
+		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "FlightReservation.created_at"`)}
 	}
 	if _, ok := frc.mutation.UpdatedAt(); !ok {
-		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "updated_at"`)}
+		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "FlightReservation.updated_at"`)}
 	}
 	return nil
 }
@@ -245,7 +253,11 @@ func (frc *FlightReservationCreate) sqlSave(ctx context.Context) (*FlightReserva
 		return nil, err
 	}
 	if _spec.ID.Value != nil {
-		_node.ID = _spec.ID.Value.(uuid.UUID)
+		if id, ok := _spec.ID.Value.(*uuid.UUID); ok {
+			_node.ID = *id
+		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
+			return nil, err
+		}
 	}
 	return _node, nil
 }
@@ -263,7 +275,7 @@ func (frc *FlightReservationCreate) createSpec() (*FlightReservation, *sqlgraph.
 	)
 	if id, ok := frc.mutation.ID(); ok {
 		_node.ID = id
-		_spec.ID.Value = id
+		_spec.ID.Value = &id
 	}
 	if value, ok := frc.mutation.ReservationNumber(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{

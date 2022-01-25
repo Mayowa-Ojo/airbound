@@ -8,6 +8,7 @@ import (
 	"airbound/internal/ent/passenger"
 	"airbound/internal/ent/predicate"
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -52,6 +53,12 @@ func (pu *PassengerUpdate) SetAge(i int) *PassengerUpdate {
 // AddAge adds i to the "age" field.
 func (pu *PassengerUpdate) AddAge(i int) *PassengerUpdate {
 	pu.mutation.AddAge(i)
+	return pu
+}
+
+// SetNationality sets the "nationality" field.
+func (pu *PassengerUpdate) SetNationality(s string) *PassengerUpdate {
+	pu.mutation.SetNationality(s)
 	return pu
 }
 
@@ -209,22 +216,27 @@ func (pu *PassengerUpdate) defaults() {
 func (pu *PassengerUpdate) check() error {
 	if v, ok := pu.mutation.Firstname(); ok {
 		if err := passenger.FirstnameValidator(v); err != nil {
-			return &ValidationError{Name: "firstname", err: fmt.Errorf("ent: validator failed for field \"firstname\": %w", err)}
+			return &ValidationError{Name: "firstname", err: fmt.Errorf(`ent: validator failed for field "Passenger.firstname": %w`, err)}
 		}
 	}
 	if v, ok := pu.mutation.Lastname(); ok {
 		if err := passenger.LastnameValidator(v); err != nil {
-			return &ValidationError{Name: "lastname", err: fmt.Errorf("ent: validator failed for field \"lastname\": %w", err)}
+			return &ValidationError{Name: "lastname", err: fmt.Errorf(`ent: validator failed for field "Passenger.lastname": %w`, err)}
 		}
 	}
 	if v, ok := pu.mutation.Age(); ok {
 		if err := passenger.AgeValidator(v); err != nil {
-			return &ValidationError{Name: "age", err: fmt.Errorf("ent: validator failed for field \"age\": %w", err)}
+			return &ValidationError{Name: "age", err: fmt.Errorf(`ent: validator failed for field "Passenger.age": %w`, err)}
+		}
+	}
+	if v, ok := pu.mutation.Nationality(); ok {
+		if err := passenger.NationalityValidator(v); err != nil {
+			return &ValidationError{Name: "nationality", err: fmt.Errorf(`ent: validator failed for field "Passenger.nationality": %w`, err)}
 		}
 	}
 	if v, ok := pu.mutation.PassportNumber(); ok {
 		if err := passenger.PassportNumberValidator(v); err != nil {
-			return &ValidationError{Name: "passport_number", err: fmt.Errorf("ent: validator failed for field \"passport_number\": %w", err)}
+			return &ValidationError{Name: "passport_number", err: fmt.Errorf(`ent: validator failed for field "Passenger.passport_number": %w`, err)}
 		}
 	}
 	return nil
@@ -274,6 +286,13 @@ func (pu *PassengerUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Type:   field.TypeInt,
 			Value:  value,
 			Column: passenger.FieldAge,
+		})
+	}
+	if value, ok := pu.mutation.Nationality(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: passenger.FieldNationality,
 		})
 	}
 	if value, ok := pu.mutation.PassportNumber(); ok {
@@ -408,6 +427,12 @@ func (puo *PassengerUpdateOne) SetAge(i int) *PassengerUpdateOne {
 // AddAge adds i to the "age" field.
 func (puo *PassengerUpdateOne) AddAge(i int) *PassengerUpdateOne {
 	puo.mutation.AddAge(i)
+	return puo
+}
+
+// SetNationality sets the "nationality" field.
+func (puo *PassengerUpdateOne) SetNationality(s string) *PassengerUpdateOne {
+	puo.mutation.SetNationality(s)
 	return puo
 }
 
@@ -572,22 +597,27 @@ func (puo *PassengerUpdateOne) defaults() {
 func (puo *PassengerUpdateOne) check() error {
 	if v, ok := puo.mutation.Firstname(); ok {
 		if err := passenger.FirstnameValidator(v); err != nil {
-			return &ValidationError{Name: "firstname", err: fmt.Errorf("ent: validator failed for field \"firstname\": %w", err)}
+			return &ValidationError{Name: "firstname", err: fmt.Errorf(`ent: validator failed for field "Passenger.firstname": %w`, err)}
 		}
 	}
 	if v, ok := puo.mutation.Lastname(); ok {
 		if err := passenger.LastnameValidator(v); err != nil {
-			return &ValidationError{Name: "lastname", err: fmt.Errorf("ent: validator failed for field \"lastname\": %w", err)}
+			return &ValidationError{Name: "lastname", err: fmt.Errorf(`ent: validator failed for field "Passenger.lastname": %w`, err)}
 		}
 	}
 	if v, ok := puo.mutation.Age(); ok {
 		if err := passenger.AgeValidator(v); err != nil {
-			return &ValidationError{Name: "age", err: fmt.Errorf("ent: validator failed for field \"age\": %w", err)}
+			return &ValidationError{Name: "age", err: fmt.Errorf(`ent: validator failed for field "Passenger.age": %w`, err)}
+		}
+	}
+	if v, ok := puo.mutation.Nationality(); ok {
+		if err := passenger.NationalityValidator(v); err != nil {
+			return &ValidationError{Name: "nationality", err: fmt.Errorf(`ent: validator failed for field "Passenger.nationality": %w`, err)}
 		}
 	}
 	if v, ok := puo.mutation.PassportNumber(); ok {
 		if err := passenger.PassportNumberValidator(v); err != nil {
-			return &ValidationError{Name: "passport_number", err: fmt.Errorf("ent: validator failed for field \"passport_number\": %w", err)}
+			return &ValidationError{Name: "passport_number", err: fmt.Errorf(`ent: validator failed for field "Passenger.passport_number": %w`, err)}
 		}
 	}
 	return nil
@@ -606,7 +636,7 @@ func (puo *PassengerUpdateOne) sqlSave(ctx context.Context) (_node *Passenger, e
 	}
 	id, ok := puo.mutation.ID()
 	if !ok {
-		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing Passenger.ID for update")}
+		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "Passenger.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
 	if fields := puo.fields; len(fields) > 0 {
@@ -654,6 +684,13 @@ func (puo *PassengerUpdateOne) sqlSave(ctx context.Context) (_node *Passenger, e
 			Type:   field.TypeInt,
 			Value:  value,
 			Column: passenger.FieldAge,
+		})
+	}
+	if value, ok := puo.mutation.Nationality(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: passenger.FieldNationality,
 		})
 	}
 	if value, ok := puo.mutation.PassportNumber(); ok {

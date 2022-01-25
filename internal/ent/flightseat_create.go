@@ -64,6 +64,14 @@ func (fsc *FlightSeatCreate) SetID(u uuid.UUID) *FlightSeatCreate {
 	return fsc
 }
 
+// SetNillableID sets the "id" field if the given value is not nil.
+func (fsc *FlightSeatCreate) SetNillableID(u *uuid.UUID) *FlightSeatCreate {
+	if u != nil {
+		fsc.SetID(*u)
+	}
+	return fsc
+}
+
 // SetFlightInstanceID sets the "flight_instance" edge to the FlightInstance entity by ID.
 func (fsc *FlightSeatCreate) SetFlightInstanceID(id uuid.UUID) *FlightSeatCreate {
 	fsc.mutation.SetFlightInstanceID(id)
@@ -201,21 +209,21 @@ func (fsc *FlightSeatCreate) defaults() {
 // check runs all checks and user-defined validators on the builder.
 func (fsc *FlightSeatCreate) check() error {
 	if _, ok := fsc.mutation.Fare(); !ok {
-		return &ValidationError{Name: "fare", err: errors.New(`ent: missing required field "fare"`)}
+		return &ValidationError{Name: "fare", err: errors.New(`ent: missing required field "FlightSeat.fare"`)}
 	}
 	if v, ok := fsc.mutation.Fare(); ok {
 		if err := flightseat.FareValidator(v); err != nil {
-			return &ValidationError{Name: "fare", err: fmt.Errorf(`ent: validator failed for field "fare": %w`, err)}
+			return &ValidationError{Name: "fare", err: fmt.Errorf(`ent: validator failed for field "FlightSeat.fare": %w`, err)}
 		}
 	}
 	if _, ok := fsc.mutation.CreatedAt(); !ok {
-		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "created_at"`)}
+		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "FlightSeat.created_at"`)}
 	}
 	if _, ok := fsc.mutation.UpdatedAt(); !ok {
-		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "updated_at"`)}
+		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "FlightSeat.updated_at"`)}
 	}
 	if _, ok := fsc.mutation.SeatID(); !ok {
-		return &ValidationError{Name: "seat", err: errors.New("ent: missing required edge \"seat\"")}
+		return &ValidationError{Name: "seat", err: errors.New(`ent: missing required edge "FlightSeat.seat"`)}
 	}
 	return nil
 }
@@ -229,7 +237,11 @@ func (fsc *FlightSeatCreate) sqlSave(ctx context.Context) (*FlightSeat, error) {
 		return nil, err
 	}
 	if _spec.ID.Value != nil {
-		_node.ID = _spec.ID.Value.(uuid.UUID)
+		if id, ok := _spec.ID.Value.(*uuid.UUID); ok {
+			_node.ID = *id
+		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
+			return nil, err
+		}
 	}
 	return _node, nil
 }
@@ -247,7 +259,7 @@ func (fsc *FlightSeatCreate) createSpec() (*FlightSeat, *sqlgraph.CreateSpec) {
 	)
 	if id, ok := fsc.mutation.ID(); ok {
 		_node.ID = id
-		_spec.ID.Value = id
+		_spec.ID.Value = &id
 	}
 	if value, ok := fsc.mutation.Fare(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{

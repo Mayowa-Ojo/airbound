@@ -8,6 +8,7 @@ import (
 	"airbound/internal/ent/predicate"
 	"airbound/internal/ent/user"
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -202,22 +203,22 @@ func (au *AddressUpdate) defaults() {
 func (au *AddressUpdate) check() error {
 	if v, ok := au.mutation.Street(); ok {
 		if err := address.StreetValidator(v); err != nil {
-			return &ValidationError{Name: "street", err: fmt.Errorf("ent: validator failed for field \"street\": %w", err)}
+			return &ValidationError{Name: "street", err: fmt.Errorf(`ent: validator failed for field "Address.street": %w`, err)}
 		}
 	}
 	if v, ok := au.mutation.City(); ok {
 		if err := address.CityValidator(v); err != nil {
-			return &ValidationError{Name: "city", err: fmt.Errorf("ent: validator failed for field \"city\": %w", err)}
+			return &ValidationError{Name: "city", err: fmt.Errorf(`ent: validator failed for field "Address.city": %w`, err)}
 		}
 	}
 	if v, ok := au.mutation.State(); ok {
 		if err := address.StateValidator(v); err != nil {
-			return &ValidationError{Name: "state", err: fmt.Errorf("ent: validator failed for field \"state\": %w", err)}
+			return &ValidationError{Name: "state", err: fmt.Errorf(`ent: validator failed for field "Address.state": %w`, err)}
 		}
 	}
 	if v, ok := au.mutation.Zipcode(); ok {
 		if err := address.ZipcodeValidator(v); err != nil {
-			return &ValidationError{Name: "zipcode", err: fmt.Errorf("ent: validator failed for field \"zipcode\": %w", err)}
+			return &ValidationError{Name: "zipcode", err: fmt.Errorf(`ent: validator failed for field "Address.zipcode": %w`, err)}
 		}
 	}
 	return nil
@@ -551,22 +552,22 @@ func (auo *AddressUpdateOne) defaults() {
 func (auo *AddressUpdateOne) check() error {
 	if v, ok := auo.mutation.Street(); ok {
 		if err := address.StreetValidator(v); err != nil {
-			return &ValidationError{Name: "street", err: fmt.Errorf("ent: validator failed for field \"street\": %w", err)}
+			return &ValidationError{Name: "street", err: fmt.Errorf(`ent: validator failed for field "Address.street": %w`, err)}
 		}
 	}
 	if v, ok := auo.mutation.City(); ok {
 		if err := address.CityValidator(v); err != nil {
-			return &ValidationError{Name: "city", err: fmt.Errorf("ent: validator failed for field \"city\": %w", err)}
+			return &ValidationError{Name: "city", err: fmt.Errorf(`ent: validator failed for field "Address.city": %w`, err)}
 		}
 	}
 	if v, ok := auo.mutation.State(); ok {
 		if err := address.StateValidator(v); err != nil {
-			return &ValidationError{Name: "state", err: fmt.Errorf("ent: validator failed for field \"state\": %w", err)}
+			return &ValidationError{Name: "state", err: fmt.Errorf(`ent: validator failed for field "Address.state": %w`, err)}
 		}
 	}
 	if v, ok := auo.mutation.Zipcode(); ok {
 		if err := address.ZipcodeValidator(v); err != nil {
-			return &ValidationError{Name: "zipcode", err: fmt.Errorf("ent: validator failed for field \"zipcode\": %w", err)}
+			return &ValidationError{Name: "zipcode", err: fmt.Errorf(`ent: validator failed for field "Address.zipcode": %w`, err)}
 		}
 	}
 	return nil
@@ -585,7 +586,7 @@ func (auo *AddressUpdateOne) sqlSave(ctx context.Context) (_node *Address, err e
 	}
 	id, ok := auo.mutation.ID()
 	if !ok {
-		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing Address.ID for update")}
+		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "Address.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
 	if fields := auo.fields; len(fields) > 0 {

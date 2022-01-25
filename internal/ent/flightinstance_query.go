@@ -7,6 +7,7 @@ import (
 	"airbound/internal/ent/flight"
 	"airbound/internal/ent/flightinstance"
 	"airbound/internal/ent/flightreservation"
+	"airbound/internal/ent/flightschedule"
 	"airbound/internal/ent/flightseat"
 	"airbound/internal/ent/predicate"
 	"context"
@@ -32,6 +33,7 @@ type FlightInstanceQuery struct {
 	predicates []predicate.FlightInstance
 	// eager-loading edges.
 	withFlight             *FlightQuery
+	withFlightSchedule     *FlightScheduleQuery
 	withAircraft           *AircraftQuery
 	withFlightReservations *FlightReservationQuery
 	withFlightSeats        *FlightSeatQuery
@@ -87,6 +89,28 @@ func (fiq *FlightInstanceQuery) QueryFlight() *FlightQuery {
 			sqlgraph.From(flightinstance.Table, flightinstance.FieldID, selector),
 			sqlgraph.To(flight.Table, flight.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, flightinstance.FlightTable, flightinstance.FlightColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(fiq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryFlightSchedule chains the current query on the "flight_schedule" edge.
+func (fiq *FlightInstanceQuery) QueryFlightSchedule() *FlightScheduleQuery {
+	query := &FlightScheduleQuery{config: fiq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := fiq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := fiq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(flightinstance.Table, flightinstance.FieldID, selector),
+			sqlgraph.To(flightschedule.Table, flightschedule.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, flightinstance.FlightScheduleTable, flightinstance.FlightScheduleColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(fiq.driver.Dialect(), step)
 		return fromU, nil
@@ -342,6 +366,7 @@ func (fiq *FlightInstanceQuery) Clone() *FlightInstanceQuery {
 		order:                  append([]OrderFunc{}, fiq.order...),
 		predicates:             append([]predicate.FlightInstance{}, fiq.predicates...),
 		withFlight:             fiq.withFlight.Clone(),
+		withFlightSchedule:     fiq.withFlightSchedule.Clone(),
 		withAircraft:           fiq.withAircraft.Clone(),
 		withFlightReservations: fiq.withFlightReservations.Clone(),
 		withFlightSeats:        fiq.withFlightSeats.Clone(),
@@ -359,6 +384,17 @@ func (fiq *FlightInstanceQuery) WithFlight(opts ...func(*FlightQuery)) *FlightIn
 		opt(query)
 	}
 	fiq.withFlight = query
+	return fiq
+}
+
+// WithFlightSchedule tells the query-builder to eager-load the nodes that are connected to
+// the "flight_schedule" edge. The optional arguments are used to configure the query builder of the edge.
+func (fiq *FlightInstanceQuery) WithFlightSchedule(opts ...func(*FlightScheduleQuery)) *FlightInstanceQuery {
+	query := &FlightScheduleQuery{config: fiq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	fiq.withFlightSchedule = query
 	return fiq
 }
 
@@ -401,12 +437,12 @@ func (fiq *FlightInstanceQuery) WithFlightSeats(opts ...func(*FlightSeatQuery)) 
 // Example:
 //
 //	var v []struct {
-//		DepartureGate int `json:"departure_gate,omitempty"`
+//		DepartureDate customtypes.Date `json:"departure_date,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.FlightInstance.Query().
-//		GroupBy(flightinstance.FieldDepartureGate).
+//		GroupBy(flightinstance.FieldDepartureDate).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 //
@@ -428,11 +464,11 @@ func (fiq *FlightInstanceQuery) GroupBy(field string, fields ...string) *FlightI
 // Example:
 //
 //	var v []struct {
-//		DepartureGate int `json:"departure_gate,omitempty"`
+//		DepartureDate customtypes.Date `json:"departure_date,omitempty"`
 //	}
 //
 //	client.FlightInstance.Query().
-//		Select(flightinstance.FieldDepartureGate).
+//		Select(flightinstance.FieldDepartureDate).
 //		Scan(ctx, &v)
 //
 func (fiq *FlightInstanceQuery) Select(fields ...string) *FlightInstanceSelect {
@@ -461,14 +497,15 @@ func (fiq *FlightInstanceQuery) sqlAll(ctx context.Context) ([]*FlightInstance, 
 		nodes       = []*FlightInstance{}
 		withFKs     = fiq.withFKs
 		_spec       = fiq.querySpec()
-		loadedTypes = [4]bool{
+		loadedTypes = [5]bool{
 			fiq.withFlight != nil,
+			fiq.withFlightSchedule != nil,
 			fiq.withAircraft != nil,
 			fiq.withFlightReservations != nil,
 			fiq.withFlightSeats != nil,
 		}
 	)
-	if fiq.withFlight != nil {
+	if fiq.withFlight != nil || fiq.withFlightSchedule != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -519,6 +556,35 @@ func (fiq *FlightInstanceQuery) sqlAll(ctx context.Context) ([]*FlightInstance, 
 			}
 			for i := range nodes {
 				nodes[i].Edges.Flight = n
+			}
+		}
+	}
+
+	if query := fiq.withFlightSchedule; query != nil {
+		ids := make([]uuid.UUID, 0, len(nodes))
+		nodeids := make(map[uuid.UUID][]*FlightInstance)
+		for i := range nodes {
+			if nodes[i].flight_schedule_id == nil {
+				continue
+			}
+			fk := *nodes[i].flight_schedule_id
+			if _, ok := nodeids[fk]; !ok {
+				ids = append(ids, fk)
+			}
+			nodeids[fk] = append(nodeids[fk], nodes[i])
+		}
+		query.Where(flightschedule.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "flight_schedule_id" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.FlightSchedule = n
 			}
 		}
 	}
@@ -614,6 +680,10 @@ func (fiq *FlightInstanceQuery) sqlAll(ctx context.Context) ([]*FlightInstance, 
 
 func (fiq *FlightInstanceQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := fiq.querySpec()
+	_spec.Node.Columns = fiq.fields
+	if len(fiq.fields) > 0 {
+		_spec.Unique = fiq.unique != nil && *fiq.unique
+	}
 	return sqlgraph.CountNodes(ctx, fiq.driver, _spec)
 }
 
@@ -684,6 +754,9 @@ func (fiq *FlightInstanceQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	if fiq.sql != nil {
 		selector = fiq.sql
 		selector.Select(selector.Columns(columns...)...)
+	}
+	if fiq.unique != nil && *fiq.unique {
+		selector.Distinct()
 	}
 	for _, p := range fiq.predicates {
 		p(selector)
@@ -963,9 +1036,7 @@ func (figb *FlightInstanceGroupBy) sqlQuery() *sql.Selector {
 		for _, f := range figb.fields {
 			columns = append(columns, selector.C(f))
 		}
-		for _, c := range aggregation {
-			columns = append(columns, c)
-		}
+		columns = append(columns, aggregation...)
 		selector.Select(columns...)
 	}
 	return selector.GroupBy(selector.Columns(figb.fields...)...)

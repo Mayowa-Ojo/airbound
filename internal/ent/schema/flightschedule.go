@@ -40,5 +40,7 @@ func (FlightSchedule) Edges() []ent.Edge {
 		edge.From("flight", Flight.Type).
 			Ref("flight_schedules").
 			Unique(),
+		edge.To("flight_instances", FlightInstance.Type).
+			StorageKey(edge.Column("flight_schedule_id")),
 	}
 }

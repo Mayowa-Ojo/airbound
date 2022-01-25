@@ -482,6 +482,10 @@ func (fdq *FrontDeskQuery) sqlAll(ctx context.Context) ([]*FrontDesk, error) {
 
 func (fdq *FrontDeskQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := fdq.querySpec()
+	_spec.Node.Columns = fdq.fields
+	if len(fdq.fields) > 0 {
+		_spec.Unique = fdq.unique != nil && *fdq.unique
+	}
 	return sqlgraph.CountNodes(ctx, fdq.driver, _spec)
 }
 
@@ -552,6 +556,9 @@ func (fdq *FrontDeskQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	if fdq.sql != nil {
 		selector = fdq.sql
 		selector.Select(selector.Columns(columns...)...)
+	}
+	if fdq.unique != nil && *fdq.unique {
+		selector.Distinct()
 	}
 	for _, p := range fdq.predicates {
 		p(selector)
@@ -831,9 +838,7 @@ func (fdgb *FrontDeskGroupBy) sqlQuery() *sql.Selector {
 		for _, f := range fdgb.fields {
 			columns = append(columns, selector.C(f))
 		}
-		for _, c := range aggregation {
-			columns = append(columns, c)
-		}
+		columns = append(columns, aggregation...)
 		selector.Select(columns...)
 	}
 	return selector.GroupBy(selector.Columns(fdgb.fields...)...)

@@ -19,6 +19,8 @@ const (
 	FieldLastname = "lastname"
 	// FieldAge holds the string denoting the age field in the database.
 	FieldAge = "age"
+	// FieldNationality holds the string denoting the nationality field in the database.
+	FieldNationality = "nationality"
 	// FieldPassportNumber holds the string denoting the passport_number field in the database.
 	FieldPassportNumber = "passport_number"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
@@ -53,6 +55,7 @@ var Columns = []string{
 	FieldFirstname,
 	FieldLastname,
 	FieldAge,
+	FieldNationality,
 	FieldPassportNumber,
 	FieldCreatedAt,
 	FieldUpdatedAt,
@@ -86,6 +89,8 @@ var (
 	LastnameValidator func(string) error
 	// AgeValidator is a validator for the "age" field. It is called by the builders before save.
 	AgeValidator func(int) error
+	// NationalityValidator is a validator for the "nationality" field. It is called by the builders before save.
+	NationalityValidator func(string) error
 	// PassportNumberValidator is a validator for the "passport_number" field. It is called by the builders before save.
 	PassportNumberValidator func(string) error
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.

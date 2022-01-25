@@ -17,6 +17,8 @@ const (
 	FieldName = "name"
 	// FieldIataCode holds the string denoting the iata_code field in the database.
 	FieldIataCode = "iata_code"
+	// FieldCountry holds the string denoting the country field in the database.
+	FieldCountry = "country"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
@@ -27,6 +29,8 @@ const (
 	EdgeCrews = "crews"
 	// EdgePilots holds the string denoting the pilots edge name in mutations.
 	EdgePilots = "pilots"
+	// EdgeFlights holds the string denoting the flights edge name in mutations.
+	EdgeFlights = "flights"
 	// Table holds the table name of the airline in the database.
 	Table = "airlines"
 	// AircraftsTable is the table that holds the aircrafts relation/edge.
@@ -50,6 +54,13 @@ const (
 	PilotsInverseTable = "pilots"
 	// PilotsColumn is the table column denoting the pilots relation/edge.
 	PilotsColumn = "airline_id"
+	// FlightsTable is the table that holds the flights relation/edge.
+	FlightsTable = "flights"
+	// FlightsInverseTable is the table name for the Flight entity.
+	// It exists in this package in order to avoid circular dependency with the "flight" package.
+	FlightsInverseTable = "flights"
+	// FlightsColumn is the table column denoting the flights relation/edge.
+	FlightsColumn = "airline_id"
 )
 
 // Columns holds all SQL columns for airline fields.
@@ -57,6 +68,7 @@ var Columns = []string{
 	FieldID,
 	FieldName,
 	FieldIataCode,
+	FieldCountry,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }
@@ -76,6 +88,8 @@ var (
 	NameValidator func(string) error
 	// IataCodeValidator is a validator for the "iata_code" field. It is called by the builders before save.
 	IataCodeValidator func(string) error
+	// CountryValidator is a validator for the "country" field. It is called by the builders before save.
+	CountryValidator func(string) error
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.

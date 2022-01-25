@@ -23,6 +23,8 @@ const (
 	FieldCapacity = "capacity"
 	// FieldRange holds the string denoting the range field in the database.
 	FieldRange = "range"
+	// FieldManufacturedAt holds the string denoting the manufactured_at field in the database.
+	FieldManufacturedAt = "manufactured_at"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
@@ -66,6 +68,7 @@ var Columns = []string{
 	FieldModel,
 	FieldCapacity,
 	FieldRange,
+	FieldManufacturedAt,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }

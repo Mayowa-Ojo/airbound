@@ -21,6 +21,7 @@ func (Passenger) Fields() []ent.Field {
 		field.String("firstname").MaxLen(250),
 		field.String("lastname").MaxLen(250),
 		field.Int("age").NonNegative(),
+		field.String("nationality").MaxLen(250),
 		field.String("passport_number").MaxLen(50),
 		field.Time("created_at").Default(time.Now),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),

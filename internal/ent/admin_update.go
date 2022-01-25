@@ -206,16 +206,16 @@ func (au *AdminUpdate) defaults() {
 func (au *AdminUpdate) check() error {
 	if v, ok := au.mutation.SecurityQuestion(); ok {
 		if err := admin.SecurityQuestionValidator(v); err != nil {
-			return &ValidationError{Name: "security_question", err: fmt.Errorf("ent: validator failed for field \"security_question\": %w", err)}
+			return &ValidationError{Name: "security_question", err: fmt.Errorf(`ent: validator failed for field "Admin.security_question": %w`, err)}
 		}
 	}
 	if v, ok := au.mutation.SecurityAnswer(); ok {
 		if err := admin.SecurityAnswerValidator(v); err != nil {
-			return &ValidationError{Name: "security_answer", err: fmt.Errorf("ent: validator failed for field \"security_answer\": %w", err)}
+			return &ValidationError{Name: "security_answer", err: fmt.Errorf(`ent: validator failed for field "Admin.security_answer": %w`, err)}
 		}
 	}
 	if _, ok := au.mutation.UserID(); au.mutation.UserCleared() && !ok {
-		return errors.New("ent: clearing a required unique edge \"user\"")
+		return errors.New(`ent: clearing a required unique edge "Admin.user"`)
 	}
 	return nil
 }
@@ -529,16 +529,16 @@ func (auo *AdminUpdateOne) defaults() {
 func (auo *AdminUpdateOne) check() error {
 	if v, ok := auo.mutation.SecurityQuestion(); ok {
 		if err := admin.SecurityQuestionValidator(v); err != nil {
-			return &ValidationError{Name: "security_question", err: fmt.Errorf("ent: validator failed for field \"security_question\": %w", err)}
+			return &ValidationError{Name: "security_question", err: fmt.Errorf(`ent: validator failed for field "Admin.security_question": %w`, err)}
 		}
 	}
 	if v, ok := auo.mutation.SecurityAnswer(); ok {
 		if err := admin.SecurityAnswerValidator(v); err != nil {
-			return &ValidationError{Name: "security_answer", err: fmt.Errorf("ent: validator failed for field \"security_answer\": %w", err)}
+			return &ValidationError{Name: "security_answer", err: fmt.Errorf(`ent: validator failed for field "Admin.security_answer": %w`, err)}
 		}
 	}
 	if _, ok := auo.mutation.UserID(); auo.mutation.UserCleared() && !ok {
-		return errors.New("ent: clearing a required unique edge \"user\"")
+		return errors.New(`ent: clearing a required unique edge "Admin.user"`)
 	}
 	return nil
 }
@@ -556,7 +556,7 @@ func (auo *AdminUpdateOne) sqlSave(ctx context.Context) (_node *Admin, err error
 	}
 	id, ok := auo.mutation.ID()
 	if !ok {
-		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing Admin.ID for update")}
+		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "Admin.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
 	if fields := auo.fields; len(fields) > 0 {

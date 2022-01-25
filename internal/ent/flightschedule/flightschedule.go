@@ -31,6 +31,8 @@ const (
 	FieldUpdatedAt = "updated_at"
 	// EdgeFlight holds the string denoting the flight edge name in mutations.
 	EdgeFlight = "flight"
+	// EdgeFlightInstances holds the string denoting the flight_instances edge name in mutations.
+	EdgeFlightInstances = "flight_instances"
 	// Table holds the table name of the flightschedule in the database.
 	Table = "flight_schedules"
 	// FlightTable is the table that holds the flight relation/edge.
@@ -40,6 +42,13 @@ const (
 	FlightInverseTable = "flights"
 	// FlightColumn is the table column denoting the flight relation/edge.
 	FlightColumn = "flight_id"
+	// FlightInstancesTable is the table that holds the flight_instances relation/edge.
+	FlightInstancesTable = "flight_instances"
+	// FlightInstancesInverseTable is the table name for the FlightInstance entity.
+	// It exists in this package in order to avoid circular dependency with the "flightinstance" package.
+	FlightInstancesInverseTable = "flight_instances"
+	// FlightInstancesColumn is the table column denoting the flight_instances relation/edge.
+	FlightInstancesColumn = "flight_schedule_id"
 )
 
 // Columns holds all SQL columns for flightschedule fields.

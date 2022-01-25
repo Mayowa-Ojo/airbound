@@ -98,6 +98,14 @@ func (ac *AdminCreate) SetID(u uuid.UUID) *AdminCreate {
 	return ac
 }
 
+// SetNillableID sets the "id" field if the given value is not nil.
+func (ac *AdminCreate) SetNillableID(u *uuid.UUID) *AdminCreate {
+	if u != nil {
+		ac.SetID(*u)
+	}
+	return ac
+}
+
 // SetUserID sets the "user" edge to the User entity by ID.
 func (ac *AdminCreate) SetUserID(id uuid.UUID) *AdminCreate {
 	ac.mutation.SetUserID(id)
@@ -201,26 +209,26 @@ func (ac *AdminCreate) defaults() {
 // check runs all checks and user-defined validators on the builder.
 func (ac *AdminCreate) check() error {
 	if _, ok := ac.mutation.Level(); !ok {
-		return &ValidationError{Name: "level", err: errors.New(`ent: missing required field "level"`)}
+		return &ValidationError{Name: "level", err: errors.New(`ent: missing required field "Admin.level"`)}
 	}
 	if v, ok := ac.mutation.SecurityQuestion(); ok {
 		if err := admin.SecurityQuestionValidator(v); err != nil {
-			return &ValidationError{Name: "security_question", err: fmt.Errorf(`ent: validator failed for field "security_question": %w`, err)}
+			return &ValidationError{Name: "security_question", err: fmt.Errorf(`ent: validator failed for field "Admin.security_question": %w`, err)}
 		}
 	}
 	if v, ok := ac.mutation.SecurityAnswer(); ok {
 		if err := admin.SecurityAnswerValidator(v); err != nil {
-			return &ValidationError{Name: "security_answer", err: fmt.Errorf(`ent: validator failed for field "security_answer": %w`, err)}
+			return &ValidationError{Name: "security_answer", err: fmt.Errorf(`ent: validator failed for field "Admin.security_answer": %w`, err)}
 		}
 	}
 	if _, ok := ac.mutation.CreatedAt(); !ok {
-		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "created_at"`)}
+		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Admin.created_at"`)}
 	}
 	if _, ok := ac.mutation.UpdatedAt(); !ok {
-		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "updated_at"`)}
+		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "Admin.updated_at"`)}
 	}
 	if _, ok := ac.mutation.UserID(); !ok {
-		return &ValidationError{Name: "user", err: errors.New("ent: missing required edge \"user\"")}
+		return &ValidationError{Name: "user", err: errors.New(`ent: missing required edge "Admin.user"`)}
 	}
 	return nil
 }
@@ -234,7 +242,11 @@ func (ac *AdminCreate) sqlSave(ctx context.Context) (*Admin, error) {
 		return nil, err
 	}
 	if _spec.ID.Value != nil {
-		_node.ID = _spec.ID.Value.(uuid.UUID)
+		if id, ok := _spec.ID.Value.(*uuid.UUID); ok {
+			_node.ID = *id
+		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
+			return nil, err
+		}
 	}
 	return _node, nil
 }
@@ -252,7 +264,7 @@ func (ac *AdminCreate) createSpec() (*Admin, *sqlgraph.CreateSpec) {
 	)
 	if id, ok := ac.mutation.ID(); ok {
 		_node.ID = id
-		_spec.ID.Value = id
+		_spec.ID.Value = &id
 	}
 	if value, ok := ac.mutation.Level(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{

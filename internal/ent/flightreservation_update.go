@@ -10,6 +10,7 @@ import (
 	"airbound/internal/ent/passenger"
 	"airbound/internal/ent/predicate"
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -228,12 +229,12 @@ func (fru *FlightReservationUpdate) defaults() {
 func (fru *FlightReservationUpdate) check() error {
 	if v, ok := fru.mutation.ReservationNumber(); ok {
 		if err := flightreservation.ReservationNumberValidator(v); err != nil {
-			return &ValidationError{Name: "reservation_number", err: fmt.Errorf("ent: validator failed for field \"reservation_number\": %w", err)}
+			return &ValidationError{Name: "reservation_number", err: fmt.Errorf(`ent: validator failed for field "FlightReservation.reservation_number": %w`, err)}
 		}
 	}
 	if v, ok := fru.mutation.ReservationStatus(); ok {
 		if err := flightreservation.ReservationStatusValidator(v); err != nil {
-			return &ValidationError{Name: "reservation_status", err: fmt.Errorf("ent: validator failed for field \"reservation_status\": %w", err)}
+			return &ValidationError{Name: "reservation_status", err: fmt.Errorf(`ent: validator failed for field "FlightReservation.reservation_status": %w`, err)}
 		}
 	}
 	return nil
@@ -631,12 +632,12 @@ func (fruo *FlightReservationUpdateOne) defaults() {
 func (fruo *FlightReservationUpdateOne) check() error {
 	if v, ok := fruo.mutation.ReservationNumber(); ok {
 		if err := flightreservation.ReservationNumberValidator(v); err != nil {
-			return &ValidationError{Name: "reservation_number", err: fmt.Errorf("ent: validator failed for field \"reservation_number\": %w", err)}
+			return &ValidationError{Name: "reservation_number", err: fmt.Errorf(`ent: validator failed for field "FlightReservation.reservation_number": %w`, err)}
 		}
 	}
 	if v, ok := fruo.mutation.ReservationStatus(); ok {
 		if err := flightreservation.ReservationStatusValidator(v); err != nil {
-			return &ValidationError{Name: "reservation_status", err: fmt.Errorf("ent: validator failed for field \"reservation_status\": %w", err)}
+			return &ValidationError{Name: "reservation_status", err: fmt.Errorf(`ent: validator failed for field "FlightReservation.reservation_status": %w`, err)}
 		}
 	}
 	return nil
@@ -655,7 +656,7 @@ func (fruo *FlightReservationUpdateOne) sqlSave(ctx context.Context) (_node *Fli
 	}
 	id, ok := fruo.mutation.ID()
 	if !ok {
-		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing FlightReservation.ID for update")}
+		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "FlightReservation.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
 	if fields := fruo.fields; len(fields) > 0 {

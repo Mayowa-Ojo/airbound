@@ -6,6 +6,7 @@ import (
 	"airbound/internal/ent/customtypes"
 	"airbound/internal/ent/enums"
 	"airbound/internal/ent/flight"
+	"airbound/internal/ent/flightinstance"
 	"airbound/internal/ent/flightschedule"
 	"context"
 	"errors"
@@ -104,6 +105,14 @@ func (fsc *FlightScheduleCreate) SetID(u uuid.UUID) *FlightScheduleCreate {
 	return fsc
 }
 
+// SetNillableID sets the "id" field if the given value is not nil.
+func (fsc *FlightScheduleCreate) SetNillableID(u *uuid.UUID) *FlightScheduleCreate {
+	if u != nil {
+		fsc.SetID(*u)
+	}
+	return fsc
+}
+
 // SetFlightID sets the "flight" edge to the Flight entity by ID.
 func (fsc *FlightScheduleCreate) SetFlightID(id uuid.UUID) *FlightScheduleCreate {
 	fsc.mutation.SetFlightID(id)
@@ -121,6 +130,21 @@ func (fsc *FlightScheduleCreate) SetNillableFlightID(id *uuid.UUID) *FlightSched
 // SetFlight sets the "flight" edge to the Flight entity.
 func (fsc *FlightScheduleCreate) SetFlight(f *Flight) *FlightScheduleCreate {
 	return fsc.SetFlightID(f.ID)
+}
+
+// AddFlightInstanceIDs adds the "flight_instances" edge to the FlightInstance entity by IDs.
+func (fsc *FlightScheduleCreate) AddFlightInstanceIDs(ids ...uuid.UUID) *FlightScheduleCreate {
+	fsc.mutation.AddFlightInstanceIDs(ids...)
+	return fsc
+}
+
+// AddFlightInstances adds the "flight_instances" edges to the FlightInstance entity.
+func (fsc *FlightScheduleCreate) AddFlightInstances(f ...*FlightInstance) *FlightScheduleCreate {
+	ids := make([]uuid.UUID, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return fsc.AddFlightInstanceIDs(ids...)
 }
 
 // Mutation returns the FlightScheduleMutation object of the builder.
@@ -212,28 +236,28 @@ func (fsc *FlightScheduleCreate) defaults() {
 func (fsc *FlightScheduleCreate) check() error {
 	if v, ok := fsc.mutation.Weekday(); ok {
 		if err := flightschedule.WeekdayValidator(v); err != nil {
-			return &ValidationError{Name: "weekday", err: fmt.Errorf(`ent: validator failed for field "weekday": %w`, err)}
+			return &ValidationError{Name: "weekday", err: fmt.Errorf(`ent: validator failed for field "FlightSchedule.weekday": %w`, err)}
 		}
 	}
 	if _, ok := fsc.mutation.ScheduleType(); !ok {
-		return &ValidationError{Name: "schedule_type", err: errors.New(`ent: missing required field "schedule_type"`)}
+		return &ValidationError{Name: "schedule_type", err: errors.New(`ent: missing required field "FlightSchedule.schedule_type"`)}
 	}
 	if v, ok := fsc.mutation.ScheduleType(); ok {
 		if err := flightschedule.ScheduleTypeValidator(v); err != nil {
-			return &ValidationError{Name: "schedule_type", err: fmt.Errorf(`ent: validator failed for field "schedule_type": %w`, err)}
+			return &ValidationError{Name: "schedule_type", err: fmt.Errorf(`ent: validator failed for field "FlightSchedule.schedule_type": %w`, err)}
 		}
 	}
 	if _, ok := fsc.mutation.DepartsAt(); !ok {
-		return &ValidationError{Name: "departs_at", err: errors.New(`ent: missing required field "departs_at"`)}
+		return &ValidationError{Name: "departs_at", err: errors.New(`ent: missing required field "FlightSchedule.departs_at"`)}
 	}
 	if _, ok := fsc.mutation.ArrivesAt(); !ok {
-		return &ValidationError{Name: "arrives_at", err: errors.New(`ent: missing required field "arrives_at"`)}
+		return &ValidationError{Name: "arrives_at", err: errors.New(`ent: missing required field "FlightSchedule.arrives_at"`)}
 	}
 	if _, ok := fsc.mutation.CreatedAt(); !ok {
-		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "created_at"`)}
+		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "FlightSchedule.created_at"`)}
 	}
 	if _, ok := fsc.mutation.UpdatedAt(); !ok {
-		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "updated_at"`)}
+		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "FlightSchedule.updated_at"`)}
 	}
 	return nil
 }
@@ -247,7 +271,11 @@ func (fsc *FlightScheduleCreate) sqlSave(ctx context.Context) (*FlightSchedule, 
 		return nil, err
 	}
 	if _spec.ID.Value != nil {
-		_node.ID = _spec.ID.Value.(uuid.UUID)
+		if id, ok := _spec.ID.Value.(*uuid.UUID); ok {
+			_node.ID = *id
+		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
+			return nil, err
+		}
 	}
 	return _node, nil
 }
@@ -265,7 +293,7 @@ func (fsc *FlightScheduleCreate) createSpec() (*FlightSchedule, *sqlgraph.Create
 	)
 	if id, ok := fsc.mutation.ID(); ok {
 		_node.ID = id
-		_spec.ID.Value = id
+		_spec.ID.Value = &id
 	}
 	if value, ok := fsc.mutation.Weekday(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
@@ -341,6 +369,25 @@ func (fsc *FlightScheduleCreate) createSpec() (*FlightSchedule, *sqlgraph.Create
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.flight_id = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := fsc.mutation.FlightInstancesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   flightschedule.FlightInstancesTable,
+			Columns: []string{flightschedule.FlightInstancesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flightinstance.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

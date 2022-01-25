@@ -81,6 +81,14 @@ func (ac *AddressCreate) SetID(u uuid.UUID) *AddressCreate {
 	return ac
 }
 
+// SetNillableID sets the "id" field if the given value is not nil.
+func (ac *AddressCreate) SetNillableID(u *uuid.UUID) *AddressCreate {
+	if u != nil {
+		ac.SetID(*u)
+	}
+	return ac
+}
+
 // SetUserID sets the "user" edge to the User entity by ID.
 func (ac *AddressCreate) SetUserID(id uuid.UUID) *AddressCreate {
 	ac.mutation.SetUserID(id)
@@ -207,42 +215,42 @@ func (ac *AddressCreate) defaults() {
 // check runs all checks and user-defined validators on the builder.
 func (ac *AddressCreate) check() error {
 	if _, ok := ac.mutation.Street(); !ok {
-		return &ValidationError{Name: "street", err: errors.New(`ent: missing required field "street"`)}
+		return &ValidationError{Name: "street", err: errors.New(`ent: missing required field "Address.street"`)}
 	}
 	if v, ok := ac.mutation.Street(); ok {
 		if err := address.StreetValidator(v); err != nil {
-			return &ValidationError{Name: "street", err: fmt.Errorf(`ent: validator failed for field "street": %w`, err)}
+			return &ValidationError{Name: "street", err: fmt.Errorf(`ent: validator failed for field "Address.street": %w`, err)}
 		}
 	}
 	if _, ok := ac.mutation.City(); !ok {
-		return &ValidationError{Name: "city", err: errors.New(`ent: missing required field "city"`)}
+		return &ValidationError{Name: "city", err: errors.New(`ent: missing required field "Address.city"`)}
 	}
 	if v, ok := ac.mutation.City(); ok {
 		if err := address.CityValidator(v); err != nil {
-			return &ValidationError{Name: "city", err: fmt.Errorf(`ent: validator failed for field "city": %w`, err)}
+			return &ValidationError{Name: "city", err: fmt.Errorf(`ent: validator failed for field "Address.city": %w`, err)}
 		}
 	}
 	if _, ok := ac.mutation.State(); !ok {
-		return &ValidationError{Name: "state", err: errors.New(`ent: missing required field "state"`)}
+		return &ValidationError{Name: "state", err: errors.New(`ent: missing required field "Address.state"`)}
 	}
 	if v, ok := ac.mutation.State(); ok {
 		if err := address.StateValidator(v); err != nil {
-			return &ValidationError{Name: "state", err: fmt.Errorf(`ent: validator failed for field "state": %w`, err)}
+			return &ValidationError{Name: "state", err: fmt.Errorf(`ent: validator failed for field "Address.state": %w`, err)}
 		}
 	}
 	if _, ok := ac.mutation.Zipcode(); !ok {
-		return &ValidationError{Name: "zipcode", err: errors.New(`ent: missing required field "zipcode"`)}
+		return &ValidationError{Name: "zipcode", err: errors.New(`ent: missing required field "Address.zipcode"`)}
 	}
 	if v, ok := ac.mutation.Zipcode(); ok {
 		if err := address.ZipcodeValidator(v); err != nil {
-			return &ValidationError{Name: "zipcode", err: fmt.Errorf(`ent: validator failed for field "zipcode": %w`, err)}
+			return &ValidationError{Name: "zipcode", err: fmt.Errorf(`ent: validator failed for field "Address.zipcode": %w`, err)}
 		}
 	}
 	if _, ok := ac.mutation.CreatedAt(); !ok {
-		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "created_at"`)}
+		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Address.created_at"`)}
 	}
 	if _, ok := ac.mutation.UpdatedAt(); !ok {
-		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "updated_at"`)}
+		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "Address.updated_at"`)}
 	}
 	return nil
 }
@@ -256,7 +264,11 @@ func (ac *AddressCreate) sqlSave(ctx context.Context) (*Address, error) {
 		return nil, err
 	}
 	if _spec.ID.Value != nil {
-		_node.ID = _spec.ID.Value.(uuid.UUID)
+		if id, ok := _spec.ID.Value.(*uuid.UUID); ok {
+			_node.ID = *id
+		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
+			return nil, err
+		}
 	}
 	return _node, nil
 }
@@ -274,7 +286,7 @@ func (ac *AddressCreate) createSpec() (*Address, *sqlgraph.CreateSpec) {
 	)
 	if id, ok := ac.mutation.ID(); ok {
 		_node.ID = id
-		_spec.ID.Value = id
+		_spec.ID.Value = &id
 	}
 	if value, ok := ac.mutation.Street(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{

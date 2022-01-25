@@ -15,6 +15,10 @@ const (
 	Label = "flight_instance"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldDepartureDate holds the string denoting the departure_date field in the database.
+	FieldDepartureDate = "departure_date"
+	// FieldArrivalDate holds the string denoting the arrival_date field in the database.
+	FieldArrivalDate = "arrival_date"
 	// FieldDepartureGate holds the string denoting the departure_gate field in the database.
 	FieldDepartureGate = "departure_gate"
 	// FieldArrivalGate holds the string denoting the arrival_gate field in the database.
@@ -27,6 +31,8 @@ const (
 	FieldUpdatedAt = "updated_at"
 	// EdgeFlight holds the string denoting the flight edge name in mutations.
 	EdgeFlight = "flight"
+	// EdgeFlightSchedule holds the string denoting the flight_schedule edge name in mutations.
+	EdgeFlightSchedule = "flight_schedule"
 	// EdgeAircraft holds the string denoting the aircraft edge name in mutations.
 	EdgeAircraft = "aircraft"
 	// EdgeFlightReservations holds the string denoting the flight_reservations edge name in mutations.
@@ -42,6 +48,13 @@ const (
 	FlightInverseTable = "flights"
 	// FlightColumn is the table column denoting the flight relation/edge.
 	FlightColumn = "flight_id"
+	// FlightScheduleTable is the table that holds the flight_schedule relation/edge.
+	FlightScheduleTable = "flight_instances"
+	// FlightScheduleInverseTable is the table name for the FlightSchedule entity.
+	// It exists in this package in order to avoid circular dependency with the "flightschedule" package.
+	FlightScheduleInverseTable = "flight_schedules"
+	// FlightScheduleColumn is the table column denoting the flight_schedule relation/edge.
+	FlightScheduleColumn = "flight_schedule_id"
 	// AircraftTable is the table that holds the aircraft relation/edge.
 	AircraftTable = "aircrafts"
 	// AircraftInverseTable is the table name for the Aircraft entity.
@@ -68,6 +81,8 @@ const (
 // Columns holds all SQL columns for flightinstance fields.
 var Columns = []string{
 	FieldID,
+	FieldDepartureDate,
+	FieldArrivalDate,
 	FieldDepartureGate,
 	FieldArrivalGate,
 	FieldFlightStatus,
@@ -79,6 +94,7 @@ var Columns = []string{
 // table and are not defined as standalone fields in the schema.
 var ForeignKeys = []string{
 	"flight_id",
+	"flight_schedule_id",
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).

@@ -4,9 +4,11 @@ package ent
 
 import (
 	"airbound/internal/ent/flight"
+	"airbound/internal/ent/flightinstance"
 	"airbound/internal/ent/flightschedule"
 	"airbound/internal/ent/predicate"
 	"context"
+	"database/sql/driver"
 	"errors"
 	"fmt"
 	"math"
@@ -27,8 +29,9 @@ type FlightScheduleQuery struct {
 	fields     []string
 	predicates []predicate.FlightSchedule
 	// eager-loading edges.
-	withFlight *FlightQuery
-	withFKs    bool
+	withFlight          *FlightQuery
+	withFlightInstances *FlightInstanceQuery
+	withFKs             bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -80,6 +83,28 @@ func (fsq *FlightScheduleQuery) QueryFlight() *FlightQuery {
 			sqlgraph.From(flightschedule.Table, flightschedule.FieldID, selector),
 			sqlgraph.To(flight.Table, flight.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, flightschedule.FlightTable, flightschedule.FlightColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(fsq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryFlightInstances chains the current query on the "flight_instances" edge.
+func (fsq *FlightScheduleQuery) QueryFlightInstances() *FlightInstanceQuery {
+	query := &FlightInstanceQuery{config: fsq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := fsq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := fsq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(flightschedule.Table, flightschedule.FieldID, selector),
+			sqlgraph.To(flightinstance.Table, flightinstance.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, flightschedule.FlightInstancesTable, flightschedule.FlightInstancesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(fsq.driver.Dialect(), step)
 		return fromU, nil
@@ -263,12 +288,13 @@ func (fsq *FlightScheduleQuery) Clone() *FlightScheduleQuery {
 		return nil
 	}
 	return &FlightScheduleQuery{
-		config:     fsq.config,
-		limit:      fsq.limit,
-		offset:     fsq.offset,
-		order:      append([]OrderFunc{}, fsq.order...),
-		predicates: append([]predicate.FlightSchedule{}, fsq.predicates...),
-		withFlight: fsq.withFlight.Clone(),
+		config:              fsq.config,
+		limit:               fsq.limit,
+		offset:              fsq.offset,
+		order:               append([]OrderFunc{}, fsq.order...),
+		predicates:          append([]predicate.FlightSchedule{}, fsq.predicates...),
+		withFlight:          fsq.withFlight.Clone(),
+		withFlightInstances: fsq.withFlightInstances.Clone(),
 		// clone intermediate query.
 		sql:  fsq.sql.Clone(),
 		path: fsq.path,
@@ -283,6 +309,17 @@ func (fsq *FlightScheduleQuery) WithFlight(opts ...func(*FlightQuery)) *FlightSc
 		opt(query)
 	}
 	fsq.withFlight = query
+	return fsq
+}
+
+// WithFlightInstances tells the query-builder to eager-load the nodes that are connected to
+// the "flight_instances" edge. The optional arguments are used to configure the query builder of the edge.
+func (fsq *FlightScheduleQuery) WithFlightInstances(opts ...func(*FlightInstanceQuery)) *FlightScheduleQuery {
+	query := &FlightInstanceQuery{config: fsq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	fsq.withFlightInstances = query
 	return fsq
 }
 
@@ -352,8 +389,9 @@ func (fsq *FlightScheduleQuery) sqlAll(ctx context.Context) ([]*FlightSchedule, 
 		nodes       = []*FlightSchedule{}
 		withFKs     = fsq.withFKs
 		_spec       = fsq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			fsq.withFlight != nil,
+			fsq.withFlightInstances != nil,
 		}
 	)
 	if fsq.withFlight != nil {
@@ -411,11 +449,44 @@ func (fsq *FlightScheduleQuery) sqlAll(ctx context.Context) ([]*FlightSchedule, 
 		}
 	}
 
+	if query := fsq.withFlightInstances; query != nil {
+		fks := make([]driver.Value, 0, len(nodes))
+		nodeids := make(map[uuid.UUID]*FlightSchedule)
+		for i := range nodes {
+			fks = append(fks, nodes[i].ID)
+			nodeids[nodes[i].ID] = nodes[i]
+			nodes[i].Edges.FlightInstances = []*FlightInstance{}
+		}
+		query.withFKs = true
+		query.Where(predicate.FlightInstance(func(s *sql.Selector) {
+			s.Where(sql.InValues(flightschedule.FlightInstancesColumn, fks...))
+		}))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			fk := n.flight_schedule_id
+			if fk == nil {
+				return nil, fmt.Errorf(`foreign-key "flight_schedule_id" is nil for node %v`, n.ID)
+			}
+			node, ok := nodeids[*fk]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "flight_schedule_id" returned %v for node %v`, *fk, n.ID)
+			}
+			node.Edges.FlightInstances = append(node.Edges.FlightInstances, n)
+		}
+	}
+
 	return nodes, nil
 }
 
 func (fsq *FlightScheduleQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := fsq.querySpec()
+	_spec.Node.Columns = fsq.fields
+	if len(fsq.fields) > 0 {
+		_spec.Unique = fsq.unique != nil && *fsq.unique
+	}
 	return sqlgraph.CountNodes(ctx, fsq.driver, _spec)
 }
 
@@ -486,6 +557,9 @@ func (fsq *FlightScheduleQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	if fsq.sql != nil {
 		selector = fsq.sql
 		selector.Select(selector.Columns(columns...)...)
+	}
+	if fsq.unique != nil && *fsq.unique {
+		selector.Distinct()
 	}
 	for _, p := range fsq.predicates {
 		p(selector)
@@ -765,9 +839,7 @@ func (fsgb *FlightScheduleGroupBy) sqlQuery() *sql.Selector {
 		for _, f := range fsgb.fields {
 			columns = append(columns, selector.C(f))
 		}
-		for _, c := range aggregation {
-			columns = append(columns, c)
-		}
+		columns = append(columns, aggregation...)
 		selector.Select(columns...)
 	}
 	return selector.GroupBy(selector.Columns(fsgb.fields...)...)

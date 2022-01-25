@@ -83,6 +83,14 @@ func (pc *PilotCreate) SetID(u uuid.UUID) *PilotCreate {
 	return pc
 }
 
+// SetNillableID sets the "id" field if the given value is not nil.
+func (pc *PilotCreate) SetNillableID(u *uuid.UUID) *PilotCreate {
+	if u != nil {
+		pc.SetID(*u)
+	}
+	return pc
+}
+
 // SetUserID sets the "user" edge to the User entity by ID.
 func (pc *PilotCreate) SetUserID(id uuid.UUID) *PilotCreate {
 	pc.mutation.SetUserID(id)
@@ -205,37 +213,37 @@ func (pc *PilotCreate) defaults() {
 // check runs all checks and user-defined validators on the builder.
 func (pc *PilotCreate) check() error {
 	if _, ok := pc.mutation.EmployeeID(); !ok {
-		return &ValidationError{Name: "employee_id", err: errors.New(`ent: missing required field "employee_id"`)}
+		return &ValidationError{Name: "employee_id", err: errors.New(`ent: missing required field "Pilot.employee_id"`)}
 	}
 	if v, ok := pc.mutation.EmployeeID(); ok {
 		if err := pilot.EmployeeIDValidator(v); err != nil {
-			return &ValidationError{Name: "employee_id", err: fmt.Errorf(`ent: validator failed for field "employee_id": %w`, err)}
+			return &ValidationError{Name: "employee_id", err: fmt.Errorf(`ent: validator failed for field "Pilot.employee_id": %w`, err)}
 		}
 	}
 	if _, ok := pc.mutation.LicenceNumber(); !ok {
-		return &ValidationError{Name: "licence_number", err: errors.New(`ent: missing required field "licence_number"`)}
+		return &ValidationError{Name: "licence_number", err: errors.New(`ent: missing required field "Pilot.licence_number"`)}
 	}
 	if v, ok := pc.mutation.LicenceNumber(); ok {
 		if err := pilot.LicenceNumberValidator(v); err != nil {
-			return &ValidationError{Name: "licence_number", err: fmt.Errorf(`ent: validator failed for field "licence_number": %w`, err)}
+			return &ValidationError{Name: "licence_number", err: fmt.Errorf(`ent: validator failed for field "Pilot.licence_number": %w`, err)}
 		}
 	}
 	if _, ok := pc.mutation.FlightHours(); !ok {
-		return &ValidationError{Name: "flight_hours", err: errors.New(`ent: missing required field "flight_hours"`)}
+		return &ValidationError{Name: "flight_hours", err: errors.New(`ent: missing required field "Pilot.flight_hours"`)}
 	}
 	if v, ok := pc.mutation.FlightHours(); ok {
 		if err := pilot.FlightHoursValidator(v); err != nil {
-			return &ValidationError{Name: "flight_hours", err: fmt.Errorf(`ent: validator failed for field "flight_hours": %w`, err)}
+			return &ValidationError{Name: "flight_hours", err: fmt.Errorf(`ent: validator failed for field "Pilot.flight_hours": %w`, err)}
 		}
 	}
 	if _, ok := pc.mutation.CreatedAt(); !ok {
-		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "created_at"`)}
+		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Pilot.created_at"`)}
 	}
 	if _, ok := pc.mutation.UpdatedAt(); !ok {
-		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "updated_at"`)}
+		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "Pilot.updated_at"`)}
 	}
 	if _, ok := pc.mutation.UserID(); !ok {
-		return &ValidationError{Name: "user", err: errors.New("ent: missing required edge \"user\"")}
+		return &ValidationError{Name: "user", err: errors.New(`ent: missing required edge "Pilot.user"`)}
 	}
 	return nil
 }
@@ -249,7 +257,11 @@ func (pc *PilotCreate) sqlSave(ctx context.Context) (*Pilot, error) {
 		return nil, err
 	}
 	if _spec.ID.Value != nil {
-		_node.ID = _spec.ID.Value.(uuid.UUID)
+		if id, ok := _spec.ID.Value.(*uuid.UUID); ok {
+			_node.ID = *id
+		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
+			return nil, err
+		}
 	}
 	return _node, nil
 }
@@ -267,7 +279,7 @@ func (pc *PilotCreate) createSpec() (*Pilot, *sqlgraph.CreateSpec) {
 	)
 	if id, ok := pc.mutation.ID(); ok {
 		_node.ID = id
-		_spec.ID.Value = id
+		_spec.ID.Value = &id
 	}
 	if value, ok := pc.mutation.EmployeeID(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{

@@ -9,6 +9,7 @@ import (
 	"airbound/internal/ent/role"
 	"airbound/internal/ent/user"
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -207,7 +208,7 @@ func (ru *RoleUpdate) defaults() {
 func (ru *RoleUpdate) check() error {
 	if v, ok := ru.mutation.Name(); ok {
 		if err := role.NameValidator(v); err != nil {
-			return &ValidationError{Name: "name", err: fmt.Errorf("ent: validator failed for field \"name\": %w", err)}
+			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Role.name": %w`, err)}
 		}
 	}
 	return nil
@@ -562,7 +563,7 @@ func (ruo *RoleUpdateOne) defaults() {
 func (ruo *RoleUpdateOne) check() error {
 	if v, ok := ruo.mutation.Name(); ok {
 		if err := role.NameValidator(v); err != nil {
-			return &ValidationError{Name: "name", err: fmt.Errorf("ent: validator failed for field \"name\": %w", err)}
+			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Role.name": %w`, err)}
 		}
 	}
 	return nil
@@ -581,7 +582,7 @@ func (ruo *RoleUpdateOne) sqlSave(ctx context.Context) (_node *Role, err error) 
 	}
 	id, ok := ruo.mutation.ID()
 	if !ok {
-		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing Role.ID for update")}
+		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "Role.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
 	if fields := ruo.fields; len(fields) > 0 {

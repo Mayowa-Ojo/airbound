@@ -416,6 +416,10 @@ func (aq *AccountQuery) sqlAll(ctx context.Context) ([]*Account, error) {
 
 func (aq *AccountQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := aq.querySpec()
+	_spec.Node.Columns = aq.fields
+	if len(aq.fields) > 0 {
+		_spec.Unique = aq.unique != nil && *aq.unique
+	}
 	return sqlgraph.CountNodes(ctx, aq.driver, _spec)
 }
 
@@ -486,6 +490,9 @@ func (aq *AccountQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	if aq.sql != nil {
 		selector = aq.sql
 		selector.Select(selector.Columns(columns...)...)
+	}
+	if aq.unique != nil && *aq.unique {
+		selector.Distinct()
 	}
 	for _, p := range aq.predicates {
 		p(selector)
@@ -765,9 +772,7 @@ func (agb *AccountGroupBy) sqlQuery() *sql.Selector {
 		for _, f := range agb.fields {
 			columns = append(columns, selector.C(f))
 		}
-		for _, c := range aggregation {
-			columns = append(columns, c)
-		}
+		columns = append(columns, aggregation...)
 		selector.Select(columns...)
 	}
 	return selector.GroupBy(selector.Columns(agb.fields...)...)

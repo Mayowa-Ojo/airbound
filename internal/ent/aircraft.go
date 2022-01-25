@@ -29,6 +29,8 @@ type Aircraft struct {
 	Capacity int `json:"capacity,omitempty"`
 	// Range holds the value of the "range" field.
 	Range int `json:"range,omitempty"`
+	// ManufacturedAt holds the value of the "manufactured_at" field.
+	ManufacturedAt time.Time `json:"manufactured_at,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -99,7 +101,7 @@ func (*Aircraft) scanValues(columns []string) ([]interface{}, error) {
 			values[i] = new(sql.NullInt64)
 		case aircraft.FieldTailNumber, aircraft.FieldManufacturer, aircraft.FieldModel:
 			values[i] = new(sql.NullString)
-		case aircraft.FieldCreatedAt, aircraft.FieldUpdatedAt:
+		case aircraft.FieldManufacturedAt, aircraft.FieldCreatedAt, aircraft.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
 		case aircraft.FieldID:
 			values[i] = new(uuid.UUID)
@@ -157,6 +159,12 @@ func (a *Aircraft) assignValues(columns []string, values []interface{}) error {
 				return fmt.Errorf("unexpected type %T for field range", values[i])
 			} else if value.Valid {
 				a.Range = int(value.Int64)
+			}
+		case aircraft.FieldManufacturedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field manufactured_at", values[i])
+			} else if value.Valid {
+				a.ManufacturedAt = value.Time
 			}
 		case aircraft.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -237,6 +245,8 @@ func (a *Aircraft) String() string {
 	builder.WriteString(fmt.Sprintf("%v", a.Capacity))
 	builder.WriteString(", range=")
 	builder.WriteString(fmt.Sprintf("%v", a.Range))
+	builder.WriteString(", manufactured_at=")
+	builder.WriteString(a.ManufacturedAt.Format(time.ANSIC))
 	builder.WriteString(", created_at=")
 	builder.WriteString(a.CreatedAt.Format(time.ANSIC))
 	builder.WriteString(", updated_at=")

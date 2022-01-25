@@ -4,9 +4,11 @@ package ent
 
 import (
 	"airbound/internal/ent/aircraft"
+	"airbound/internal/ent/customtypes"
 	"airbound/internal/ent/enums"
 	"airbound/internal/ent/flight"
 	"airbound/internal/ent/flightinstance"
+	"airbound/internal/ent/flightschedule"
 	"fmt"
 	"strings"
 	"time"
@@ -20,6 +22,10 @@ type FlightInstance struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID uuid.UUID `json:"id,omitempty"`
+	// DepartureDate holds the value of the "departure_date" field.
+	DepartureDate customtypes.Date `json:"departure_date,omitempty"`
+	// ArrivalDate holds the value of the "arrival_date" field.
+	ArrivalDate customtypes.Date `json:"arrival_date,omitempty"`
 	// DepartureGate holds the value of the "departure_gate" field.
 	DepartureGate int `json:"departure_gate,omitempty"`
 	// ArrivalGate holds the value of the "arrival_gate" field.
@@ -32,14 +38,17 @@ type FlightInstance struct {
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the FlightInstanceQuery when eager-loading is set.
-	Edges     FlightInstanceEdges `json:"edges"`
-	flight_id *uuid.UUID
+	Edges              FlightInstanceEdges `json:"edges"`
+	flight_id          *uuid.UUID
+	flight_schedule_id *uuid.UUID
 }
 
 // FlightInstanceEdges holds the relations/edges for other nodes in the graph.
 type FlightInstanceEdges struct {
 	// Flight holds the value of the flight edge.
 	Flight *Flight `json:"flight,omitempty"`
+	// FlightSchedule holds the value of the flight_schedule edge.
+	FlightSchedule *FlightSchedule `json:"flight_schedule,omitempty"`
 	// Aircraft holds the value of the aircraft edge.
 	Aircraft *Aircraft `json:"aircraft,omitempty"`
 	// FlightReservations holds the value of the flight_reservations edge.
@@ -48,7 +57,7 @@ type FlightInstanceEdges struct {
 	FlightSeats []*FlightSeat `json:"flight_seats,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [4]bool
+	loadedTypes [5]bool
 }
 
 // FlightOrErr returns the Flight value or an error if the edge
@@ -65,10 +74,24 @@ func (e FlightInstanceEdges) FlightOrErr() (*Flight, error) {
 	return nil, &NotLoadedError{edge: "flight"}
 }
 
+// FlightScheduleOrErr returns the FlightSchedule value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e FlightInstanceEdges) FlightScheduleOrErr() (*FlightSchedule, error) {
+	if e.loadedTypes[1] {
+		if e.FlightSchedule == nil {
+			// The edge flight_schedule was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: flightschedule.Label}
+		}
+		return e.FlightSchedule, nil
+	}
+	return nil, &NotLoadedError{edge: "flight_schedule"}
+}
+
 // AircraftOrErr returns the Aircraft value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e FlightInstanceEdges) AircraftOrErr() (*Aircraft, error) {
-	if e.loadedTypes[1] {
+	if e.loadedTypes[2] {
 		if e.Aircraft == nil {
 			// The edge aircraft was loaded in eager-loading,
 			// but was not found.
@@ -82,7 +105,7 @@ func (e FlightInstanceEdges) AircraftOrErr() (*Aircraft, error) {
 // FlightReservationsOrErr returns the FlightReservations value or an error if the edge
 // was not loaded in eager-loading.
 func (e FlightInstanceEdges) FlightReservationsOrErr() ([]*FlightReservation, error) {
-	if e.loadedTypes[2] {
+	if e.loadedTypes[3] {
 		return e.FlightReservations, nil
 	}
 	return nil, &NotLoadedError{edge: "flight_reservations"}
@@ -91,7 +114,7 @@ func (e FlightInstanceEdges) FlightReservationsOrErr() ([]*FlightReservation, er
 // FlightSeatsOrErr returns the FlightSeats value or an error if the edge
 // was not loaded in eager-loading.
 func (e FlightInstanceEdges) FlightSeatsOrErr() ([]*FlightSeat, error) {
-	if e.loadedTypes[3] {
+	if e.loadedTypes[4] {
 		return e.FlightSeats, nil
 	}
 	return nil, &NotLoadedError{edge: "flight_seats"}
@@ -102,6 +125,8 @@ func (*FlightInstance) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case flightinstance.FieldDepartureDate, flightinstance.FieldArrivalDate:
+			values[i] = new(customtypes.Date)
 		case flightinstance.FieldDepartureGate, flightinstance.FieldArrivalGate:
 			values[i] = new(sql.NullInt64)
 		case flightinstance.FieldFlightStatus:
@@ -111,6 +136,8 @@ func (*FlightInstance) scanValues(columns []string) ([]interface{}, error) {
 		case flightinstance.FieldID:
 			values[i] = new(uuid.UUID)
 		case flightinstance.ForeignKeys[0]: // flight_id
+			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
+		case flightinstance.ForeignKeys[1]: // flight_schedule_id
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type FlightInstance", columns[i])
@@ -132,6 +159,18 @@ func (fi *FlightInstance) assignValues(columns []string, values []interface{}) e
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value != nil {
 				fi.ID = *value
+			}
+		case flightinstance.FieldDepartureDate:
+			if value, ok := values[i].(*customtypes.Date); !ok {
+				return fmt.Errorf("unexpected type %T for field departure_date", values[i])
+			} else if value != nil {
+				fi.DepartureDate = *value
+			}
+		case flightinstance.FieldArrivalDate:
+			if value, ok := values[i].(*customtypes.Date); !ok {
+				return fmt.Errorf("unexpected type %T for field arrival_date", values[i])
+			} else if value != nil {
+				fi.ArrivalDate = *value
 			}
 		case flightinstance.FieldDepartureGate:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -170,6 +209,13 @@ func (fi *FlightInstance) assignValues(columns []string, values []interface{}) e
 				fi.flight_id = new(uuid.UUID)
 				*fi.flight_id = *value.S.(*uuid.UUID)
 			}
+		case flightinstance.ForeignKeys[1]:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field flight_schedule_id", values[i])
+			} else if value.Valid {
+				fi.flight_schedule_id = new(uuid.UUID)
+				*fi.flight_schedule_id = *value.S.(*uuid.UUID)
+			}
 		}
 	}
 	return nil
@@ -178,6 +224,11 @@ func (fi *FlightInstance) assignValues(columns []string, values []interface{}) e
 // QueryFlight queries the "flight" edge of the FlightInstance entity.
 func (fi *FlightInstance) QueryFlight() *FlightQuery {
 	return (&FlightInstanceClient{config: fi.config}).QueryFlight(fi)
+}
+
+// QueryFlightSchedule queries the "flight_schedule" edge of the FlightInstance entity.
+func (fi *FlightInstance) QueryFlightSchedule() *FlightScheduleQuery {
+	return (&FlightInstanceClient{config: fi.config}).QueryFlightSchedule(fi)
 }
 
 // QueryAircraft queries the "aircraft" edge of the FlightInstance entity.
@@ -218,6 +269,10 @@ func (fi *FlightInstance) String() string {
 	var builder strings.Builder
 	builder.WriteString("FlightInstance(")
 	builder.WriteString(fmt.Sprintf("id=%v", fi.ID))
+	builder.WriteString(", departure_date=")
+	builder.WriteString(fmt.Sprintf("%v", fi.DepartureDate))
+	builder.WriteString(", arrival_date=")
+	builder.WriteString(fmt.Sprintf("%v", fi.ArrivalDate))
 	builder.WriteString(", departure_gate=")
 	builder.WriteString(fmt.Sprintf("%v", fi.DepartureGate))
 	builder.WriteString(", arrival_gate=")

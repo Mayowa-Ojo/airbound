@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"airbound/internal/ent/airline"
 	"airbound/internal/ent/airport"
 	"airbound/internal/ent/crew"
 	"airbound/internal/ent/enums"
@@ -11,6 +12,7 @@ import (
 	"airbound/internal/ent/flightschedule"
 	"airbound/internal/ent/predicate"
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -68,6 +70,12 @@ func (fu *FlightUpdate) AddDistance(i int) *FlightUpdate {
 // SetBoardingPolicy sets the "boarding_policy" field.
 func (fu *FlightUpdate) SetBoardingPolicy(ep enums.BoardingPolicy) *FlightUpdate {
 	fu.mutation.SetBoardingPolicy(ep)
+	return fu
+}
+
+// SetTripType sets the "trip_type" field.
+func (fu *FlightUpdate) SetTripType(et enums.TripType) *FlightUpdate {
+	fu.mutation.SetTripType(et)
 	return fu
 }
 
@@ -174,6 +182,25 @@ func (fu *FlightUpdate) SetArrivalAirport(a *Airport) *FlightUpdate {
 	return fu.SetArrivalAirportID(a.ID)
 }
 
+// SetAirlineID sets the "airline" edge to the Airline entity by ID.
+func (fu *FlightUpdate) SetAirlineID(id uuid.UUID) *FlightUpdate {
+	fu.mutation.SetAirlineID(id)
+	return fu
+}
+
+// SetNillableAirlineID sets the "airline" edge to the Airline entity by ID if the given value is not nil.
+func (fu *FlightUpdate) SetNillableAirlineID(id *uuid.UUID) *FlightUpdate {
+	if id != nil {
+		fu = fu.SetAirlineID(*id)
+	}
+	return fu
+}
+
+// SetAirline sets the "airline" edge to the Airline entity.
+func (fu *FlightUpdate) SetAirline(a *Airline) *FlightUpdate {
+	return fu.SetAirlineID(a.ID)
+}
+
 // Mutation returns the FlightMutation object of the builder.
 func (fu *FlightUpdate) Mutation() *FlightMutation {
 	return fu.mutation
@@ -254,6 +281,12 @@ func (fu *FlightUpdate) ClearArrivalAirport() *FlightUpdate {
 	return fu
 }
 
+// ClearAirline clears the "airline" edge to the Airline entity.
+func (fu *FlightUpdate) ClearAirline() *FlightUpdate {
+	fu.mutation.ClearAirline()
+	return fu
+}
+
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (fu *FlightUpdate) Save(ctx context.Context) (int, error) {
 	var (
@@ -327,22 +360,27 @@ func (fu *FlightUpdate) defaults() {
 func (fu *FlightUpdate) check() error {
 	if v, ok := fu.mutation.FlightNumber(); ok {
 		if err := flight.FlightNumberValidator(v); err != nil {
-			return &ValidationError{Name: "flight_number", err: fmt.Errorf("ent: validator failed for field \"flight_number\": %w", err)}
+			return &ValidationError{Name: "flight_number", err: fmt.Errorf(`ent: validator failed for field "Flight.flight_number": %w`, err)}
 		}
 	}
 	if v, ok := fu.mutation.Duration(); ok {
 		if err := flight.DurationValidator(v); err != nil {
-			return &ValidationError{Name: "duration", err: fmt.Errorf("ent: validator failed for field \"duration\": %w", err)}
+			return &ValidationError{Name: "duration", err: fmt.Errorf(`ent: validator failed for field "Flight.duration": %w`, err)}
 		}
 	}
 	if v, ok := fu.mutation.Distance(); ok {
 		if err := flight.DistanceValidator(v); err != nil {
-			return &ValidationError{Name: "distance", err: fmt.Errorf("ent: validator failed for field \"distance\": %w", err)}
+			return &ValidationError{Name: "distance", err: fmt.Errorf(`ent: validator failed for field "Flight.distance": %w`, err)}
 		}
 	}
 	if v, ok := fu.mutation.BoardingPolicy(); ok {
 		if err := flight.BoardingPolicyValidator(v); err != nil {
-			return &ValidationError{Name: "boarding_policy", err: fmt.Errorf("ent: validator failed for field \"boarding_policy\": %w", err)}
+			return &ValidationError{Name: "boarding_policy", err: fmt.Errorf(`ent: validator failed for field "Flight.boarding_policy": %w`, err)}
+		}
+	}
+	if v, ok := fu.mutation.TripType(); ok {
+		if err := flight.TripTypeValidator(v); err != nil {
+			return &ValidationError{Name: "trip_type", err: fmt.Errorf(`ent: validator failed for field "Flight.trip_type": %w`, err)}
 		}
 	}
 	return nil
@@ -406,6 +444,13 @@ func (fu *FlightUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Type:   field.TypeEnum,
 			Value:  value,
 			Column: flight.FieldBoardingPolicy,
+		})
+	}
+	if value, ok := fu.mutation.TripType(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeEnum,
+			Value:  value,
+			Column: flight.FieldTripType,
 		})
 	}
 	if value, ok := fu.mutation.CreatedAt(); ok {
@@ -654,6 +699,41 @@ func (fu *FlightUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if fu.mutation.AirlineCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   flight.AirlineTable,
+			Columns: []string{flight.AirlineColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: airline.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fu.mutation.AirlineIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   flight.AirlineTable,
+			Columns: []string{flight.AirlineColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: airline.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, fu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{flight.Label}
@@ -708,6 +788,12 @@ func (fuo *FlightUpdateOne) AddDistance(i int) *FlightUpdateOne {
 // SetBoardingPolicy sets the "boarding_policy" field.
 func (fuo *FlightUpdateOne) SetBoardingPolicy(ep enums.BoardingPolicy) *FlightUpdateOne {
 	fuo.mutation.SetBoardingPolicy(ep)
+	return fuo
+}
+
+// SetTripType sets the "trip_type" field.
+func (fuo *FlightUpdateOne) SetTripType(et enums.TripType) *FlightUpdateOne {
+	fuo.mutation.SetTripType(et)
 	return fuo
 }
 
@@ -814,6 +900,25 @@ func (fuo *FlightUpdateOne) SetArrivalAirport(a *Airport) *FlightUpdateOne {
 	return fuo.SetArrivalAirportID(a.ID)
 }
 
+// SetAirlineID sets the "airline" edge to the Airline entity by ID.
+func (fuo *FlightUpdateOne) SetAirlineID(id uuid.UUID) *FlightUpdateOne {
+	fuo.mutation.SetAirlineID(id)
+	return fuo
+}
+
+// SetNillableAirlineID sets the "airline" edge to the Airline entity by ID if the given value is not nil.
+func (fuo *FlightUpdateOne) SetNillableAirlineID(id *uuid.UUID) *FlightUpdateOne {
+	if id != nil {
+		fuo = fuo.SetAirlineID(*id)
+	}
+	return fuo
+}
+
+// SetAirline sets the "airline" edge to the Airline entity.
+func (fuo *FlightUpdateOne) SetAirline(a *Airline) *FlightUpdateOne {
+	return fuo.SetAirlineID(a.ID)
+}
+
 // Mutation returns the FlightMutation object of the builder.
 func (fuo *FlightUpdateOne) Mutation() *FlightMutation {
 	return fuo.mutation
@@ -891,6 +996,12 @@ func (fuo *FlightUpdateOne) ClearDepartureAirport() *FlightUpdateOne {
 // ClearArrivalAirport clears the "arrival_airport" edge to the Airport entity.
 func (fuo *FlightUpdateOne) ClearArrivalAirport() *FlightUpdateOne {
 	fuo.mutation.ClearArrivalAirport()
+	return fuo
+}
+
+// ClearAirline clears the "airline" edge to the Airline entity.
+func (fuo *FlightUpdateOne) ClearAirline() *FlightUpdateOne {
+	fuo.mutation.ClearAirline()
 	return fuo
 }
 
@@ -974,22 +1085,27 @@ func (fuo *FlightUpdateOne) defaults() {
 func (fuo *FlightUpdateOne) check() error {
 	if v, ok := fuo.mutation.FlightNumber(); ok {
 		if err := flight.FlightNumberValidator(v); err != nil {
-			return &ValidationError{Name: "flight_number", err: fmt.Errorf("ent: validator failed for field \"flight_number\": %w", err)}
+			return &ValidationError{Name: "flight_number", err: fmt.Errorf(`ent: validator failed for field "Flight.flight_number": %w`, err)}
 		}
 	}
 	if v, ok := fuo.mutation.Duration(); ok {
 		if err := flight.DurationValidator(v); err != nil {
-			return &ValidationError{Name: "duration", err: fmt.Errorf("ent: validator failed for field \"duration\": %w", err)}
+			return &ValidationError{Name: "duration", err: fmt.Errorf(`ent: validator failed for field "Flight.duration": %w`, err)}
 		}
 	}
 	if v, ok := fuo.mutation.Distance(); ok {
 		if err := flight.DistanceValidator(v); err != nil {
-			return &ValidationError{Name: "distance", err: fmt.Errorf("ent: validator failed for field \"distance\": %w", err)}
+			return &ValidationError{Name: "distance", err: fmt.Errorf(`ent: validator failed for field "Flight.distance": %w`, err)}
 		}
 	}
 	if v, ok := fuo.mutation.BoardingPolicy(); ok {
 		if err := flight.BoardingPolicyValidator(v); err != nil {
-			return &ValidationError{Name: "boarding_policy", err: fmt.Errorf("ent: validator failed for field \"boarding_policy\": %w", err)}
+			return &ValidationError{Name: "boarding_policy", err: fmt.Errorf(`ent: validator failed for field "Flight.boarding_policy": %w`, err)}
+		}
+	}
+	if v, ok := fuo.mutation.TripType(); ok {
+		if err := flight.TripTypeValidator(v); err != nil {
+			return &ValidationError{Name: "trip_type", err: fmt.Errorf(`ent: validator failed for field "Flight.trip_type": %w`, err)}
 		}
 	}
 	return nil
@@ -1008,7 +1124,7 @@ func (fuo *FlightUpdateOne) sqlSave(ctx context.Context) (_node *Flight, err err
 	}
 	id, ok := fuo.mutation.ID()
 	if !ok {
-		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing Flight.ID for update")}
+		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "Flight.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
 	if fields := fuo.fields; len(fields) > 0 {
@@ -1070,6 +1186,13 @@ func (fuo *FlightUpdateOne) sqlSave(ctx context.Context) (_node *Flight, err err
 			Type:   field.TypeEnum,
 			Value:  value,
 			Column: flight.FieldBoardingPolicy,
+		})
+	}
+	if value, ok := fuo.mutation.TripType(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeEnum,
+			Value:  value,
+			Column: flight.FieldTripType,
 		})
 	}
 	if value, ok := fuo.mutation.CreatedAt(); ok {
@@ -1310,6 +1433,41 @@ func (fuo *FlightUpdateOne) sqlSave(ctx context.Context) (_node *Flight, err err
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: airport.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if fuo.mutation.AirlineCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   flight.AirlineTable,
+			Columns: []string{flight.AirlineColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: airline.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fuo.mutation.AirlineIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   flight.AirlineTable,
+			Columns: []string{flight.AirlineColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: airline.FieldID,
 				},
 			},
 		}

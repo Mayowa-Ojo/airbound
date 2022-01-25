@@ -87,6 +87,14 @@ func (uc *UserCreate) SetID(u uuid.UUID) *UserCreate {
 	return uc
 }
 
+// SetNillableID sets the "id" field if the given value is not nil.
+func (uc *UserCreate) SetNillableID(u *uuid.UUID) *UserCreate {
+	if u != nil {
+		uc.SetID(*u)
+	}
+	return uc
+}
+
 // SetAccountID sets the "account" edge to the Account entity by ID.
 func (uc *UserCreate) SetAccountID(id uuid.UUID) *UserCreate {
 	uc.mutation.SetAccountID(id)
@@ -327,42 +335,42 @@ func (uc *UserCreate) defaults() {
 // check runs all checks and user-defined validators on the builder.
 func (uc *UserCreate) check() error {
 	if _, ok := uc.mutation.Firstname(); !ok {
-		return &ValidationError{Name: "firstname", err: errors.New(`ent: missing required field "firstname"`)}
+		return &ValidationError{Name: "firstname", err: errors.New(`ent: missing required field "User.firstname"`)}
 	}
 	if v, ok := uc.mutation.Firstname(); ok {
 		if err := user.FirstnameValidator(v); err != nil {
-			return &ValidationError{Name: "firstname", err: fmt.Errorf(`ent: validator failed for field "firstname": %w`, err)}
+			return &ValidationError{Name: "firstname", err: fmt.Errorf(`ent: validator failed for field "User.firstname": %w`, err)}
 		}
 	}
 	if _, ok := uc.mutation.Lastname(); !ok {
-		return &ValidationError{Name: "lastname", err: errors.New(`ent: missing required field "lastname"`)}
+		return &ValidationError{Name: "lastname", err: errors.New(`ent: missing required field "User.lastname"`)}
 	}
 	if v, ok := uc.mutation.Lastname(); ok {
 		if err := user.LastnameValidator(v); err != nil {
-			return &ValidationError{Name: "lastname", err: fmt.Errorf(`ent: validator failed for field "lastname": %w`, err)}
+			return &ValidationError{Name: "lastname", err: fmt.Errorf(`ent: validator failed for field "User.lastname": %w`, err)}
 		}
 	}
 	if _, ok := uc.mutation.Email(); !ok {
-		return &ValidationError{Name: "email", err: errors.New(`ent: missing required field "email"`)}
+		return &ValidationError{Name: "email", err: errors.New(`ent: missing required field "User.email"`)}
 	}
 	if v, ok := uc.mutation.Email(); ok {
 		if err := user.EmailValidator(v); err != nil {
-			return &ValidationError{Name: "email", err: fmt.Errorf(`ent: validator failed for field "email": %w`, err)}
+			return &ValidationError{Name: "email", err: fmt.Errorf(`ent: validator failed for field "User.email": %w`, err)}
 		}
 	}
 	if _, ok := uc.mutation.Phone(); !ok {
-		return &ValidationError{Name: "phone", err: errors.New(`ent: missing required field "phone"`)}
+		return &ValidationError{Name: "phone", err: errors.New(`ent: missing required field "User.phone"`)}
 	}
 	if v, ok := uc.mutation.Phone(); ok {
 		if err := user.PhoneValidator(v); err != nil {
-			return &ValidationError{Name: "phone", err: fmt.Errorf(`ent: validator failed for field "phone": %w`, err)}
+			return &ValidationError{Name: "phone", err: fmt.Errorf(`ent: validator failed for field "User.phone": %w`, err)}
 		}
 	}
 	if _, ok := uc.mutation.CreatedAt(); !ok {
-		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "created_at"`)}
+		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "User.created_at"`)}
 	}
 	if _, ok := uc.mutation.UpdatedAt(); !ok {
-		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "updated_at"`)}
+		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "User.updated_at"`)}
 	}
 	return nil
 }
@@ -376,7 +384,11 @@ func (uc *UserCreate) sqlSave(ctx context.Context) (*User, error) {
 		return nil, err
 	}
 	if _spec.ID.Value != nil {
-		_node.ID = _spec.ID.Value.(uuid.UUID)
+		if id, ok := _spec.ID.Value.(*uuid.UUID); ok {
+			_node.ID = *id
+		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
+			return nil, err
+		}
 	}
 	return _node, nil
 }
@@ -394,7 +406,7 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	)
 	if id, ok := uc.mutation.ID(); ok {
 		_node.ID = id
-		_spec.ID.Value = id
+		_spec.ID.Value = &id
 	}
 	if value, ok := uc.mutation.Firstname(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{

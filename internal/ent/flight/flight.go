@@ -23,6 +23,8 @@ const (
 	FieldDistance = "distance"
 	// FieldBoardingPolicy holds the string denoting the boarding_policy field in the database.
 	FieldBoardingPolicy = "boarding_policy"
+	// FieldTripType holds the string denoting the trip_type field in the database.
+	FieldTripType = "trip_type"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
@@ -37,6 +39,8 @@ const (
 	EdgeDepartureAirport = "departure_airport"
 	// EdgeArrivalAirport holds the string denoting the arrival_airport edge name in mutations.
 	EdgeArrivalAirport = "arrival_airport"
+	// EdgeAirline holds the string denoting the airline edge name in mutations.
+	EdgeAirline = "airline"
 	// Table holds the table name of the flight in the database.
 	Table = "flights"
 	// FlightInstancesTable is the table that holds the flight_instances relation/edge.
@@ -72,6 +76,13 @@ const (
 	ArrivalAirportInverseTable = "airports"
 	// ArrivalAirportColumn is the table column denoting the arrival_airport relation/edge.
 	ArrivalAirportColumn = "arrival_airport_id"
+	// AirlineTable is the table that holds the airline relation/edge.
+	AirlineTable = "flights"
+	// AirlineInverseTable is the table name for the Airline entity.
+	// It exists in this package in order to avoid circular dependency with the "airline" package.
+	AirlineInverseTable = "airlines"
+	// AirlineColumn is the table column denoting the airline relation/edge.
+	AirlineColumn = "airline_id"
 )
 
 // Columns holds all SQL columns for flight fields.
@@ -81,6 +92,7 @@ var Columns = []string{
 	FieldDuration,
 	FieldDistance,
 	FieldBoardingPolicy,
+	FieldTripType,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }
@@ -88,6 +100,7 @@ var Columns = []string{
 // ForeignKeys holds the SQL foreign-keys that are owned by the "flights"
 // table and are not defined as standalone fields in the schema.
 var ForeignKeys = []string{
+	"airline_id",
 	"depature_airport_id",
 	"arrival_airport_id",
 }
@@ -137,5 +150,15 @@ func BoardingPolicyValidator(bp enums.BoardingPolicy) error {
 		return nil
 	default:
 		return fmt.Errorf("flight: invalid enum value for boarding_policy field: %q", bp)
+	}
+}
+
+// TripTypeValidator is a validator for the "trip_type" field enum values. It is called by the builders before save.
+func TripTypeValidator(tt enums.TripType) error {
+	switch tt {
+	case "ONE_WAY", "ROUND_TRIP":
+		return nil
+	default:
+		return fmt.Errorf("flight: invalid enum value for trip_type field: %q", tt)
 	}
 }

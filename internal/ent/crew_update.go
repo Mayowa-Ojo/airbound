@@ -214,11 +214,11 @@ func (cu *CrewUpdate) defaults() {
 func (cu *CrewUpdate) check() error {
 	if v, ok := cu.mutation.EmployeeID(); ok {
 		if err := crew.EmployeeIDValidator(v); err != nil {
-			return &ValidationError{Name: "employee_id", err: fmt.Errorf("ent: validator failed for field \"employee_id\": %w", err)}
+			return &ValidationError{Name: "employee_id", err: fmt.Errorf(`ent: validator failed for field "Crew.employee_id": %w`, err)}
 		}
 	}
 	if _, ok := cu.mutation.UserID(); cu.mutation.UserCleared() && !ok {
-		return errors.New("ent: clearing a required unique edge \"user\"")
+		return errors.New(`ent: clearing a required unique edge "Crew.user"`)
 	}
 	return nil
 }
@@ -594,11 +594,11 @@ func (cuo *CrewUpdateOne) defaults() {
 func (cuo *CrewUpdateOne) check() error {
 	if v, ok := cuo.mutation.EmployeeID(); ok {
 		if err := crew.EmployeeIDValidator(v); err != nil {
-			return &ValidationError{Name: "employee_id", err: fmt.Errorf("ent: validator failed for field \"employee_id\": %w", err)}
+			return &ValidationError{Name: "employee_id", err: fmt.Errorf(`ent: validator failed for field "Crew.employee_id": %w`, err)}
 		}
 	}
 	if _, ok := cuo.mutation.UserID(); cuo.mutation.UserCleared() && !ok {
-		return errors.New("ent: clearing a required unique edge \"user\"")
+		return errors.New(`ent: clearing a required unique edge "Crew.user"`)
 	}
 	return nil
 }
@@ -616,7 +616,7 @@ func (cuo *CrewUpdateOne) sqlSave(ctx context.Context) (_node *Crew, err error) 
 	}
 	id, ok := cuo.mutation.ID()
 	if !ok {
-		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing Crew.ID for update")}
+		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "Crew.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
 	if fields := cuo.fields; len(fields) > 0 {

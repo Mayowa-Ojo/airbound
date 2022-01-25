@@ -115,6 +115,13 @@ func Age(v int) predicate.Passenger {
 	})
 }
 
+// Nationality applies equality check predicate on the "nationality" field. It's identical to NationalityEQ.
+func Nationality(v string) predicate.Passenger {
+	return predicate.Passenger(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldNationality), v))
+	})
+}
+
 // PassportNumber applies equality check predicate on the "passport_number" field. It's identical to PassportNumberEQ.
 func PassportNumber(v string) predicate.Passenger {
 	return predicate.Passenger(func(s *sql.Selector) {
@@ -431,6 +438,117 @@ func AgeLT(v int) predicate.Passenger {
 func AgeLTE(v int) predicate.Passenger {
 	return predicate.Passenger(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldAge), v))
+	})
+}
+
+// NationalityEQ applies the EQ predicate on the "nationality" field.
+func NationalityEQ(v string) predicate.Passenger {
+	return predicate.Passenger(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldNationality), v))
+	})
+}
+
+// NationalityNEQ applies the NEQ predicate on the "nationality" field.
+func NationalityNEQ(v string) predicate.Passenger {
+	return predicate.Passenger(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldNationality), v))
+	})
+}
+
+// NationalityIn applies the In predicate on the "nationality" field.
+func NationalityIn(vs ...string) predicate.Passenger {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Passenger(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldNationality), v...))
+	})
+}
+
+// NationalityNotIn applies the NotIn predicate on the "nationality" field.
+func NationalityNotIn(vs ...string) predicate.Passenger {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Passenger(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldNationality), v...))
+	})
+}
+
+// NationalityGT applies the GT predicate on the "nationality" field.
+func NationalityGT(v string) predicate.Passenger {
+	return predicate.Passenger(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldNationality), v))
+	})
+}
+
+// NationalityGTE applies the GTE predicate on the "nationality" field.
+func NationalityGTE(v string) predicate.Passenger {
+	return predicate.Passenger(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldNationality), v))
+	})
+}
+
+// NationalityLT applies the LT predicate on the "nationality" field.
+func NationalityLT(v string) predicate.Passenger {
+	return predicate.Passenger(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldNationality), v))
+	})
+}
+
+// NationalityLTE applies the LTE predicate on the "nationality" field.
+func NationalityLTE(v string) predicate.Passenger {
+	return predicate.Passenger(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldNationality), v))
+	})
+}
+
+// NationalityContains applies the Contains predicate on the "nationality" field.
+func NationalityContains(v string) predicate.Passenger {
+	return predicate.Passenger(func(s *sql.Selector) {
+		s.Where(sql.Contains(s.C(FieldNationality), v))
+	})
+}
+
+// NationalityHasPrefix applies the HasPrefix predicate on the "nationality" field.
+func NationalityHasPrefix(v string) predicate.Passenger {
+	return predicate.Passenger(func(s *sql.Selector) {
+		s.Where(sql.HasPrefix(s.C(FieldNationality), v))
+	})
+}
+
+// NationalityHasSuffix applies the HasSuffix predicate on the "nationality" field.
+func NationalityHasSuffix(v string) predicate.Passenger {
+	return predicate.Passenger(func(s *sql.Selector) {
+		s.Where(sql.HasSuffix(s.C(FieldNationality), v))
+	})
+}
+
+// NationalityEqualFold applies the EqualFold predicate on the "nationality" field.
+func NationalityEqualFold(v string) predicate.Passenger {
+	return predicate.Passenger(func(s *sql.Selector) {
+		s.Where(sql.EqualFold(s.C(FieldNationality), v))
+	})
+}
+
+// NationalityContainsFold applies the ContainsFold predicate on the "nationality" field.
+func NationalityContainsFold(v string) predicate.Passenger {
+	return predicate.Passenger(func(s *sql.Selector) {
+		s.Where(sql.ContainsFold(s.C(FieldNationality), v))
 	})
 }
 

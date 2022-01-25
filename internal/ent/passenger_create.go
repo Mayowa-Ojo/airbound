@@ -41,6 +41,12 @@ func (pc *PassengerCreate) SetAge(i int) *PassengerCreate {
 	return pc
 }
 
+// SetNationality sets the "nationality" field.
+func (pc *PassengerCreate) SetNationality(s string) *PassengerCreate {
+	pc.mutation.SetNationality(s)
+	return pc
+}
+
 // SetPassportNumber sets the "passport_number" field.
 func (pc *PassengerCreate) SetPassportNumber(s string) *PassengerCreate {
 	pc.mutation.SetPassportNumber(s)
@@ -78,6 +84,14 @@ func (pc *PassengerCreate) SetNillableUpdatedAt(t *time.Time) *PassengerCreate {
 // SetID sets the "id" field.
 func (pc *PassengerCreate) SetID(u uuid.UUID) *PassengerCreate {
 	pc.mutation.SetID(u)
+	return pc
+}
+
+// SetNillableID sets the "id" field if the given value is not nil.
+func (pc *PassengerCreate) SetNillableID(u *uuid.UUID) *PassengerCreate {
+	if u != nil {
+		pc.SetID(*u)
+	}
 	return pc
 }
 
@@ -207,42 +221,50 @@ func (pc *PassengerCreate) defaults() {
 // check runs all checks and user-defined validators on the builder.
 func (pc *PassengerCreate) check() error {
 	if _, ok := pc.mutation.Firstname(); !ok {
-		return &ValidationError{Name: "firstname", err: errors.New(`ent: missing required field "firstname"`)}
+		return &ValidationError{Name: "firstname", err: errors.New(`ent: missing required field "Passenger.firstname"`)}
 	}
 	if v, ok := pc.mutation.Firstname(); ok {
 		if err := passenger.FirstnameValidator(v); err != nil {
-			return &ValidationError{Name: "firstname", err: fmt.Errorf(`ent: validator failed for field "firstname": %w`, err)}
+			return &ValidationError{Name: "firstname", err: fmt.Errorf(`ent: validator failed for field "Passenger.firstname": %w`, err)}
 		}
 	}
 	if _, ok := pc.mutation.Lastname(); !ok {
-		return &ValidationError{Name: "lastname", err: errors.New(`ent: missing required field "lastname"`)}
+		return &ValidationError{Name: "lastname", err: errors.New(`ent: missing required field "Passenger.lastname"`)}
 	}
 	if v, ok := pc.mutation.Lastname(); ok {
 		if err := passenger.LastnameValidator(v); err != nil {
-			return &ValidationError{Name: "lastname", err: fmt.Errorf(`ent: validator failed for field "lastname": %w`, err)}
+			return &ValidationError{Name: "lastname", err: fmt.Errorf(`ent: validator failed for field "Passenger.lastname": %w`, err)}
 		}
 	}
 	if _, ok := pc.mutation.Age(); !ok {
-		return &ValidationError{Name: "age", err: errors.New(`ent: missing required field "age"`)}
+		return &ValidationError{Name: "age", err: errors.New(`ent: missing required field "Passenger.age"`)}
 	}
 	if v, ok := pc.mutation.Age(); ok {
 		if err := passenger.AgeValidator(v); err != nil {
-			return &ValidationError{Name: "age", err: fmt.Errorf(`ent: validator failed for field "age": %w`, err)}
+			return &ValidationError{Name: "age", err: fmt.Errorf(`ent: validator failed for field "Passenger.age": %w`, err)}
+		}
+	}
+	if _, ok := pc.mutation.Nationality(); !ok {
+		return &ValidationError{Name: "nationality", err: errors.New(`ent: missing required field "Passenger.nationality"`)}
+	}
+	if v, ok := pc.mutation.Nationality(); ok {
+		if err := passenger.NationalityValidator(v); err != nil {
+			return &ValidationError{Name: "nationality", err: fmt.Errorf(`ent: validator failed for field "Passenger.nationality": %w`, err)}
 		}
 	}
 	if _, ok := pc.mutation.PassportNumber(); !ok {
-		return &ValidationError{Name: "passport_number", err: errors.New(`ent: missing required field "passport_number"`)}
+		return &ValidationError{Name: "passport_number", err: errors.New(`ent: missing required field "Passenger.passport_number"`)}
 	}
 	if v, ok := pc.mutation.PassportNumber(); ok {
 		if err := passenger.PassportNumberValidator(v); err != nil {
-			return &ValidationError{Name: "passport_number", err: fmt.Errorf(`ent: validator failed for field "passport_number": %w`, err)}
+			return &ValidationError{Name: "passport_number", err: fmt.Errorf(`ent: validator failed for field "Passenger.passport_number": %w`, err)}
 		}
 	}
 	if _, ok := pc.mutation.CreatedAt(); !ok {
-		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "created_at"`)}
+		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Passenger.created_at"`)}
 	}
 	if _, ok := pc.mutation.UpdatedAt(); !ok {
-		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "updated_at"`)}
+		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "Passenger.updated_at"`)}
 	}
 	return nil
 }
@@ -256,7 +278,11 @@ func (pc *PassengerCreate) sqlSave(ctx context.Context) (*Passenger, error) {
 		return nil, err
 	}
 	if _spec.ID.Value != nil {
-		_node.ID = _spec.ID.Value.(uuid.UUID)
+		if id, ok := _spec.ID.Value.(*uuid.UUID); ok {
+			_node.ID = *id
+		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
+			return nil, err
+		}
 	}
 	return _node, nil
 }
@@ -274,7 +300,7 @@ func (pc *PassengerCreate) createSpec() (*Passenger, *sqlgraph.CreateSpec) {
 	)
 	if id, ok := pc.mutation.ID(); ok {
 		_node.ID = id
-		_spec.ID.Value = id
+		_spec.ID.Value = &id
 	}
 	if value, ok := pc.mutation.Firstname(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
@@ -299,6 +325,14 @@ func (pc *PassengerCreate) createSpec() (*Passenger, *sqlgraph.CreateSpec) {
 			Column: passenger.FieldAge,
 		})
 		_node.Age = value
+	}
+	if value, ok := pc.mutation.Nationality(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: passenger.FieldNationality,
+		})
+		_node.Nationality = value
 	}
 	if value, ok := pc.mutation.PassportNumber(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{

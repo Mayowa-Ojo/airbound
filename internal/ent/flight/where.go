@@ -443,6 +443,56 @@ func BoardingPolicyNotIn(vs ...enums.BoardingPolicy) predicate.Flight {
 	})
 }
 
+// TripTypeEQ applies the EQ predicate on the "trip_type" field.
+func TripTypeEQ(v enums.TripType) predicate.Flight {
+	vc := v
+	return predicate.Flight(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldTripType), vc))
+	})
+}
+
+// TripTypeNEQ applies the NEQ predicate on the "trip_type" field.
+func TripTypeNEQ(v enums.TripType) predicate.Flight {
+	vc := v
+	return predicate.Flight(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldTripType), vc))
+	})
+}
+
+// TripTypeIn applies the In predicate on the "trip_type" field.
+func TripTypeIn(vs ...enums.TripType) predicate.Flight {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Flight(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldTripType), v...))
+	})
+}
+
+// TripTypeNotIn applies the NotIn predicate on the "trip_type" field.
+func TripTypeNotIn(vs ...enums.TripType) predicate.Flight {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Flight(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldTripType), v...))
+	})
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.Flight {
 	return predicate.Flight(func(s *sql.Selector) {
@@ -726,6 +776,34 @@ func HasArrivalAirportWith(preds ...predicate.Airport) predicate.Flight {
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(ArrivalAirportInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, ArrivalAirportTable, ArrivalAirportColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasAirline applies the HasEdge predicate on the "airline" edge.
+func HasAirline() predicate.Flight {
+	return predicate.Flight(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(AirlineTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, AirlineTable, AirlineColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasAirlineWith applies the HasEdge predicate on the "airline" edge with a given conditions (other predicates).
+func HasAirlineWith(preds ...predicate.Airline) predicate.Flight {
+	return predicate.Flight(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(AirlineInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, AirlineTable, AirlineColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

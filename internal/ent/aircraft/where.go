@@ -129,6 +129,13 @@ func Range(v int) predicate.Aircraft {
 	})
 }
 
+// ManufacturedAt applies equality check predicate on the "manufactured_at" field. It's identical to ManufacturedAtEQ.
+func ManufacturedAt(v time.Time) predicate.Aircraft {
+	return predicate.Aircraft(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldManufacturedAt), v))
+	})
+}
+
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.Aircraft {
 	return predicate.Aircraft(func(s *sql.Selector) {
@@ -625,6 +632,82 @@ func RangeLT(v int) predicate.Aircraft {
 func RangeLTE(v int) predicate.Aircraft {
 	return predicate.Aircraft(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldRange), v))
+	})
+}
+
+// ManufacturedAtEQ applies the EQ predicate on the "manufactured_at" field.
+func ManufacturedAtEQ(v time.Time) predicate.Aircraft {
+	return predicate.Aircraft(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldManufacturedAt), v))
+	})
+}
+
+// ManufacturedAtNEQ applies the NEQ predicate on the "manufactured_at" field.
+func ManufacturedAtNEQ(v time.Time) predicate.Aircraft {
+	return predicate.Aircraft(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldManufacturedAt), v))
+	})
+}
+
+// ManufacturedAtIn applies the In predicate on the "manufactured_at" field.
+func ManufacturedAtIn(vs ...time.Time) predicate.Aircraft {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Aircraft(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldManufacturedAt), v...))
+	})
+}
+
+// ManufacturedAtNotIn applies the NotIn predicate on the "manufactured_at" field.
+func ManufacturedAtNotIn(vs ...time.Time) predicate.Aircraft {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Aircraft(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldManufacturedAt), v...))
+	})
+}
+
+// ManufacturedAtGT applies the GT predicate on the "manufactured_at" field.
+func ManufacturedAtGT(v time.Time) predicate.Aircraft {
+	return predicate.Aircraft(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldManufacturedAt), v))
+	})
+}
+
+// ManufacturedAtGTE applies the GTE predicate on the "manufactured_at" field.
+func ManufacturedAtGTE(v time.Time) predicate.Aircraft {
+	return predicate.Aircraft(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldManufacturedAt), v))
+	})
+}
+
+// ManufacturedAtLT applies the LT predicate on the "manufactured_at" field.
+func ManufacturedAtLT(v time.Time) predicate.Aircraft {
+	return predicate.Aircraft(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldManufacturedAt), v))
+	})
+}
+
+// ManufacturedAtLTE applies the LTE predicate on the "manufactured_at" field.
+func ManufacturedAtLTE(v time.Time) predicate.Aircraft {
+	return predicate.Aircraft(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldManufacturedAt), v))
 	})
 }
 

@@ -204,21 +204,21 @@ func (pu *PilotUpdate) defaults() {
 func (pu *PilotUpdate) check() error {
 	if v, ok := pu.mutation.EmployeeID(); ok {
 		if err := pilot.EmployeeIDValidator(v); err != nil {
-			return &ValidationError{Name: "employee_id", err: fmt.Errorf("ent: validator failed for field \"employee_id\": %w", err)}
+			return &ValidationError{Name: "employee_id", err: fmt.Errorf(`ent: validator failed for field "Pilot.employee_id": %w`, err)}
 		}
 	}
 	if v, ok := pu.mutation.LicenceNumber(); ok {
 		if err := pilot.LicenceNumberValidator(v); err != nil {
-			return &ValidationError{Name: "licence_number", err: fmt.Errorf("ent: validator failed for field \"licence_number\": %w", err)}
+			return &ValidationError{Name: "licence_number", err: fmt.Errorf(`ent: validator failed for field "Pilot.licence_number": %w`, err)}
 		}
 	}
 	if v, ok := pu.mutation.FlightHours(); ok {
 		if err := pilot.FlightHoursValidator(v); err != nil {
-			return &ValidationError{Name: "flight_hours", err: fmt.Errorf("ent: validator failed for field \"flight_hours\": %w", err)}
+			return &ValidationError{Name: "flight_hours", err: fmt.Errorf(`ent: validator failed for field "Pilot.flight_hours": %w`, err)}
 		}
 	}
 	if _, ok := pu.mutation.UserID(); pu.mutation.UserCleared() && !ok {
-		return errors.New("ent: clearing a required unique edge \"user\"")
+		return errors.New(`ent: clearing a required unique edge "Pilot.user"`)
 	}
 	return nil
 }
@@ -552,21 +552,21 @@ func (puo *PilotUpdateOne) defaults() {
 func (puo *PilotUpdateOne) check() error {
 	if v, ok := puo.mutation.EmployeeID(); ok {
 		if err := pilot.EmployeeIDValidator(v); err != nil {
-			return &ValidationError{Name: "employee_id", err: fmt.Errorf("ent: validator failed for field \"employee_id\": %w", err)}
+			return &ValidationError{Name: "employee_id", err: fmt.Errorf(`ent: validator failed for field "Pilot.employee_id": %w`, err)}
 		}
 	}
 	if v, ok := puo.mutation.LicenceNumber(); ok {
 		if err := pilot.LicenceNumberValidator(v); err != nil {
-			return &ValidationError{Name: "licence_number", err: fmt.Errorf("ent: validator failed for field \"licence_number\": %w", err)}
+			return &ValidationError{Name: "licence_number", err: fmt.Errorf(`ent: validator failed for field "Pilot.licence_number": %w`, err)}
 		}
 	}
 	if v, ok := puo.mutation.FlightHours(); ok {
 		if err := pilot.FlightHoursValidator(v); err != nil {
-			return &ValidationError{Name: "flight_hours", err: fmt.Errorf("ent: validator failed for field \"flight_hours\": %w", err)}
+			return &ValidationError{Name: "flight_hours", err: fmt.Errorf(`ent: validator failed for field "Pilot.flight_hours": %w`, err)}
 		}
 	}
 	if _, ok := puo.mutation.UserID(); puo.mutation.UserCleared() && !ok {
-		return errors.New("ent: clearing a required unique edge \"user\"")
+		return errors.New(`ent: clearing a required unique edge "Pilot.user"`)
 	}
 	return nil
 }
@@ -584,7 +584,7 @@ func (puo *PilotUpdateOne) sqlSave(ctx context.Context) (_node *Pilot, err error
 	}
 	id, ok := puo.mutation.ID()
 	if !ok {
-		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing Pilot.ID for update")}
+		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "Pilot.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
 	if fields := puo.fields; len(fields) > 0 {

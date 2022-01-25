@@ -9,6 +9,7 @@ import (
 	"airbound/internal/ent/itenerary"
 	"airbound/internal/ent/predicate"
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -659,7 +660,7 @@ func (iuo *IteneraryUpdateOne) sqlSave(ctx context.Context) (_node *Itenerary, e
 	}
 	id, ok := iuo.mutation.ID()
 	if !ok {
-		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing Itenerary.ID for update")}
+		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "Itenerary.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
 	if fields := iuo.fields; len(fields) > 0 {

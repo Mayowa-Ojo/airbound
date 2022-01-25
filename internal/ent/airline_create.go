@@ -6,6 +6,7 @@ import (
 	"airbound/internal/ent/aircraft"
 	"airbound/internal/ent/airline"
 	"airbound/internal/ent/crew"
+	"airbound/internal/ent/flight"
 	"airbound/internal/ent/pilot"
 	"context"
 	"errors"
@@ -33,6 +34,12 @@ func (ac *AirlineCreate) SetName(s string) *AirlineCreate {
 // SetIataCode sets the "iata_code" field.
 func (ac *AirlineCreate) SetIataCode(s string) *AirlineCreate {
 	ac.mutation.SetIataCode(s)
+	return ac
+}
+
+// SetCountry sets the "country" field.
+func (ac *AirlineCreate) SetCountry(s string) *AirlineCreate {
+	ac.mutation.SetCountry(s)
 	return ac
 }
 
@@ -67,6 +74,14 @@ func (ac *AirlineCreate) SetNillableUpdatedAt(t *time.Time) *AirlineCreate {
 // SetID sets the "id" field.
 func (ac *AirlineCreate) SetID(u uuid.UUID) *AirlineCreate {
 	ac.mutation.SetID(u)
+	return ac
+}
+
+// SetNillableID sets the "id" field if the given value is not nil.
+func (ac *AirlineCreate) SetNillableID(u *uuid.UUID) *AirlineCreate {
+	if u != nil {
+		ac.SetID(*u)
+	}
 	return ac
 }
 
@@ -113,6 +128,21 @@ func (ac *AirlineCreate) AddPilots(p ...*Pilot) *AirlineCreate {
 		ids[i] = p[i].ID
 	}
 	return ac.AddPilotIDs(ids...)
+}
+
+// AddFlightIDs adds the "flights" edge to the Flight entity by IDs.
+func (ac *AirlineCreate) AddFlightIDs(ids ...uuid.UUID) *AirlineCreate {
+	ac.mutation.AddFlightIDs(ids...)
+	return ac
+}
+
+// AddFlights adds the "flights" edges to the Flight entity.
+func (ac *AirlineCreate) AddFlights(f ...*Flight) *AirlineCreate {
+	ids := make([]uuid.UUID, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return ac.AddFlightIDs(ids...)
 }
 
 // Mutation returns the AirlineMutation object of the builder.
@@ -203,26 +233,34 @@ func (ac *AirlineCreate) defaults() {
 // check runs all checks and user-defined validators on the builder.
 func (ac *AirlineCreate) check() error {
 	if _, ok := ac.mutation.Name(); !ok {
-		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "name"`)}
+		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "Airline.name"`)}
 	}
 	if v, ok := ac.mutation.Name(); ok {
 		if err := airline.NameValidator(v); err != nil {
-			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "name": %w`, err)}
+			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Airline.name": %w`, err)}
 		}
 	}
 	if _, ok := ac.mutation.IataCode(); !ok {
-		return &ValidationError{Name: "iata_code", err: errors.New(`ent: missing required field "iata_code"`)}
+		return &ValidationError{Name: "iata_code", err: errors.New(`ent: missing required field "Airline.iata_code"`)}
 	}
 	if v, ok := ac.mutation.IataCode(); ok {
 		if err := airline.IataCodeValidator(v); err != nil {
-			return &ValidationError{Name: "iata_code", err: fmt.Errorf(`ent: validator failed for field "iata_code": %w`, err)}
+			return &ValidationError{Name: "iata_code", err: fmt.Errorf(`ent: validator failed for field "Airline.iata_code": %w`, err)}
+		}
+	}
+	if _, ok := ac.mutation.Country(); !ok {
+		return &ValidationError{Name: "country", err: errors.New(`ent: missing required field "Airline.country"`)}
+	}
+	if v, ok := ac.mutation.Country(); ok {
+		if err := airline.CountryValidator(v); err != nil {
+			return &ValidationError{Name: "country", err: fmt.Errorf(`ent: validator failed for field "Airline.country": %w`, err)}
 		}
 	}
 	if _, ok := ac.mutation.CreatedAt(); !ok {
-		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "created_at"`)}
+		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Airline.created_at"`)}
 	}
 	if _, ok := ac.mutation.UpdatedAt(); !ok {
-		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "updated_at"`)}
+		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "Airline.updated_at"`)}
 	}
 	return nil
 }
@@ -236,7 +274,11 @@ func (ac *AirlineCreate) sqlSave(ctx context.Context) (*Airline, error) {
 		return nil, err
 	}
 	if _spec.ID.Value != nil {
-		_node.ID = _spec.ID.Value.(uuid.UUID)
+		if id, ok := _spec.ID.Value.(*uuid.UUID); ok {
+			_node.ID = *id
+		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
+			return nil, err
+		}
 	}
 	return _node, nil
 }
@@ -254,7 +296,7 @@ func (ac *AirlineCreate) createSpec() (*Airline, *sqlgraph.CreateSpec) {
 	)
 	if id, ok := ac.mutation.ID(); ok {
 		_node.ID = id
-		_spec.ID.Value = id
+		_spec.ID.Value = &id
 	}
 	if value, ok := ac.mutation.Name(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
@@ -271,6 +313,14 @@ func (ac *AirlineCreate) createSpec() (*Airline, *sqlgraph.CreateSpec) {
 			Column: airline.FieldIataCode,
 		})
 		_node.IataCode = value
+	}
+	if value, ok := ac.mutation.Country(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: airline.FieldCountry,
+		})
+		_node.Country = value
 	}
 	if value, ok := ac.mutation.CreatedAt(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
@@ -337,6 +387,25 @@ func (ac *AirlineCreate) createSpec() (*Airline, *sqlgraph.CreateSpec) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: pilot.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := ac.mutation.FlightsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   airline.FlightsTable,
+			Columns: []string{airline.FlightsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flight.FieldID,
 				},
 			},
 		}

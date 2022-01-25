@@ -7,6 +7,7 @@ import (
 	"airbound/internal/ent/predicate"
 	"airbound/internal/ent/role"
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -169,7 +170,7 @@ func (pu *PermissionUpdate) defaults() {
 func (pu *PermissionUpdate) check() error {
 	if v, ok := pu.mutation.Permission(); ok {
 		if err := permission.PermissionValidator(v); err != nil {
-			return &ValidationError{Name: "permission", err: fmt.Errorf("ent: validator failed for field \"permission\": %w", err)}
+			return &ValidationError{Name: "permission", err: fmt.Errorf(`ent: validator failed for field "Permission.permission": %w`, err)}
 		}
 	}
 	return nil
@@ -434,7 +435,7 @@ func (puo *PermissionUpdateOne) defaults() {
 func (puo *PermissionUpdateOne) check() error {
 	if v, ok := puo.mutation.Permission(); ok {
 		if err := permission.PermissionValidator(v); err != nil {
-			return &ValidationError{Name: "permission", err: fmt.Errorf("ent: validator failed for field \"permission\": %w", err)}
+			return &ValidationError{Name: "permission", err: fmt.Errorf(`ent: validator failed for field "Permission.permission": %w`, err)}
 		}
 	}
 	return nil
@@ -453,7 +454,7 @@ func (puo *PermissionUpdateOne) sqlSave(ctx context.Context) (_node *Permission,
 	}
 	id, ok := puo.mutation.ID()
 	if !ok {
-		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing Permission.ID for update")}
+		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "Permission.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
 	if fields := puo.fields; len(fields) > 0 {

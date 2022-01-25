@@ -6,9 +6,11 @@ import (
 	"airbound/internal/ent/aircraft"
 	"airbound/internal/ent/airline"
 	"airbound/internal/ent/crew"
+	"airbound/internal/ent/flight"
 	"airbound/internal/ent/pilot"
 	"airbound/internal/ent/predicate"
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -40,6 +42,12 @@ func (au *AirlineUpdate) SetName(s string) *AirlineUpdate {
 // SetIataCode sets the "iata_code" field.
 func (au *AirlineUpdate) SetIataCode(s string) *AirlineUpdate {
 	au.mutation.SetIataCode(s)
+	return au
+}
+
+// SetCountry sets the "country" field.
+func (au *AirlineUpdate) SetCountry(s string) *AirlineUpdate {
+	au.mutation.SetCountry(s)
 	return au
 }
 
@@ -108,6 +116,21 @@ func (au *AirlineUpdate) AddPilots(p ...*Pilot) *AirlineUpdate {
 	return au.AddPilotIDs(ids...)
 }
 
+// AddFlightIDs adds the "flights" edge to the Flight entity by IDs.
+func (au *AirlineUpdate) AddFlightIDs(ids ...uuid.UUID) *AirlineUpdate {
+	au.mutation.AddFlightIDs(ids...)
+	return au
+}
+
+// AddFlights adds the "flights" edges to the Flight entity.
+func (au *AirlineUpdate) AddFlights(f ...*Flight) *AirlineUpdate {
+	ids := make([]uuid.UUID, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return au.AddFlightIDs(ids...)
+}
+
 // Mutation returns the AirlineMutation object of the builder.
 func (au *AirlineUpdate) Mutation() *AirlineMutation {
 	return au.mutation
@@ -174,6 +197,27 @@ func (au *AirlineUpdate) RemovePilots(p ...*Pilot) *AirlineUpdate {
 		ids[i] = p[i].ID
 	}
 	return au.RemovePilotIDs(ids...)
+}
+
+// ClearFlights clears all "flights" edges to the Flight entity.
+func (au *AirlineUpdate) ClearFlights() *AirlineUpdate {
+	au.mutation.ClearFlights()
+	return au
+}
+
+// RemoveFlightIDs removes the "flights" edge to Flight entities by IDs.
+func (au *AirlineUpdate) RemoveFlightIDs(ids ...uuid.UUID) *AirlineUpdate {
+	au.mutation.RemoveFlightIDs(ids...)
+	return au
+}
+
+// RemoveFlights removes "flights" edges to Flight entities.
+func (au *AirlineUpdate) RemoveFlights(f ...*Flight) *AirlineUpdate {
+	ids := make([]uuid.UUID, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return au.RemoveFlightIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -249,12 +293,17 @@ func (au *AirlineUpdate) defaults() {
 func (au *AirlineUpdate) check() error {
 	if v, ok := au.mutation.Name(); ok {
 		if err := airline.NameValidator(v); err != nil {
-			return &ValidationError{Name: "name", err: fmt.Errorf("ent: validator failed for field \"name\": %w", err)}
+			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Airline.name": %w`, err)}
 		}
 	}
 	if v, ok := au.mutation.IataCode(); ok {
 		if err := airline.IataCodeValidator(v); err != nil {
-			return &ValidationError{Name: "iata_code", err: fmt.Errorf("ent: validator failed for field \"iata_code\": %w", err)}
+			return &ValidationError{Name: "iata_code", err: fmt.Errorf(`ent: validator failed for field "Airline.iata_code": %w`, err)}
+		}
+	}
+	if v, ok := au.mutation.Country(); ok {
+		if err := airline.CountryValidator(v); err != nil {
+			return &ValidationError{Name: "country", err: fmt.Errorf(`ent: validator failed for field "Airline.country": %w`, err)}
 		}
 	}
 	return nil
@@ -290,6 +339,13 @@ func (au *AirlineUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Type:   field.TypeString,
 			Value:  value,
 			Column: airline.FieldIataCode,
+		})
+	}
+	if value, ok := au.mutation.Country(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: airline.FieldCountry,
 		})
 	}
 	if value, ok := au.mutation.CreatedAt(); ok {
@@ -468,6 +524,60 @@ func (au *AirlineUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if au.mutation.FlightsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   airline.FlightsTable,
+			Columns: []string{airline.FlightsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flight.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := au.mutation.RemovedFlightsIDs(); len(nodes) > 0 && !au.mutation.FlightsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   airline.FlightsTable,
+			Columns: []string{airline.FlightsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flight.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := au.mutation.FlightsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   airline.FlightsTable,
+			Columns: []string{airline.FlightsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flight.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, au.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{airline.Label}
@@ -496,6 +606,12 @@ func (auo *AirlineUpdateOne) SetName(s string) *AirlineUpdateOne {
 // SetIataCode sets the "iata_code" field.
 func (auo *AirlineUpdateOne) SetIataCode(s string) *AirlineUpdateOne {
 	auo.mutation.SetIataCode(s)
+	return auo
+}
+
+// SetCountry sets the "country" field.
+func (auo *AirlineUpdateOne) SetCountry(s string) *AirlineUpdateOne {
+	auo.mutation.SetCountry(s)
 	return auo
 }
 
@@ -564,6 +680,21 @@ func (auo *AirlineUpdateOne) AddPilots(p ...*Pilot) *AirlineUpdateOne {
 	return auo.AddPilotIDs(ids...)
 }
 
+// AddFlightIDs adds the "flights" edge to the Flight entity by IDs.
+func (auo *AirlineUpdateOne) AddFlightIDs(ids ...uuid.UUID) *AirlineUpdateOne {
+	auo.mutation.AddFlightIDs(ids...)
+	return auo
+}
+
+// AddFlights adds the "flights" edges to the Flight entity.
+func (auo *AirlineUpdateOne) AddFlights(f ...*Flight) *AirlineUpdateOne {
+	ids := make([]uuid.UUID, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return auo.AddFlightIDs(ids...)
+}
+
 // Mutation returns the AirlineMutation object of the builder.
 func (auo *AirlineUpdateOne) Mutation() *AirlineMutation {
 	return auo.mutation
@@ -630,6 +761,27 @@ func (auo *AirlineUpdateOne) RemovePilots(p ...*Pilot) *AirlineUpdateOne {
 		ids[i] = p[i].ID
 	}
 	return auo.RemovePilotIDs(ids...)
+}
+
+// ClearFlights clears all "flights" edges to the Flight entity.
+func (auo *AirlineUpdateOne) ClearFlights() *AirlineUpdateOne {
+	auo.mutation.ClearFlights()
+	return auo
+}
+
+// RemoveFlightIDs removes the "flights" edge to Flight entities by IDs.
+func (auo *AirlineUpdateOne) RemoveFlightIDs(ids ...uuid.UUID) *AirlineUpdateOne {
+	auo.mutation.RemoveFlightIDs(ids...)
+	return auo
+}
+
+// RemoveFlights removes "flights" edges to Flight entities.
+func (auo *AirlineUpdateOne) RemoveFlights(f ...*Flight) *AirlineUpdateOne {
+	ids := make([]uuid.UUID, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return auo.RemoveFlightIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -712,12 +864,17 @@ func (auo *AirlineUpdateOne) defaults() {
 func (auo *AirlineUpdateOne) check() error {
 	if v, ok := auo.mutation.Name(); ok {
 		if err := airline.NameValidator(v); err != nil {
-			return &ValidationError{Name: "name", err: fmt.Errorf("ent: validator failed for field \"name\": %w", err)}
+			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Airline.name": %w`, err)}
 		}
 	}
 	if v, ok := auo.mutation.IataCode(); ok {
 		if err := airline.IataCodeValidator(v); err != nil {
-			return &ValidationError{Name: "iata_code", err: fmt.Errorf("ent: validator failed for field \"iata_code\": %w", err)}
+			return &ValidationError{Name: "iata_code", err: fmt.Errorf(`ent: validator failed for field "Airline.iata_code": %w`, err)}
+		}
+	}
+	if v, ok := auo.mutation.Country(); ok {
+		if err := airline.CountryValidator(v); err != nil {
+			return &ValidationError{Name: "country", err: fmt.Errorf(`ent: validator failed for field "Airline.country": %w`, err)}
 		}
 	}
 	return nil
@@ -736,7 +893,7 @@ func (auo *AirlineUpdateOne) sqlSave(ctx context.Context) (_node *Airline, err e
 	}
 	id, ok := auo.mutation.ID()
 	if !ok {
-		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing Airline.ID for update")}
+		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "Airline.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
 	if fields := auo.fields; len(fields) > 0 {
@@ -770,6 +927,13 @@ func (auo *AirlineUpdateOne) sqlSave(ctx context.Context) (_node *Airline, err e
 			Type:   field.TypeString,
 			Value:  value,
 			Column: airline.FieldIataCode,
+		})
+	}
+	if value, ok := auo.mutation.Country(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: airline.FieldCountry,
 		})
 	}
 	if value, ok := auo.mutation.CreatedAt(); ok {
@@ -940,6 +1104,60 @@ func (auo *AirlineUpdateOne) sqlSave(ctx context.Context) (_node *Airline, err e
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: pilot.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if auo.mutation.FlightsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   airline.FlightsTable,
+			Columns: []string{airline.FlightsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flight.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := auo.mutation.RemovedFlightsIDs(); len(nodes) > 0 && !auo.mutation.FlightsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   airline.FlightsTable,
+			Columns: []string{airline.FlightsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flight.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := auo.mutation.FlightsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   airline.FlightsTable,
+			Columns: []string{airline.FlightsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flight.FieldID,
 				},
 			},
 		}

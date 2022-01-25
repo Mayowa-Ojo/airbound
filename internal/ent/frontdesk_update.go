@@ -177,11 +177,11 @@ func (fdu *FrontDeskUpdate) defaults() {
 func (fdu *FrontDeskUpdate) check() error {
 	if v, ok := fdu.mutation.EmployeeID(); ok {
 		if err := frontdesk.EmployeeIDValidator(v); err != nil {
-			return &ValidationError{Name: "employee_id", err: fmt.Errorf("ent: validator failed for field \"employee_id\": %w", err)}
+			return &ValidationError{Name: "employee_id", err: fmt.Errorf(`ent: validator failed for field "FrontDesk.employee_id": %w`, err)}
 		}
 	}
 	if _, ok := fdu.mutation.UserID(); fdu.mutation.UserCleared() && !ok {
-		return errors.New("ent: clearing a required unique edge \"user\"")
+		return errors.New(`ent: clearing a required unique edge "FrontDesk.user"`)
 	}
 	return nil
 }
@@ -467,11 +467,11 @@ func (fduo *FrontDeskUpdateOne) defaults() {
 func (fduo *FrontDeskUpdateOne) check() error {
 	if v, ok := fduo.mutation.EmployeeID(); ok {
 		if err := frontdesk.EmployeeIDValidator(v); err != nil {
-			return &ValidationError{Name: "employee_id", err: fmt.Errorf("ent: validator failed for field \"employee_id\": %w", err)}
+			return &ValidationError{Name: "employee_id", err: fmt.Errorf(`ent: validator failed for field "FrontDesk.employee_id": %w`, err)}
 		}
 	}
 	if _, ok := fduo.mutation.UserID(); fduo.mutation.UserCleared() && !ok {
-		return errors.New("ent: clearing a required unique edge \"user\"")
+		return errors.New(`ent: clearing a required unique edge "FrontDesk.user"`)
 	}
 	return nil
 }
@@ -489,7 +489,7 @@ func (fduo *FrontDeskUpdateOne) sqlSave(ctx context.Context) (_node *FrontDesk, 
 	}
 	id, ok := fduo.mutation.ID()
 	if !ok {
-		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing FrontDesk.ID for update")}
+		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "FrontDesk.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
 	if fields := fduo.fields; len(fields) > 0 {

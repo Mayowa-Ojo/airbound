@@ -44,9 +44,11 @@ type FlightSchedule struct {
 type FlightScheduleEdges struct {
 	// Flight holds the value of the flight edge.
 	Flight *Flight `json:"flight,omitempty"`
+	// FlightInstances holds the value of the flight_instances edge.
+	FlightInstances []*FlightInstance `json:"flight_instances,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // FlightOrErr returns the Flight value or an error if the edge
@@ -61,6 +63,15 @@ func (e FlightScheduleEdges) FlightOrErr() (*Flight, error) {
 		return e.Flight, nil
 	}
 	return nil, &NotLoadedError{edge: "flight"}
+}
+
+// FlightInstancesOrErr returns the FlightInstances value or an error if the edge
+// was not loaded in eager-loading.
+func (e FlightScheduleEdges) FlightInstancesOrErr() ([]*FlightInstance, error) {
+	if e.loadedTypes[1] {
+		return e.FlightInstances, nil
+	}
+	return nil, &NotLoadedError{edge: "flight_instances"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -160,6 +171,11 @@ func (fs *FlightSchedule) assignValues(columns []string, values []interface{}) e
 // QueryFlight queries the "flight" edge of the FlightSchedule entity.
 func (fs *FlightSchedule) QueryFlight() *FlightQuery {
 	return (&FlightScheduleClient{config: fs.config}).QueryFlight(fs)
+}
+
+// QueryFlightInstances queries the "flight_instances" edge of the FlightSchedule entity.
+func (fs *FlightSchedule) QueryFlightInstances() *FlightInstanceQuery {
+	return (&FlightScheduleClient{config: fs.config}).QueryFlightInstances(fs)
 }
 
 // Update returns a builder for updating this FlightSchedule.

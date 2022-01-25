@@ -549,6 +549,10 @@ func (frq *FlightReservationQuery) sqlAll(ctx context.Context) ([]*FlightReserva
 
 func (frq *FlightReservationQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := frq.querySpec()
+	_spec.Node.Columns = frq.fields
+	if len(frq.fields) > 0 {
+		_spec.Unique = frq.unique != nil && *frq.unique
+	}
 	return sqlgraph.CountNodes(ctx, frq.driver, _spec)
 }
 
@@ -619,6 +623,9 @@ func (frq *FlightReservationQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	if frq.sql != nil {
 		selector = frq.sql
 		selector.Select(selector.Columns(columns...)...)
+	}
+	if frq.unique != nil && *frq.unique {
+		selector.Distinct()
 	}
 	for _, p := range frq.predicates {
 		p(selector)
@@ -898,9 +905,7 @@ func (frgb *FlightReservationGroupBy) sqlQuery() *sql.Selector {
 		for _, f := range frgb.fields {
 			columns = append(columns, selector.C(f))
 		}
-		for _, c := range aggregation {
-			columns = append(columns, c)
-		}
+		columns = append(columns, aggregation...)
 		selector.Select(columns...)
 	}
 	return selector.GroupBy(selector.Columns(frgb.fields...)...)

@@ -189,6 +189,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
+		ctx:               ctx,
 		config:            cfg,
 		Account:           NewAccountClient(cfg),
 		Address:           NewAddressClient(cfg),
@@ -868,6 +869,22 @@ func (c *AirlineClient) QueryPilots(a *Airline) *PilotQuery {
 	return query
 }
 
+// QueryFlights queries the flights edge of a Airline.
+func (c *AirlineClient) QueryFlights(a *Airline) *FlightQuery {
+	query := &FlightQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := a.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(airline.Table, airline.FieldID, id),
+			sqlgraph.To(flight.Table, flight.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, airline.FlightsTable, airline.FlightsColumn),
+		)
+		fromV = sqlgraph.Neighbors(a.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *AirlineClient) Hooks() []Hook {
 	return c.hooks.Airline
@@ -1484,6 +1501,22 @@ func (c *FlightClient) QueryArrivalAirport(f *Flight) *AirportQuery {
 	return query
 }
 
+// QueryAirline queries the airline edge of a Flight.
+func (c *FlightClient) QueryAirline(f *Flight) *AirlineQuery {
+	query := &AirlineQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := f.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(flight.Table, flight.FieldID, id),
+			sqlgraph.To(airline.Table, airline.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, flight.AirlineTable, flight.AirlineColumn),
+		)
+		fromV = sqlgraph.Neighbors(f.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *FlightClient) Hooks() []Hook {
 	return c.hooks.Flight
@@ -1583,6 +1616,22 @@ func (c *FlightInstanceClient) QueryFlight(fi *FlightInstance) *FlightQuery {
 			sqlgraph.From(flightinstance.Table, flightinstance.FieldID, id),
 			sqlgraph.To(flight.Table, flight.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, flightinstance.FlightTable, flightinstance.FlightColumn),
+		)
+		fromV = sqlgraph.Neighbors(fi.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryFlightSchedule queries the flight_schedule edge of a FlightInstance.
+func (c *FlightInstanceClient) QueryFlightSchedule(fi *FlightInstance) *FlightScheduleQuery {
+	query := &FlightScheduleQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := fi.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(flightinstance.Table, flightinstance.FieldID, id),
+			sqlgraph.To(flightschedule.Table, flightschedule.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, flightinstance.FlightScheduleTable, flightinstance.FlightScheduleColumn),
 		)
 		fromV = sqlgraph.Neighbors(fi.driver.Dialect(), step)
 		return fromV, nil
@@ -1875,6 +1924,22 @@ func (c *FlightScheduleClient) QueryFlight(fs *FlightSchedule) *FlightQuery {
 			sqlgraph.From(flightschedule.Table, flightschedule.FieldID, id),
 			sqlgraph.To(flight.Table, flight.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, flightschedule.FlightTable, flightschedule.FlightColumn),
+		)
+		fromV = sqlgraph.Neighbors(fs.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryFlightInstances queries the flight_instances edge of a FlightSchedule.
+func (c *FlightScheduleClient) QueryFlightInstances(fs *FlightSchedule) *FlightInstanceQuery {
+	query := &FlightInstanceQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := fs.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(flightschedule.Table, flightschedule.FieldID, id),
+			sqlgraph.To(flightinstance.Table, flightinstance.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, flightschedule.FlightInstancesTable, flightschedule.FlightInstancesColumn),
 		)
 		fromV = sqlgraph.Neighbors(fs.driver.Dialect(), step)
 		return fromV, nil

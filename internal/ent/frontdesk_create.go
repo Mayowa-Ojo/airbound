@@ -63,6 +63,14 @@ func (fdc *FrontDeskCreate) SetID(u uuid.UUID) *FrontDeskCreate {
 	return fdc
 }
 
+// SetNillableID sets the "id" field if the given value is not nil.
+func (fdc *FrontDeskCreate) SetNillableID(u *uuid.UUID) *FrontDeskCreate {
+	if u != nil {
+		fdc.SetID(*u)
+	}
+	return fdc
+}
+
 // SetUserID sets the "user" edge to the User entity by ID.
 func (fdc *FrontDeskCreate) SetUserID(id uuid.UUID) *FrontDeskCreate {
 	fdc.mutation.SetUserID(id)
@@ -181,21 +189,21 @@ func (fdc *FrontDeskCreate) defaults() {
 // check runs all checks and user-defined validators on the builder.
 func (fdc *FrontDeskCreate) check() error {
 	if _, ok := fdc.mutation.EmployeeID(); !ok {
-		return &ValidationError{Name: "employee_id", err: errors.New(`ent: missing required field "employee_id"`)}
+		return &ValidationError{Name: "employee_id", err: errors.New(`ent: missing required field "FrontDesk.employee_id"`)}
 	}
 	if v, ok := fdc.mutation.EmployeeID(); ok {
 		if err := frontdesk.EmployeeIDValidator(v); err != nil {
-			return &ValidationError{Name: "employee_id", err: fmt.Errorf(`ent: validator failed for field "employee_id": %w`, err)}
+			return &ValidationError{Name: "employee_id", err: fmt.Errorf(`ent: validator failed for field "FrontDesk.employee_id": %w`, err)}
 		}
 	}
 	if _, ok := fdc.mutation.CreatedAt(); !ok {
-		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "created_at"`)}
+		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "FrontDesk.created_at"`)}
 	}
 	if _, ok := fdc.mutation.UpdatedAt(); !ok {
-		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "updated_at"`)}
+		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "FrontDesk.updated_at"`)}
 	}
 	if _, ok := fdc.mutation.UserID(); !ok {
-		return &ValidationError{Name: "user", err: errors.New("ent: missing required edge \"user\"")}
+		return &ValidationError{Name: "user", err: errors.New(`ent: missing required edge "FrontDesk.user"`)}
 	}
 	return nil
 }
@@ -209,7 +217,11 @@ func (fdc *FrontDeskCreate) sqlSave(ctx context.Context) (*FrontDesk, error) {
 		return nil, err
 	}
 	if _spec.ID.Value != nil {
-		_node.ID = _spec.ID.Value.(uuid.UUID)
+		if id, ok := _spec.ID.Value.(*uuid.UUID); ok {
+			_node.ID = *id
+		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
+			return nil, err
+		}
 	}
 	return _node, nil
 }
@@ -227,7 +239,7 @@ func (fdc *FrontDeskCreate) createSpec() (*FrontDesk, *sqlgraph.CreateSpec) {
 	)
 	if id, ok := fdc.mutation.ID(); ok {
 		_node.ID = id
-		_spec.ID.Value = id
+		_spec.ID.Value = &id
 	}
 	if value, ok := fdc.mutation.EmployeeID(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{

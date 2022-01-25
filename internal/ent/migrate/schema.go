@@ -84,6 +84,7 @@ var (
 		{Name: "model", Type: field.TypeString, Size: 250},
 		{Name: "capacity", Type: field.TypeInt},
 		{Name: "range", Type: field.TypeInt},
+		{Name: "manufactured_at", Type: field.TypeTime},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "airline_id", Type: field.TypeUUID, Nullable: true},
@@ -97,13 +98,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "aircrafts_airlines_aircrafts",
-				Columns:    []*schema.Column{AircraftsColumns[8]},
+				Columns:    []*schema.Column{AircraftsColumns[9]},
 				RefColumns: []*schema.Column{AirlinesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "aircrafts_flight_instances_aircraft",
-				Columns:    []*schema.Column{AircraftsColumns[9]},
+				Columns:    []*schema.Column{AircraftsColumns[10]},
 				RefColumns: []*schema.Column{FlightInstancesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -114,6 +115,7 @@ var (
 		{Name: "id", Type: field.TypeUUID, Unique: true},
 		{Name: "name", Type: field.TypeString, Size: 250},
 		{Name: "iata_code", Type: field.TypeString, Size: 2},
+		{Name: "country", Type: field.TypeString, Size: 250},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 	}
@@ -205,8 +207,10 @@ var (
 		{Name: "duration", Type: field.TypeInt},
 		{Name: "distance", Type: field.TypeInt},
 		{Name: "boarding_policy", Type: field.TypeEnum, Enums: []string{"GROUP_BASED", "ZONE_BASED"}},
+		{Name: "trip_type", Type: field.TypeEnum, Enums: []string{"ONE_WAY", "ROUND_TRIP"}},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "airline_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "depature_airport_id", Type: field.TypeUUID, Nullable: true},
 		{Name: "arrival_airport_id", Type: field.TypeUUID, Nullable: true},
 	}
@@ -217,14 +221,20 @@ var (
 		PrimaryKey: []*schema.Column{FlightsColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
+				Symbol:     "flights_airlines_flights",
+				Columns:    []*schema.Column{FlightsColumns[8]},
+				RefColumns: []*schema.Column{AirlinesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
 				Symbol:     "flights_airports_departure_flights",
-				Columns:    []*schema.Column{FlightsColumns[7]},
+				Columns:    []*schema.Column{FlightsColumns[9]},
 				RefColumns: []*schema.Column{AirportsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "flights_airports_arrival_flights",
-				Columns:    []*schema.Column{FlightsColumns[8]},
+				Columns:    []*schema.Column{FlightsColumns[10]},
 				RefColumns: []*schema.Column{AirportsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -233,12 +243,15 @@ var (
 	// FlightInstancesColumns holds the columns for the "flight_instances" table.
 	FlightInstancesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "departure_date", Type: field.TypeString, SchemaType: map[string]string{"postgres": "date"}},
+		{Name: "arrival_date", Type: field.TypeString, SchemaType: map[string]string{"postgres": "date"}},
 		{Name: "departure_gate", Type: field.TypeInt},
 		{Name: "arrival_gate", Type: field.TypeInt},
 		{Name: "flight_status", Type: field.TypeEnum, Enums: []string{"ACTIVE", "SCHEDULED", "DELAYED", "DEPARTED", "ARRIVED", "CANCELED"}},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "flight_id", Type: field.TypeUUID, Nullable: true},
+		{Name: "flight_schedule_id", Type: field.TypeUUID, Nullable: true},
 	}
 	// FlightInstancesTable holds the schema information for the "flight_instances" table.
 	FlightInstancesTable = &schema.Table{
@@ -248,8 +261,14 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "flight_instances_flights_flight_instances",
-				Columns:    []*schema.Column{FlightInstancesColumns[6]},
+				Columns:    []*schema.Column{FlightInstancesColumns[8]},
 				RefColumns: []*schema.Column{FlightsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "flight_instances_flight_schedules_flight_instances",
+				Columns:    []*schema.Column{FlightInstancesColumns[9]},
+				RefColumns: []*schema.Column{FlightSchedulesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 		},
@@ -416,6 +435,7 @@ var (
 		{Name: "firstname", Type: field.TypeString, Size: 250},
 		{Name: "lastname", Type: field.TypeString, Size: 250},
 		{Name: "age", Type: field.TypeInt},
+		{Name: "nationality", Type: field.TypeString, Size: 250},
 		{Name: "passport_number", Type: field.TypeString, Size: 50},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
@@ -429,7 +449,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "passengers_flight_reservations_passengers",
-				Columns:    []*schema.Column{PassengersColumns[7]},
+				Columns:    []*schema.Column{PassengersColumns[8]},
 				RefColumns: []*schema.Column{FlightReservationsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -636,9 +656,11 @@ func init() {
 	CrewsTable.ForeignKeys[0].RefTable = AirlinesTable
 	CrewsTable.ForeignKeys[1].RefTable = UsersTable
 	CustomersTable.ForeignKeys[0].RefTable = UsersTable
-	FlightsTable.ForeignKeys[0].RefTable = AirportsTable
+	FlightsTable.ForeignKeys[0].RefTable = AirlinesTable
 	FlightsTable.ForeignKeys[1].RefTable = AirportsTable
+	FlightsTable.ForeignKeys[2].RefTable = AirportsTable
 	FlightInstancesTable.ForeignKeys[0].RefTable = FlightsTable
+	FlightInstancesTable.ForeignKeys[1].RefTable = FlightSchedulesTable
 	FlightReservationsTable.ForeignKeys[0].RefTable = FlightInstancesTable
 	FlightReservationsTable.ForeignKeys[1].RefTable = ItenerariesTable
 	FlightSchedulesTable.ForeignKeys[0].RefTable = FlightsTable

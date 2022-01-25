@@ -8,6 +8,7 @@ import (
 	"airbound/internal/ent/predicate"
 	"airbound/internal/ent/user"
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -245,12 +246,12 @@ func (au *AccountUpdate) defaults() {
 func (au *AccountUpdate) check() error {
 	if v, ok := au.mutation.AccountStatus(); ok {
 		if err := account.AccountStatusValidator(v); err != nil {
-			return &ValidationError{Name: "account_status", err: fmt.Errorf("ent: validator failed for field \"account_status\": %w", err)}
+			return &ValidationError{Name: "account_status", err: fmt.Errorf(`ent: validator failed for field "Account.account_status": %w`, err)}
 		}
 	}
 	if v, ok := au.mutation.TwoFaSecret(); ok {
 		if err := account.TwoFaSecretValidator(v); err != nil {
-			return &ValidationError{Name: "two_fa_secret", err: fmt.Errorf("ent: validator failed for field \"two_fa_secret\": %w", err)}
+			return &ValidationError{Name: "two_fa_secret", err: fmt.Errorf(`ent: validator failed for field "Account.two_fa_secret": %w`, err)}
 		}
 	}
 	return nil
@@ -631,12 +632,12 @@ func (auo *AccountUpdateOne) defaults() {
 func (auo *AccountUpdateOne) check() error {
 	if v, ok := auo.mutation.AccountStatus(); ok {
 		if err := account.AccountStatusValidator(v); err != nil {
-			return &ValidationError{Name: "account_status", err: fmt.Errorf("ent: validator failed for field \"account_status\": %w", err)}
+			return &ValidationError{Name: "account_status", err: fmt.Errorf(`ent: validator failed for field "Account.account_status": %w`, err)}
 		}
 	}
 	if v, ok := auo.mutation.TwoFaSecret(); ok {
 		if err := account.TwoFaSecretValidator(v); err != nil {
-			return &ValidationError{Name: "two_fa_secret", err: fmt.Errorf("ent: validator failed for field \"two_fa_secret\": %w", err)}
+			return &ValidationError{Name: "two_fa_secret", err: fmt.Errorf(`ent: validator failed for field "Account.two_fa_secret": %w`, err)}
 		}
 	}
 	return nil
@@ -655,7 +656,7 @@ func (auo *AccountUpdateOne) sqlSave(ctx context.Context) (_node *Account, err e
 	}
 	id, ok := auo.mutation.ID()
 	if !ok {
-		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing Account.ID for update")}
+		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "Account.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
 	if fields := auo.fields; len(fields) > 0 {

@@ -3,6 +3,7 @@
 package flightinstance
 
 import (
+	"airbound/internal/ent/customtypes"
 	"airbound/internal/ent/enums"
 	"airbound/internal/ent/predicate"
 	"time"
@@ -95,6 +96,20 @@ func IDLTE(id uuid.UUID) predicate.FlightInstance {
 	})
 }
 
+// DepartureDate applies equality check predicate on the "departure_date" field. It's identical to DepartureDateEQ.
+func DepartureDate(v customtypes.Date) predicate.FlightInstance {
+	return predicate.FlightInstance(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldDepartureDate), v))
+	})
+}
+
+// ArrivalDate applies equality check predicate on the "arrival_date" field. It's identical to ArrivalDateEQ.
+func ArrivalDate(v customtypes.Date) predicate.FlightInstance {
+	return predicate.FlightInstance(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldArrivalDate), v))
+	})
+}
+
 // DepartureGate applies equality check predicate on the "departure_gate" field. It's identical to DepartureGateEQ.
 func DepartureGate(v int) predicate.FlightInstance {
 	return predicate.FlightInstance(func(s *sql.Selector) {
@@ -120,6 +135,238 @@ func CreatedAt(v time.Time) predicate.FlightInstance {
 func UpdatedAt(v time.Time) predicate.FlightInstance {
 	return predicate.FlightInstance(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldUpdatedAt), v))
+	})
+}
+
+// DepartureDateEQ applies the EQ predicate on the "departure_date" field.
+func DepartureDateEQ(v customtypes.Date) predicate.FlightInstance {
+	return predicate.FlightInstance(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldDepartureDate), v))
+	})
+}
+
+// DepartureDateNEQ applies the NEQ predicate on the "departure_date" field.
+func DepartureDateNEQ(v customtypes.Date) predicate.FlightInstance {
+	return predicate.FlightInstance(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldDepartureDate), v))
+	})
+}
+
+// DepartureDateIn applies the In predicate on the "departure_date" field.
+func DepartureDateIn(vs ...customtypes.Date) predicate.FlightInstance {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.FlightInstance(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldDepartureDate), v...))
+	})
+}
+
+// DepartureDateNotIn applies the NotIn predicate on the "departure_date" field.
+func DepartureDateNotIn(vs ...customtypes.Date) predicate.FlightInstance {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.FlightInstance(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldDepartureDate), v...))
+	})
+}
+
+// DepartureDateGT applies the GT predicate on the "departure_date" field.
+func DepartureDateGT(v customtypes.Date) predicate.FlightInstance {
+	return predicate.FlightInstance(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldDepartureDate), v))
+	})
+}
+
+// DepartureDateGTE applies the GTE predicate on the "departure_date" field.
+func DepartureDateGTE(v customtypes.Date) predicate.FlightInstance {
+	return predicate.FlightInstance(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldDepartureDate), v))
+	})
+}
+
+// DepartureDateLT applies the LT predicate on the "departure_date" field.
+func DepartureDateLT(v customtypes.Date) predicate.FlightInstance {
+	return predicate.FlightInstance(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldDepartureDate), v))
+	})
+}
+
+// DepartureDateLTE applies the LTE predicate on the "departure_date" field.
+func DepartureDateLTE(v customtypes.Date) predicate.FlightInstance {
+	return predicate.FlightInstance(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldDepartureDate), v))
+	})
+}
+
+// DepartureDateContains applies the Contains predicate on the "departure_date" field.
+func DepartureDateContains(v customtypes.Date) predicate.FlightInstance {
+	vc := v.String()
+	return predicate.FlightInstance(func(s *sql.Selector) {
+		s.Where(sql.Contains(s.C(FieldDepartureDate), vc))
+	})
+}
+
+// DepartureDateHasPrefix applies the HasPrefix predicate on the "departure_date" field.
+func DepartureDateHasPrefix(v customtypes.Date) predicate.FlightInstance {
+	vc := v.String()
+	return predicate.FlightInstance(func(s *sql.Selector) {
+		s.Where(sql.HasPrefix(s.C(FieldDepartureDate), vc))
+	})
+}
+
+// DepartureDateHasSuffix applies the HasSuffix predicate on the "departure_date" field.
+func DepartureDateHasSuffix(v customtypes.Date) predicate.FlightInstance {
+	vc := v.String()
+	return predicate.FlightInstance(func(s *sql.Selector) {
+		s.Where(sql.HasSuffix(s.C(FieldDepartureDate), vc))
+	})
+}
+
+// DepartureDateEqualFold applies the EqualFold predicate on the "departure_date" field.
+func DepartureDateEqualFold(v customtypes.Date) predicate.FlightInstance {
+	vc := v.String()
+	return predicate.FlightInstance(func(s *sql.Selector) {
+		s.Where(sql.EqualFold(s.C(FieldDepartureDate), vc))
+	})
+}
+
+// DepartureDateContainsFold applies the ContainsFold predicate on the "departure_date" field.
+func DepartureDateContainsFold(v customtypes.Date) predicate.FlightInstance {
+	vc := v.String()
+	return predicate.FlightInstance(func(s *sql.Selector) {
+		s.Where(sql.ContainsFold(s.C(FieldDepartureDate), vc))
+	})
+}
+
+// ArrivalDateEQ applies the EQ predicate on the "arrival_date" field.
+func ArrivalDateEQ(v customtypes.Date) predicate.FlightInstance {
+	return predicate.FlightInstance(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldArrivalDate), v))
+	})
+}
+
+// ArrivalDateNEQ applies the NEQ predicate on the "arrival_date" field.
+func ArrivalDateNEQ(v customtypes.Date) predicate.FlightInstance {
+	return predicate.FlightInstance(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldArrivalDate), v))
+	})
+}
+
+// ArrivalDateIn applies the In predicate on the "arrival_date" field.
+func ArrivalDateIn(vs ...customtypes.Date) predicate.FlightInstance {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.FlightInstance(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldArrivalDate), v...))
+	})
+}
+
+// ArrivalDateNotIn applies the NotIn predicate on the "arrival_date" field.
+func ArrivalDateNotIn(vs ...customtypes.Date) predicate.FlightInstance {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.FlightInstance(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldArrivalDate), v...))
+	})
+}
+
+// ArrivalDateGT applies the GT predicate on the "arrival_date" field.
+func ArrivalDateGT(v customtypes.Date) predicate.FlightInstance {
+	return predicate.FlightInstance(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldArrivalDate), v))
+	})
+}
+
+// ArrivalDateGTE applies the GTE predicate on the "arrival_date" field.
+func ArrivalDateGTE(v customtypes.Date) predicate.FlightInstance {
+	return predicate.FlightInstance(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldArrivalDate), v))
+	})
+}
+
+// ArrivalDateLT applies the LT predicate on the "arrival_date" field.
+func ArrivalDateLT(v customtypes.Date) predicate.FlightInstance {
+	return predicate.FlightInstance(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldArrivalDate), v))
+	})
+}
+
+// ArrivalDateLTE applies the LTE predicate on the "arrival_date" field.
+func ArrivalDateLTE(v customtypes.Date) predicate.FlightInstance {
+	return predicate.FlightInstance(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldArrivalDate), v))
+	})
+}
+
+// ArrivalDateContains applies the Contains predicate on the "arrival_date" field.
+func ArrivalDateContains(v customtypes.Date) predicate.FlightInstance {
+	vc := v.String()
+	return predicate.FlightInstance(func(s *sql.Selector) {
+		s.Where(sql.Contains(s.C(FieldArrivalDate), vc))
+	})
+}
+
+// ArrivalDateHasPrefix applies the HasPrefix predicate on the "arrival_date" field.
+func ArrivalDateHasPrefix(v customtypes.Date) predicate.FlightInstance {
+	vc := v.String()
+	return predicate.FlightInstance(func(s *sql.Selector) {
+		s.Where(sql.HasPrefix(s.C(FieldArrivalDate), vc))
+	})
+}
+
+// ArrivalDateHasSuffix applies the HasSuffix predicate on the "arrival_date" field.
+func ArrivalDateHasSuffix(v customtypes.Date) predicate.FlightInstance {
+	vc := v.String()
+	return predicate.FlightInstance(func(s *sql.Selector) {
+		s.Where(sql.HasSuffix(s.C(FieldArrivalDate), vc))
+	})
+}
+
+// ArrivalDateEqualFold applies the EqualFold predicate on the "arrival_date" field.
+func ArrivalDateEqualFold(v customtypes.Date) predicate.FlightInstance {
+	vc := v.String()
+	return predicate.FlightInstance(func(s *sql.Selector) {
+		s.Where(sql.EqualFold(s.C(FieldArrivalDate), vc))
+	})
+}
+
+// ArrivalDateContainsFold applies the ContainsFold predicate on the "arrival_date" field.
+func ArrivalDateContainsFold(v customtypes.Date) predicate.FlightInstance {
+	vc := v.String()
+	return predicate.FlightInstance(func(s *sql.Selector) {
+		s.Where(sql.ContainsFold(s.C(FieldArrivalDate), vc))
 	})
 }
 
@@ -496,6 +743,34 @@ func HasFlightWith(preds ...predicate.Flight) predicate.FlightInstance {
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(FlightInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, FlightTable, FlightColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasFlightSchedule applies the HasEdge predicate on the "flight_schedule" edge.
+func HasFlightSchedule() predicate.FlightInstance {
+	return predicate.FlightInstance(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(FlightScheduleTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, FlightScheduleTable, FlightScheduleColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasFlightScheduleWith applies the HasEdge predicate on the "flight_schedule" edge with a given conditions (other predicates).
+func HasFlightScheduleWith(preds ...predicate.FlightSchedule) predicate.FlightInstance {
+	return predicate.FlightInstance(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(FlightScheduleInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, FlightScheduleTable, FlightScheduleColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

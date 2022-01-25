@@ -123,6 +123,20 @@ func (FlightScheduleType) Values() (kinds []string) {
 	return
 }
 
+type TripType string
+
+const (
+	OneWay    TripType = "ONE_WAY"
+	RoundTrip TripType = "ROUND_TRIP"
+)
+
+func (TripType) Values() (kinds []string) {
+	for _, s := range []TripType{OneWay, RoundTrip} {
+		kinds = append(kinds, string(s))
+	}
+	return
+}
+
 type Role string
 
 const (

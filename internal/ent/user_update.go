@@ -14,6 +14,7 @@ import (
 	"airbound/internal/ent/role"
 	"airbound/internal/ent/user"
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -358,22 +359,22 @@ func (uu *UserUpdate) defaults() {
 func (uu *UserUpdate) check() error {
 	if v, ok := uu.mutation.Firstname(); ok {
 		if err := user.FirstnameValidator(v); err != nil {
-			return &ValidationError{Name: "firstname", err: fmt.Errorf("ent: validator failed for field \"firstname\": %w", err)}
+			return &ValidationError{Name: "firstname", err: fmt.Errorf(`ent: validator failed for field "User.firstname": %w`, err)}
 		}
 	}
 	if v, ok := uu.mutation.Lastname(); ok {
 		if err := user.LastnameValidator(v); err != nil {
-			return &ValidationError{Name: "lastname", err: fmt.Errorf("ent: validator failed for field \"lastname\": %w", err)}
+			return &ValidationError{Name: "lastname", err: fmt.Errorf(`ent: validator failed for field "User.lastname": %w`, err)}
 		}
 	}
 	if v, ok := uu.mutation.Email(); ok {
 		if err := user.EmailValidator(v); err != nil {
-			return &ValidationError{Name: "email", err: fmt.Errorf("ent: validator failed for field \"email\": %w", err)}
+			return &ValidationError{Name: "email", err: fmt.Errorf(`ent: validator failed for field "User.email": %w`, err)}
 		}
 	}
 	if v, ok := uu.mutation.Phone(); ok {
 		if err := user.PhoneValidator(v); err != nil {
-			return &ValidationError{Name: "phone", err: fmt.Errorf("ent: validator failed for field \"phone\": %w", err)}
+			return &ValidationError{Name: "phone", err: fmt.Errorf(`ent: validator failed for field "User.phone": %w`, err)}
 		}
 	}
 	return nil
@@ -1067,22 +1068,22 @@ func (uuo *UserUpdateOne) defaults() {
 func (uuo *UserUpdateOne) check() error {
 	if v, ok := uuo.mutation.Firstname(); ok {
 		if err := user.FirstnameValidator(v); err != nil {
-			return &ValidationError{Name: "firstname", err: fmt.Errorf("ent: validator failed for field \"firstname\": %w", err)}
+			return &ValidationError{Name: "firstname", err: fmt.Errorf(`ent: validator failed for field "User.firstname": %w`, err)}
 		}
 	}
 	if v, ok := uuo.mutation.Lastname(); ok {
 		if err := user.LastnameValidator(v); err != nil {
-			return &ValidationError{Name: "lastname", err: fmt.Errorf("ent: validator failed for field \"lastname\": %w", err)}
+			return &ValidationError{Name: "lastname", err: fmt.Errorf(`ent: validator failed for field "User.lastname": %w`, err)}
 		}
 	}
 	if v, ok := uuo.mutation.Email(); ok {
 		if err := user.EmailValidator(v); err != nil {
-			return &ValidationError{Name: "email", err: fmt.Errorf("ent: validator failed for field \"email\": %w", err)}
+			return &ValidationError{Name: "email", err: fmt.Errorf(`ent: validator failed for field "User.email": %w`, err)}
 		}
 	}
 	if v, ok := uuo.mutation.Phone(); ok {
 		if err := user.PhoneValidator(v); err != nil {
-			return &ValidationError{Name: "phone", err: fmt.Errorf("ent: validator failed for field \"phone\": %w", err)}
+			return &ValidationError{Name: "phone", err: fmt.Errorf(`ent: validator failed for field "User.phone": %w`, err)}
 		}
 	}
 	return nil
@@ -1101,7 +1102,7 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	}
 	id, ok := uuo.mutation.ID()
 	if !ok {
-		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing User.ID for update")}
+		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "User.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
 	if fields := uuo.fields; len(fields) > 0 {

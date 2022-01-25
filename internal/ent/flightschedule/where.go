@@ -785,6 +785,34 @@ func HasFlightWith(preds ...predicate.Flight) predicate.FlightSchedule {
 	})
 }
 
+// HasFlightInstances applies the HasEdge predicate on the "flight_instances" edge.
+func HasFlightInstances() predicate.FlightSchedule {
+	return predicate.FlightSchedule(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(FlightInstancesTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, FlightInstancesTable, FlightInstancesColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasFlightInstancesWith applies the HasEdge predicate on the "flight_instances" edge with a given conditions (other predicates).
+func HasFlightInstancesWith(preds ...predicate.FlightInstance) predicate.FlightSchedule {
+	return predicate.FlightSchedule(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(FlightInstancesInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, FlightInstancesTable, FlightInstancesColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.FlightSchedule) predicate.FlightSchedule {
 	return predicate.FlightSchedule(func(s *sql.Selector) {

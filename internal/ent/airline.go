@@ -21,6 +21,8 @@ type Airline struct {
 	Name string `json:"name,omitempty"`
 	// IataCode holds the value of the "iata_code" field.
 	IataCode string `json:"iata_code,omitempty"`
+	// Country holds the value of the "country" field.
+	Country string `json:"country,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -38,9 +40,11 @@ type AirlineEdges struct {
 	Crews []*Crew `json:"crews,omitempty"`
 	// Pilots holds the value of the pilots edge.
 	Pilots []*Pilot `json:"pilots,omitempty"`
+	// Flights holds the value of the flights edge.
+	Flights []*Flight `json:"flights,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [4]bool
 }
 
 // AircraftsOrErr returns the Aircrafts value or an error if the edge
@@ -70,12 +74,21 @@ func (e AirlineEdges) PilotsOrErr() ([]*Pilot, error) {
 	return nil, &NotLoadedError{edge: "pilots"}
 }
 
+// FlightsOrErr returns the Flights value or an error if the edge
+// was not loaded in eager-loading.
+func (e AirlineEdges) FlightsOrErr() ([]*Flight, error) {
+	if e.loadedTypes[3] {
+		return e.Flights, nil
+	}
+	return nil, &NotLoadedError{edge: "flights"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Airline) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case airline.FieldName, airline.FieldIataCode:
+		case airline.FieldName, airline.FieldIataCode, airline.FieldCountry:
 			values[i] = new(sql.NullString)
 		case airline.FieldCreatedAt, airline.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -114,6 +127,12 @@ func (a *Airline) assignValues(columns []string, values []interface{}) error {
 			} else if value.Valid {
 				a.IataCode = value.String
 			}
+		case airline.FieldCountry:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field country", values[i])
+			} else if value.Valid {
+				a.Country = value.String
+			}
 		case airline.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
@@ -146,6 +165,11 @@ func (a *Airline) QueryPilots() *PilotQuery {
 	return (&AirlineClient{config: a.config}).QueryPilots(a)
 }
 
+// QueryFlights queries the "flights" edge of the Airline entity.
+func (a *Airline) QueryFlights() *FlightQuery {
+	return (&AirlineClient{config: a.config}).QueryFlights(a)
+}
+
 // Update returns a builder for updating this Airline.
 // Note that you need to call Airline.Unwrap() before calling this method if this Airline
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -173,6 +197,8 @@ func (a *Airline) String() string {
 	builder.WriteString(a.Name)
 	builder.WriteString(", iata_code=")
 	builder.WriteString(a.IataCode)
+	builder.WriteString(", country=")
+	builder.WriteString(a.Country)
 	builder.WriteString(", created_at=")
 	builder.WriteString(a.CreatedAt.Format(time.ANSIC))
 	builder.WriteString(", updated_at=")

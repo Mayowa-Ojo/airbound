@@ -108,6 +108,13 @@ func IataCode(v string) predicate.Airline {
 	})
 }
 
+// Country applies equality check predicate on the "country" field. It's identical to CountryEQ.
+func Country(v string) predicate.Airline {
+	return predicate.Airline(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldCountry), v))
+	})
+}
+
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.Airline {
 	return predicate.Airline(func(s *sql.Selector) {
@@ -344,6 +351,117 @@ func IataCodeContainsFold(v string) predicate.Airline {
 	})
 }
 
+// CountryEQ applies the EQ predicate on the "country" field.
+func CountryEQ(v string) predicate.Airline {
+	return predicate.Airline(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldCountry), v))
+	})
+}
+
+// CountryNEQ applies the NEQ predicate on the "country" field.
+func CountryNEQ(v string) predicate.Airline {
+	return predicate.Airline(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldCountry), v))
+	})
+}
+
+// CountryIn applies the In predicate on the "country" field.
+func CountryIn(vs ...string) predicate.Airline {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Airline(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldCountry), v...))
+	})
+}
+
+// CountryNotIn applies the NotIn predicate on the "country" field.
+func CountryNotIn(vs ...string) predicate.Airline {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Airline(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldCountry), v...))
+	})
+}
+
+// CountryGT applies the GT predicate on the "country" field.
+func CountryGT(v string) predicate.Airline {
+	return predicate.Airline(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldCountry), v))
+	})
+}
+
+// CountryGTE applies the GTE predicate on the "country" field.
+func CountryGTE(v string) predicate.Airline {
+	return predicate.Airline(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldCountry), v))
+	})
+}
+
+// CountryLT applies the LT predicate on the "country" field.
+func CountryLT(v string) predicate.Airline {
+	return predicate.Airline(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldCountry), v))
+	})
+}
+
+// CountryLTE applies the LTE predicate on the "country" field.
+func CountryLTE(v string) predicate.Airline {
+	return predicate.Airline(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldCountry), v))
+	})
+}
+
+// CountryContains applies the Contains predicate on the "country" field.
+func CountryContains(v string) predicate.Airline {
+	return predicate.Airline(func(s *sql.Selector) {
+		s.Where(sql.Contains(s.C(FieldCountry), v))
+	})
+}
+
+// CountryHasPrefix applies the HasPrefix predicate on the "country" field.
+func CountryHasPrefix(v string) predicate.Airline {
+	return predicate.Airline(func(s *sql.Selector) {
+		s.Where(sql.HasPrefix(s.C(FieldCountry), v))
+	})
+}
+
+// CountryHasSuffix applies the HasSuffix predicate on the "country" field.
+func CountryHasSuffix(v string) predicate.Airline {
+	return predicate.Airline(func(s *sql.Selector) {
+		s.Where(sql.HasSuffix(s.C(FieldCountry), v))
+	})
+}
+
+// CountryEqualFold applies the EqualFold predicate on the "country" field.
+func CountryEqualFold(v string) predicate.Airline {
+	return predicate.Airline(func(s *sql.Selector) {
+		s.Where(sql.EqualFold(s.C(FieldCountry), v))
+	})
+}
+
+// CountryContainsFold applies the ContainsFold predicate on the "country" field.
+func CountryContainsFold(v string) predicate.Airline {
+	return predicate.Airline(func(s *sql.Selector) {
+		s.Where(sql.ContainsFold(s.C(FieldCountry), v))
+	})
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.Airline {
 	return predicate.Airline(func(s *sql.Selector) {
@@ -571,6 +689,34 @@ func HasPilotsWith(preds ...predicate.Pilot) predicate.Airline {
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(PilotsInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, PilotsTable, PilotsColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasFlights applies the HasEdge predicate on the "flights" edge.
+func HasFlights() predicate.Airline {
+	return predicate.Airline(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(FlightsTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, FlightsTable, FlightsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasFlightsWith applies the HasEdge predicate on the "flights" edge with a given conditions (other predicates).
+func HasFlightsWith(preds ...predicate.Flight) predicate.Airline {
+	return predicate.Airline(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(FlightsInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, FlightsTable, FlightsColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

@@ -548,6 +548,10 @@ func (fsq *FlightSeatQuery) sqlAll(ctx context.Context) ([]*FlightSeat, error) {
 
 func (fsq *FlightSeatQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := fsq.querySpec()
+	_spec.Node.Columns = fsq.fields
+	if len(fsq.fields) > 0 {
+		_spec.Unique = fsq.unique != nil && *fsq.unique
+	}
 	return sqlgraph.CountNodes(ctx, fsq.driver, _spec)
 }
 
@@ -618,6 +622,9 @@ func (fsq *FlightSeatQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	if fsq.sql != nil {
 		selector = fsq.sql
 		selector.Select(selector.Columns(columns...)...)
+	}
+	if fsq.unique != nil && *fsq.unique {
+		selector.Distinct()
 	}
 	for _, p := range fsq.predicates {
 		p(selector)
@@ -897,9 +904,7 @@ func (fsgb *FlightSeatGroupBy) sqlQuery() *sql.Selector {
 		for _, f := range fsgb.fields {
 			columns = append(columns, selector.C(f))
 		}
-		for _, c := range aggregation {
-			columns = append(columns, c)
-		}
+		columns = append(columns, aggregation...)
 		selector.Select(columns...)
 	}
 	return selector.GroupBy(selector.Columns(fsgb.fields...)...)

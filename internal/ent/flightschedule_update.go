@@ -6,9 +6,11 @@ import (
 	"airbound/internal/ent/customtypes"
 	"airbound/internal/ent/enums"
 	"airbound/internal/ent/flight"
+	"airbound/internal/ent/flightinstance"
 	"airbound/internal/ent/flightschedule"
 	"airbound/internal/ent/predicate"
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -128,6 +130,21 @@ func (fsu *FlightScheduleUpdate) SetFlight(f *Flight) *FlightScheduleUpdate {
 	return fsu.SetFlightID(f.ID)
 }
 
+// AddFlightInstanceIDs adds the "flight_instances" edge to the FlightInstance entity by IDs.
+func (fsu *FlightScheduleUpdate) AddFlightInstanceIDs(ids ...uuid.UUID) *FlightScheduleUpdate {
+	fsu.mutation.AddFlightInstanceIDs(ids...)
+	return fsu
+}
+
+// AddFlightInstances adds the "flight_instances" edges to the FlightInstance entity.
+func (fsu *FlightScheduleUpdate) AddFlightInstances(f ...*FlightInstance) *FlightScheduleUpdate {
+	ids := make([]uuid.UUID, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return fsu.AddFlightInstanceIDs(ids...)
+}
+
 // Mutation returns the FlightScheduleMutation object of the builder.
 func (fsu *FlightScheduleUpdate) Mutation() *FlightScheduleMutation {
 	return fsu.mutation
@@ -137,6 +154,27 @@ func (fsu *FlightScheduleUpdate) Mutation() *FlightScheduleMutation {
 func (fsu *FlightScheduleUpdate) ClearFlight() *FlightScheduleUpdate {
 	fsu.mutation.ClearFlight()
 	return fsu
+}
+
+// ClearFlightInstances clears all "flight_instances" edges to the FlightInstance entity.
+func (fsu *FlightScheduleUpdate) ClearFlightInstances() *FlightScheduleUpdate {
+	fsu.mutation.ClearFlightInstances()
+	return fsu
+}
+
+// RemoveFlightInstanceIDs removes the "flight_instances" edge to FlightInstance entities by IDs.
+func (fsu *FlightScheduleUpdate) RemoveFlightInstanceIDs(ids ...uuid.UUID) *FlightScheduleUpdate {
+	fsu.mutation.RemoveFlightInstanceIDs(ids...)
+	return fsu
+}
+
+// RemoveFlightInstances removes "flight_instances" edges to FlightInstance entities.
+func (fsu *FlightScheduleUpdate) RemoveFlightInstances(f ...*FlightInstance) *FlightScheduleUpdate {
+	ids := make([]uuid.UUID, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return fsu.RemoveFlightInstanceIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -212,12 +250,12 @@ func (fsu *FlightScheduleUpdate) defaults() {
 func (fsu *FlightScheduleUpdate) check() error {
 	if v, ok := fsu.mutation.Weekday(); ok {
 		if err := flightschedule.WeekdayValidator(v); err != nil {
-			return &ValidationError{Name: "weekday", err: fmt.Errorf("ent: validator failed for field \"weekday\": %w", err)}
+			return &ValidationError{Name: "weekday", err: fmt.Errorf(`ent: validator failed for field "FlightSchedule.weekday": %w`, err)}
 		}
 	}
 	if v, ok := fsu.mutation.ScheduleType(); ok {
 		if err := flightschedule.ScheduleTypeValidator(v); err != nil {
-			return &ValidationError{Name: "schedule_type", err: fmt.Errorf("ent: validator failed for field \"schedule_type\": %w", err)}
+			return &ValidationError{Name: "schedule_type", err: fmt.Errorf(`ent: validator failed for field "FlightSchedule.schedule_type": %w`, err)}
 		}
 	}
 	return nil
@@ -329,6 +367,60 @@ func (fsu *FlightScheduleUpdate) sqlSave(ctx context.Context) (n int, err error)
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: flight.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if fsu.mutation.FlightInstancesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   flightschedule.FlightInstancesTable,
+			Columns: []string{flightschedule.FlightInstancesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flightinstance.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fsu.mutation.RemovedFlightInstancesIDs(); len(nodes) > 0 && !fsu.mutation.FlightInstancesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   flightschedule.FlightInstancesTable,
+			Columns: []string{flightschedule.FlightInstancesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flightinstance.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fsu.mutation.FlightInstancesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   flightschedule.FlightInstancesTable,
+			Columns: []string{flightschedule.FlightInstancesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flightinstance.FieldID,
 				},
 			},
 		}
@@ -453,6 +545,21 @@ func (fsuo *FlightScheduleUpdateOne) SetFlight(f *Flight) *FlightScheduleUpdateO
 	return fsuo.SetFlightID(f.ID)
 }
 
+// AddFlightInstanceIDs adds the "flight_instances" edge to the FlightInstance entity by IDs.
+func (fsuo *FlightScheduleUpdateOne) AddFlightInstanceIDs(ids ...uuid.UUID) *FlightScheduleUpdateOne {
+	fsuo.mutation.AddFlightInstanceIDs(ids...)
+	return fsuo
+}
+
+// AddFlightInstances adds the "flight_instances" edges to the FlightInstance entity.
+func (fsuo *FlightScheduleUpdateOne) AddFlightInstances(f ...*FlightInstance) *FlightScheduleUpdateOne {
+	ids := make([]uuid.UUID, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return fsuo.AddFlightInstanceIDs(ids...)
+}
+
 // Mutation returns the FlightScheduleMutation object of the builder.
 func (fsuo *FlightScheduleUpdateOne) Mutation() *FlightScheduleMutation {
 	return fsuo.mutation
@@ -462,6 +569,27 @@ func (fsuo *FlightScheduleUpdateOne) Mutation() *FlightScheduleMutation {
 func (fsuo *FlightScheduleUpdateOne) ClearFlight() *FlightScheduleUpdateOne {
 	fsuo.mutation.ClearFlight()
 	return fsuo
+}
+
+// ClearFlightInstances clears all "flight_instances" edges to the FlightInstance entity.
+func (fsuo *FlightScheduleUpdateOne) ClearFlightInstances() *FlightScheduleUpdateOne {
+	fsuo.mutation.ClearFlightInstances()
+	return fsuo
+}
+
+// RemoveFlightInstanceIDs removes the "flight_instances" edge to FlightInstance entities by IDs.
+func (fsuo *FlightScheduleUpdateOne) RemoveFlightInstanceIDs(ids ...uuid.UUID) *FlightScheduleUpdateOne {
+	fsuo.mutation.RemoveFlightInstanceIDs(ids...)
+	return fsuo
+}
+
+// RemoveFlightInstances removes "flight_instances" edges to FlightInstance entities.
+func (fsuo *FlightScheduleUpdateOne) RemoveFlightInstances(f ...*FlightInstance) *FlightScheduleUpdateOne {
+	ids := make([]uuid.UUID, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return fsuo.RemoveFlightInstanceIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -544,12 +672,12 @@ func (fsuo *FlightScheduleUpdateOne) defaults() {
 func (fsuo *FlightScheduleUpdateOne) check() error {
 	if v, ok := fsuo.mutation.Weekday(); ok {
 		if err := flightschedule.WeekdayValidator(v); err != nil {
-			return &ValidationError{Name: "weekday", err: fmt.Errorf("ent: validator failed for field \"weekday\": %w", err)}
+			return &ValidationError{Name: "weekday", err: fmt.Errorf(`ent: validator failed for field "FlightSchedule.weekday": %w`, err)}
 		}
 	}
 	if v, ok := fsuo.mutation.ScheduleType(); ok {
 		if err := flightschedule.ScheduleTypeValidator(v); err != nil {
-			return &ValidationError{Name: "schedule_type", err: fmt.Errorf("ent: validator failed for field \"schedule_type\": %w", err)}
+			return &ValidationError{Name: "schedule_type", err: fmt.Errorf(`ent: validator failed for field "FlightSchedule.schedule_type": %w`, err)}
 		}
 	}
 	return nil
@@ -568,7 +696,7 @@ func (fsuo *FlightScheduleUpdateOne) sqlSave(ctx context.Context) (_node *Flight
 	}
 	id, ok := fsuo.mutation.ID()
 	if !ok {
-		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing FlightSchedule.ID for update")}
+		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "FlightSchedule.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
 	if fields := fsuo.fields; len(fields) > 0 {
@@ -678,6 +806,60 @@ func (fsuo *FlightScheduleUpdateOne) sqlSave(ctx context.Context) (_node *Flight
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeUUID,
 					Column: flight.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if fsuo.mutation.FlightInstancesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   flightschedule.FlightInstancesTable,
+			Columns: []string{flightschedule.FlightInstancesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flightinstance.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fsuo.mutation.RemovedFlightInstancesIDs(); len(nodes) > 0 && !fsuo.mutation.FlightInstancesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   flightschedule.FlightInstancesTable,
+			Columns: []string{flightschedule.FlightInstancesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flightinstance.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fsuo.mutation.FlightInstancesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   flightschedule.FlightInstancesTable,
+			Columns: []string{flightschedule.FlightInstancesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flightinstance.FieldID,
 				},
 			},
 		}

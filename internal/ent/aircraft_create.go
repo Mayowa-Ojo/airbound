@@ -54,6 +54,12 @@ func (ac *AircraftCreate) SetRange(i int) *AircraftCreate {
 	return ac
 }
 
+// SetManufacturedAt sets the "manufactured_at" field.
+func (ac *AircraftCreate) SetManufacturedAt(t time.Time) *AircraftCreate {
+	ac.mutation.SetManufacturedAt(t)
+	return ac
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (ac *AircraftCreate) SetCreatedAt(t time.Time) *AircraftCreate {
 	ac.mutation.SetCreatedAt(t)
@@ -85,6 +91,14 @@ func (ac *AircraftCreate) SetNillableUpdatedAt(t *time.Time) *AircraftCreate {
 // SetID sets the "id" field.
 func (ac *AircraftCreate) SetID(u uuid.UUID) *AircraftCreate {
 	ac.mutation.SetID(u)
+	return ac
+}
+
+// SetNillableID sets the "id" field if the given value is not nil.
+func (ac *AircraftCreate) SetNillableID(u *uuid.UUID) *AircraftCreate {
+	if u != nil {
+		ac.SetID(*u)
+	}
 	return ac
 }
 
@@ -229,50 +243,53 @@ func (ac *AircraftCreate) defaults() {
 // check runs all checks and user-defined validators on the builder.
 func (ac *AircraftCreate) check() error {
 	if _, ok := ac.mutation.TailNumber(); !ok {
-		return &ValidationError{Name: "tail_number", err: errors.New(`ent: missing required field "tail_number"`)}
+		return &ValidationError{Name: "tail_number", err: errors.New(`ent: missing required field "Aircraft.tail_number"`)}
 	}
 	if v, ok := ac.mutation.TailNumber(); ok {
 		if err := aircraft.TailNumberValidator(v); err != nil {
-			return &ValidationError{Name: "tail_number", err: fmt.Errorf(`ent: validator failed for field "tail_number": %w`, err)}
+			return &ValidationError{Name: "tail_number", err: fmt.Errorf(`ent: validator failed for field "Aircraft.tail_number": %w`, err)}
 		}
 	}
 	if _, ok := ac.mutation.Manufacturer(); !ok {
-		return &ValidationError{Name: "manufacturer", err: errors.New(`ent: missing required field "manufacturer"`)}
+		return &ValidationError{Name: "manufacturer", err: errors.New(`ent: missing required field "Aircraft.manufacturer"`)}
 	}
 	if v, ok := ac.mutation.Manufacturer(); ok {
 		if err := aircraft.ManufacturerValidator(v); err != nil {
-			return &ValidationError{Name: "manufacturer", err: fmt.Errorf(`ent: validator failed for field "manufacturer": %w`, err)}
+			return &ValidationError{Name: "manufacturer", err: fmt.Errorf(`ent: validator failed for field "Aircraft.manufacturer": %w`, err)}
 		}
 	}
 	if _, ok := ac.mutation.Model(); !ok {
-		return &ValidationError{Name: "model", err: errors.New(`ent: missing required field "model"`)}
+		return &ValidationError{Name: "model", err: errors.New(`ent: missing required field "Aircraft.model"`)}
 	}
 	if v, ok := ac.mutation.Model(); ok {
 		if err := aircraft.ModelValidator(v); err != nil {
-			return &ValidationError{Name: "model", err: fmt.Errorf(`ent: validator failed for field "model": %w`, err)}
+			return &ValidationError{Name: "model", err: fmt.Errorf(`ent: validator failed for field "Aircraft.model": %w`, err)}
 		}
 	}
 	if _, ok := ac.mutation.Capacity(); !ok {
-		return &ValidationError{Name: "capacity", err: errors.New(`ent: missing required field "capacity"`)}
+		return &ValidationError{Name: "capacity", err: errors.New(`ent: missing required field "Aircraft.capacity"`)}
 	}
 	if v, ok := ac.mutation.Capacity(); ok {
 		if err := aircraft.CapacityValidator(v); err != nil {
-			return &ValidationError{Name: "capacity", err: fmt.Errorf(`ent: validator failed for field "capacity": %w`, err)}
+			return &ValidationError{Name: "capacity", err: fmt.Errorf(`ent: validator failed for field "Aircraft.capacity": %w`, err)}
 		}
 	}
 	if _, ok := ac.mutation.Range(); !ok {
-		return &ValidationError{Name: "range", err: errors.New(`ent: missing required field "range"`)}
+		return &ValidationError{Name: "range", err: errors.New(`ent: missing required field "Aircraft.range"`)}
 	}
 	if v, ok := ac.mutation.Range(); ok {
 		if err := aircraft.RangeValidator(v); err != nil {
-			return &ValidationError{Name: "range", err: fmt.Errorf(`ent: validator failed for field "range": %w`, err)}
+			return &ValidationError{Name: "range", err: fmt.Errorf(`ent: validator failed for field "Aircraft.range": %w`, err)}
 		}
 	}
+	if _, ok := ac.mutation.ManufacturedAt(); !ok {
+		return &ValidationError{Name: "manufactured_at", err: errors.New(`ent: missing required field "Aircraft.manufactured_at"`)}
+	}
 	if _, ok := ac.mutation.CreatedAt(); !ok {
-		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "created_at"`)}
+		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Aircraft.created_at"`)}
 	}
 	if _, ok := ac.mutation.UpdatedAt(); !ok {
-		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "updated_at"`)}
+		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "Aircraft.updated_at"`)}
 	}
 	return nil
 }
@@ -286,7 +303,11 @@ func (ac *AircraftCreate) sqlSave(ctx context.Context) (*Aircraft, error) {
 		return nil, err
 	}
 	if _spec.ID.Value != nil {
-		_node.ID = _spec.ID.Value.(uuid.UUID)
+		if id, ok := _spec.ID.Value.(*uuid.UUID); ok {
+			_node.ID = *id
+		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
+			return nil, err
+		}
 	}
 	return _node, nil
 }
@@ -304,7 +325,7 @@ func (ac *AircraftCreate) createSpec() (*Aircraft, *sqlgraph.CreateSpec) {
 	)
 	if id, ok := ac.mutation.ID(); ok {
 		_node.ID = id
-		_spec.ID.Value = id
+		_spec.ID.Value = &id
 	}
 	if value, ok := ac.mutation.TailNumber(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
@@ -345,6 +366,14 @@ func (ac *AircraftCreate) createSpec() (*Aircraft, *sqlgraph.CreateSpec) {
 			Column: aircraft.FieldRange,
 		})
 		_node.Range = value
+	}
+	if value, ok := ac.mutation.ManufacturedAt(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  value,
+			Column: aircraft.FieldManufacturedAt,
+		})
+		_node.ManufacturedAt = value
 	}
 	if value, ok := ac.mutation.CreatedAt(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{

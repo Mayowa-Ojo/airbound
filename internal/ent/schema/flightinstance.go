@@ -1,10 +1,12 @@
 package schema
 
 import (
+	"airbound/internal/ent/customtypes"
 	"airbound/internal/ent/enums"
 	"time"
 
 	"entgo.io/ent"
+	"entgo.io/ent/dialect"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
@@ -19,6 +21,8 @@ type FlightInstance struct {
 func (FlightInstance) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}).Default(uuid.New).Unique().Immutable(),
+		field.String("departure_date").GoType(customtypes.Date{}).SchemaType(map[string]string{dialect.Postgres: "date"}),
+		field.String("arrival_date").GoType(customtypes.Date{}).SchemaType(map[string]string{dialect.Postgres: "date"}),
 		field.Int("departure_gate").NonNegative(),
 		field.Int("arrival_gate").NonNegative(),
 		field.Enum("flight_status").GoType(enums.FlightStatus("")),
@@ -31,6 +35,9 @@ func (FlightInstance) Fields() []ent.Field {
 func (FlightInstance) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("flight", Flight.Type).
+			Ref("flight_instances").
+			Unique(),
+		edge.From("flight_schedule", FlightSchedule.Type).
 			Ref("flight_instances").
 			Unique(),
 		edge.To("aircraft", Aircraft.Type).

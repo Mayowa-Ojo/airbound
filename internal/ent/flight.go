@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"airbound/internal/ent/airline"
 	"airbound/internal/ent/airport"
 	"airbound/internal/ent/enums"
 	"airbound/internal/ent/flight"
@@ -27,6 +28,8 @@ type Flight struct {
 	Distance int `json:"distance,omitempty"`
 	// BoardingPolicy holds the value of the "boarding_policy" field.
 	BoardingPolicy enums.BoardingPolicy `json:"boarding_policy,omitempty"`
+	// TripType holds the value of the "trip_type" field.
+	TripType enums.TripType `json:"trip_type,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -34,6 +37,7 @@ type Flight struct {
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the FlightQuery when eager-loading is set.
 	Edges               FlightEdges `json:"edges"`
+	airline_id          *uuid.UUID
 	depature_airport_id *uuid.UUID
 	arrival_airport_id  *uuid.UUID
 }
@@ -50,9 +54,11 @@ type FlightEdges struct {
 	DepartureAirport *Airport `json:"departure_airport,omitempty"`
 	// ArrivalAirport holds the value of the arrival_airport edge.
 	ArrivalAirport *Airport `json:"arrival_airport,omitempty"`
+	// Airline holds the value of the airline edge.
+	Airline *Airline `json:"airline,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [5]bool
+	loadedTypes [6]bool
 }
 
 // FlightInstancesOrErr returns the FlightInstances value or an error if the edge
@@ -110,6 +116,20 @@ func (e FlightEdges) ArrivalAirportOrErr() (*Airport, error) {
 	return nil, &NotLoadedError{edge: "arrival_airport"}
 }
 
+// AirlineOrErr returns the Airline value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e FlightEdges) AirlineOrErr() (*Airline, error) {
+	if e.loadedTypes[5] {
+		if e.Airline == nil {
+			// The edge airline was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: airline.Label}
+		}
+		return e.Airline, nil
+	}
+	return nil, &NotLoadedError{edge: "airline"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Flight) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
@@ -117,15 +137,17 @@ func (*Flight) scanValues(columns []string) ([]interface{}, error) {
 		switch columns[i] {
 		case flight.FieldDuration, flight.FieldDistance:
 			values[i] = new(sql.NullInt64)
-		case flight.FieldFlightNumber, flight.FieldBoardingPolicy:
+		case flight.FieldFlightNumber, flight.FieldBoardingPolicy, flight.FieldTripType:
 			values[i] = new(sql.NullString)
 		case flight.FieldCreatedAt, flight.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
 		case flight.FieldID:
 			values[i] = new(uuid.UUID)
-		case flight.ForeignKeys[0]: // depature_airport_id
+		case flight.ForeignKeys[0]: // airline_id
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
-		case flight.ForeignKeys[1]: // arrival_airport_id
+		case flight.ForeignKeys[1]: // depature_airport_id
+			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
+		case flight.ForeignKeys[2]: // arrival_airport_id
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		default:
 			return nil, fmt.Errorf("unexpected column %q for type Flight", columns[i])
@@ -172,6 +194,12 @@ func (f *Flight) assignValues(columns []string, values []interface{}) error {
 			} else if value.Valid {
 				f.BoardingPolicy = enums.BoardingPolicy(value.String)
 			}
+		case flight.FieldTripType:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field trip_type", values[i])
+			} else if value.Valid {
+				f.TripType = enums.TripType(value.String)
+			}
 		case flight.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
 				return fmt.Errorf("unexpected type %T for field created_at", values[i])
@@ -186,12 +214,19 @@ func (f *Flight) assignValues(columns []string, values []interface{}) error {
 			}
 		case flight.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field airline_id", values[i])
+			} else if value.Valid {
+				f.airline_id = new(uuid.UUID)
+				*f.airline_id = *value.S.(*uuid.UUID)
+			}
+		case flight.ForeignKeys[1]:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
 				return fmt.Errorf("unexpected type %T for field depature_airport_id", values[i])
 			} else if value.Valid {
 				f.depature_airport_id = new(uuid.UUID)
 				*f.depature_airport_id = *value.S.(*uuid.UUID)
 			}
-		case flight.ForeignKeys[1]:
+		case flight.ForeignKeys[2]:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
 				return fmt.Errorf("unexpected type %T for field arrival_airport_id", values[i])
 			} else if value.Valid {
@@ -228,6 +263,11 @@ func (f *Flight) QueryArrivalAirport() *AirportQuery {
 	return (&FlightClient{config: f.config}).QueryArrivalAirport(f)
 }
 
+// QueryAirline queries the "airline" edge of the Flight entity.
+func (f *Flight) QueryAirline() *AirlineQuery {
+	return (&FlightClient{config: f.config}).QueryAirline(f)
+}
+
 // Update returns a builder for updating this Flight.
 // Note that you need to call Flight.Unwrap() before calling this method if this Flight
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -259,6 +299,8 @@ func (f *Flight) String() string {
 	builder.WriteString(fmt.Sprintf("%v", f.Distance))
 	builder.WriteString(", boarding_policy=")
 	builder.WriteString(fmt.Sprintf("%v", f.BoardingPolicy))
+	builder.WriteString(", trip_type=")
+	builder.WriteString(fmt.Sprintf("%v", f.TripType))
 	builder.WriteString(", created_at=")
 	builder.WriteString(f.CreatedAt.Format(time.ANSIC))
 	builder.WriteString(", updated_at=")

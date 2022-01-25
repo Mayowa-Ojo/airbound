@@ -82,6 +82,14 @@ func (sc *SeatCreate) SetID(u uuid.UUID) *SeatCreate {
 	return sc
 }
 
+// SetNillableID sets the "id" field if the given value is not nil.
+func (sc *SeatCreate) SetNillableID(u *uuid.UUID) *SeatCreate {
+	if u != nil {
+		sc.SetID(*u)
+	}
+	return sc
+}
+
 // SetAircraftID sets the "aircraft" edge to the Aircraft entity by ID.
 func (sc *SeatCreate) SetAircraftID(id uuid.UUID) *SeatCreate {
 	sc.mutation.SetAircraftID(id)
@@ -208,42 +216,42 @@ func (sc *SeatCreate) defaults() {
 // check runs all checks and user-defined validators on the builder.
 func (sc *SeatCreate) check() error {
 	if _, ok := sc.mutation.SeatNumber(); !ok {
-		return &ValidationError{Name: "seat_number", err: errors.New(`ent: missing required field "seat_number"`)}
+		return &ValidationError{Name: "seat_number", err: errors.New(`ent: missing required field "Seat.seat_number"`)}
 	}
 	if v, ok := sc.mutation.SeatNumber(); ok {
 		if err := seat.SeatNumberValidator(v); err != nil {
-			return &ValidationError{Name: "seat_number", err: fmt.Errorf(`ent: validator failed for field "seat_number": %w`, err)}
+			return &ValidationError{Name: "seat_number", err: fmt.Errorf(`ent: validator failed for field "Seat.seat_number": %w`, err)}
 		}
 	}
 	if _, ok := sc.mutation.SeatRow(); !ok {
-		return &ValidationError{Name: "seat_row", err: errors.New(`ent: missing required field "seat_row"`)}
+		return &ValidationError{Name: "seat_row", err: errors.New(`ent: missing required field "Seat.seat_row"`)}
 	}
 	if v, ok := sc.mutation.SeatRow(); ok {
 		if err := seat.SeatRowValidator(v); err != nil {
-			return &ValidationError{Name: "seat_row", err: fmt.Errorf(`ent: validator failed for field "seat_row": %w`, err)}
+			return &ValidationError{Name: "seat_row", err: fmt.Errorf(`ent: validator failed for field "Seat.seat_row": %w`, err)}
 		}
 	}
 	if _, ok := sc.mutation.SeatType(); !ok {
-		return &ValidationError{Name: "seat_type", err: errors.New(`ent: missing required field "seat_type"`)}
+		return &ValidationError{Name: "seat_type", err: errors.New(`ent: missing required field "Seat.seat_type"`)}
 	}
 	if v, ok := sc.mutation.SeatType(); ok {
 		if err := seat.SeatTypeValidator(v); err != nil {
-			return &ValidationError{Name: "seat_type", err: fmt.Errorf(`ent: validator failed for field "seat_type": %w`, err)}
+			return &ValidationError{Name: "seat_type", err: fmt.Errorf(`ent: validator failed for field "Seat.seat_type": %w`, err)}
 		}
 	}
 	if _, ok := sc.mutation.SeatClass(); !ok {
-		return &ValidationError{Name: "seat_class", err: errors.New(`ent: missing required field "seat_class"`)}
+		return &ValidationError{Name: "seat_class", err: errors.New(`ent: missing required field "Seat.seat_class"`)}
 	}
 	if v, ok := sc.mutation.SeatClass(); ok {
 		if err := seat.SeatClassValidator(v); err != nil {
-			return &ValidationError{Name: "seat_class", err: fmt.Errorf(`ent: validator failed for field "seat_class": %w`, err)}
+			return &ValidationError{Name: "seat_class", err: fmt.Errorf(`ent: validator failed for field "Seat.seat_class": %w`, err)}
 		}
 	}
 	if _, ok := sc.mutation.CreatedAt(); !ok {
-		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "created_at"`)}
+		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Seat.created_at"`)}
 	}
 	if _, ok := sc.mutation.UpdatedAt(); !ok {
-		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "updated_at"`)}
+		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "Seat.updated_at"`)}
 	}
 	return nil
 }
@@ -257,7 +265,11 @@ func (sc *SeatCreate) sqlSave(ctx context.Context) (*Seat, error) {
 		return nil, err
 	}
 	if _spec.ID.Value != nil {
-		_node.ID = _spec.ID.Value.(uuid.UUID)
+		if id, ok := _spec.ID.Value.(*uuid.UUID); ok {
+			_node.ID = *id
+		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
+			return nil, err
+		}
 	}
 	return _node, nil
 }
@@ -275,7 +287,7 @@ func (sc *SeatCreate) createSpec() (*Seat, *sqlgraph.CreateSpec) {
 	)
 	if id, ok := sc.mutation.ID(); ok {
 		_node.ID = id
-		_spec.ID.Value = id
+		_spec.ID.Value = &id
 	}
 	if value, ok := sc.mutation.SeatNumber(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{

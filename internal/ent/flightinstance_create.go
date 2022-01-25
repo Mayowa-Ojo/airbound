@@ -4,10 +4,12 @@ package ent
 
 import (
 	"airbound/internal/ent/aircraft"
+	"airbound/internal/ent/customtypes"
 	"airbound/internal/ent/enums"
 	"airbound/internal/ent/flight"
 	"airbound/internal/ent/flightinstance"
 	"airbound/internal/ent/flightreservation"
+	"airbound/internal/ent/flightschedule"
 	"airbound/internal/ent/flightseat"
 	"context"
 	"errors"
@@ -24,6 +26,18 @@ type FlightInstanceCreate struct {
 	config
 	mutation *FlightInstanceMutation
 	hooks    []Hook
+}
+
+// SetDepartureDate sets the "departure_date" field.
+func (fic *FlightInstanceCreate) SetDepartureDate(c customtypes.Date) *FlightInstanceCreate {
+	fic.mutation.SetDepartureDate(c)
+	return fic
+}
+
+// SetArrivalDate sets the "arrival_date" field.
+func (fic *FlightInstanceCreate) SetArrivalDate(c customtypes.Date) *FlightInstanceCreate {
+	fic.mutation.SetArrivalDate(c)
+	return fic
 }
 
 // SetDepartureGate sets the "departure_gate" field.
@@ -78,6 +92,14 @@ func (fic *FlightInstanceCreate) SetID(u uuid.UUID) *FlightInstanceCreate {
 	return fic
 }
 
+// SetNillableID sets the "id" field if the given value is not nil.
+func (fic *FlightInstanceCreate) SetNillableID(u *uuid.UUID) *FlightInstanceCreate {
+	if u != nil {
+		fic.SetID(*u)
+	}
+	return fic
+}
+
 // SetFlightID sets the "flight" edge to the Flight entity by ID.
 func (fic *FlightInstanceCreate) SetFlightID(id uuid.UUID) *FlightInstanceCreate {
 	fic.mutation.SetFlightID(id)
@@ -95,6 +117,25 @@ func (fic *FlightInstanceCreate) SetNillableFlightID(id *uuid.UUID) *FlightInsta
 // SetFlight sets the "flight" edge to the Flight entity.
 func (fic *FlightInstanceCreate) SetFlight(f *Flight) *FlightInstanceCreate {
 	return fic.SetFlightID(f.ID)
+}
+
+// SetFlightScheduleID sets the "flight_schedule" edge to the FlightSchedule entity by ID.
+func (fic *FlightInstanceCreate) SetFlightScheduleID(id uuid.UUID) *FlightInstanceCreate {
+	fic.mutation.SetFlightScheduleID(id)
+	return fic
+}
+
+// SetNillableFlightScheduleID sets the "flight_schedule" edge to the FlightSchedule entity by ID if the given value is not nil.
+func (fic *FlightInstanceCreate) SetNillableFlightScheduleID(id *uuid.UUID) *FlightInstanceCreate {
+	if id != nil {
+		fic = fic.SetFlightScheduleID(*id)
+	}
+	return fic
+}
+
+// SetFlightSchedule sets the "flight_schedule" edge to the FlightSchedule entity.
+func (fic *FlightInstanceCreate) SetFlightSchedule(f *FlightSchedule) *FlightInstanceCreate {
+	return fic.SetFlightScheduleID(f.ID)
 }
 
 // SetAircraftID sets the "aircraft" edge to the Aircraft entity by ID.
@@ -233,35 +274,41 @@ func (fic *FlightInstanceCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (fic *FlightInstanceCreate) check() error {
+	if _, ok := fic.mutation.DepartureDate(); !ok {
+		return &ValidationError{Name: "departure_date", err: errors.New(`ent: missing required field "FlightInstance.departure_date"`)}
+	}
+	if _, ok := fic.mutation.ArrivalDate(); !ok {
+		return &ValidationError{Name: "arrival_date", err: errors.New(`ent: missing required field "FlightInstance.arrival_date"`)}
+	}
 	if _, ok := fic.mutation.DepartureGate(); !ok {
-		return &ValidationError{Name: "departure_gate", err: errors.New(`ent: missing required field "departure_gate"`)}
+		return &ValidationError{Name: "departure_gate", err: errors.New(`ent: missing required field "FlightInstance.departure_gate"`)}
 	}
 	if v, ok := fic.mutation.DepartureGate(); ok {
 		if err := flightinstance.DepartureGateValidator(v); err != nil {
-			return &ValidationError{Name: "departure_gate", err: fmt.Errorf(`ent: validator failed for field "departure_gate": %w`, err)}
+			return &ValidationError{Name: "departure_gate", err: fmt.Errorf(`ent: validator failed for field "FlightInstance.departure_gate": %w`, err)}
 		}
 	}
 	if _, ok := fic.mutation.ArrivalGate(); !ok {
-		return &ValidationError{Name: "arrival_gate", err: errors.New(`ent: missing required field "arrival_gate"`)}
+		return &ValidationError{Name: "arrival_gate", err: errors.New(`ent: missing required field "FlightInstance.arrival_gate"`)}
 	}
 	if v, ok := fic.mutation.ArrivalGate(); ok {
 		if err := flightinstance.ArrivalGateValidator(v); err != nil {
-			return &ValidationError{Name: "arrival_gate", err: fmt.Errorf(`ent: validator failed for field "arrival_gate": %w`, err)}
+			return &ValidationError{Name: "arrival_gate", err: fmt.Errorf(`ent: validator failed for field "FlightInstance.arrival_gate": %w`, err)}
 		}
 	}
 	if _, ok := fic.mutation.FlightStatus(); !ok {
-		return &ValidationError{Name: "flight_status", err: errors.New(`ent: missing required field "flight_status"`)}
+		return &ValidationError{Name: "flight_status", err: errors.New(`ent: missing required field "FlightInstance.flight_status"`)}
 	}
 	if v, ok := fic.mutation.FlightStatus(); ok {
 		if err := flightinstance.FlightStatusValidator(v); err != nil {
-			return &ValidationError{Name: "flight_status", err: fmt.Errorf(`ent: validator failed for field "flight_status": %w`, err)}
+			return &ValidationError{Name: "flight_status", err: fmt.Errorf(`ent: validator failed for field "FlightInstance.flight_status": %w`, err)}
 		}
 	}
 	if _, ok := fic.mutation.CreatedAt(); !ok {
-		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "created_at"`)}
+		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "FlightInstance.created_at"`)}
 	}
 	if _, ok := fic.mutation.UpdatedAt(); !ok {
-		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "updated_at"`)}
+		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "FlightInstance.updated_at"`)}
 	}
 	return nil
 }
@@ -275,7 +322,11 @@ func (fic *FlightInstanceCreate) sqlSave(ctx context.Context) (*FlightInstance, 
 		return nil, err
 	}
 	if _spec.ID.Value != nil {
-		_node.ID = _spec.ID.Value.(uuid.UUID)
+		if id, ok := _spec.ID.Value.(*uuid.UUID); ok {
+			_node.ID = *id
+		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
+			return nil, err
+		}
 	}
 	return _node, nil
 }
@@ -293,7 +344,23 @@ func (fic *FlightInstanceCreate) createSpec() (*FlightInstance, *sqlgraph.Create
 	)
 	if id, ok := fic.mutation.ID(); ok {
 		_node.ID = id
-		_spec.ID.Value = id
+		_spec.ID.Value = &id
+	}
+	if value, ok := fic.mutation.DepartureDate(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: flightinstance.FieldDepartureDate,
+		})
+		_node.DepartureDate = value
+	}
+	if value, ok := fic.mutation.ArrivalDate(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: flightinstance.FieldArrivalDate,
+		})
+		_node.ArrivalDate = value
 	}
 	if value, ok := fic.mutation.DepartureGate(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
@@ -353,6 +420,26 @@ func (fic *FlightInstanceCreate) createSpec() (*FlightInstance, *sqlgraph.Create
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.flight_id = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := fic.mutation.FlightScheduleIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   flightinstance.FlightScheduleTable,
+			Columns: []string{flightinstance.FlightScheduleColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: flightschedule.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.flight_schedule_id = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := fic.mutation.AircraftIDs(); len(nodes) > 0 {

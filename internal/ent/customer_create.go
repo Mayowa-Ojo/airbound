@@ -63,6 +63,14 @@ func (cc *CustomerCreate) SetID(u uuid.UUID) *CustomerCreate {
 	return cc
 }
 
+// SetNillableID sets the "id" field if the given value is not nil.
+func (cc *CustomerCreate) SetNillableID(u *uuid.UUID) *CustomerCreate {
+	if u != nil {
+		cc.SetID(*u)
+	}
+	return cc
+}
+
 // SetUserID sets the "user" edge to the User entity by ID.
 func (cc *CustomerCreate) SetUserID(id uuid.UUID) *CustomerCreate {
 	cc.mutation.SetUserID(id)
@@ -177,21 +185,21 @@ func (cc *CustomerCreate) defaults() {
 // check runs all checks and user-defined validators on the builder.
 func (cc *CustomerCreate) check() error {
 	if _, ok := cc.mutation.FrequentFlyerNumber(); !ok {
-		return &ValidationError{Name: "frequent_flyer_number", err: errors.New(`ent: missing required field "frequent_flyer_number"`)}
+		return &ValidationError{Name: "frequent_flyer_number", err: errors.New(`ent: missing required field "Customer.frequent_flyer_number"`)}
 	}
 	if v, ok := cc.mutation.FrequentFlyerNumber(); ok {
 		if err := customer.FrequentFlyerNumberValidator(v); err != nil {
-			return &ValidationError{Name: "frequent_flyer_number", err: fmt.Errorf(`ent: validator failed for field "frequent_flyer_number": %w`, err)}
+			return &ValidationError{Name: "frequent_flyer_number", err: fmt.Errorf(`ent: validator failed for field "Customer.frequent_flyer_number": %w`, err)}
 		}
 	}
 	if _, ok := cc.mutation.CreatedAt(); !ok {
-		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "created_at"`)}
+		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Customer.created_at"`)}
 	}
 	if _, ok := cc.mutation.UpdatedAt(); !ok {
-		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "updated_at"`)}
+		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "Customer.updated_at"`)}
 	}
 	if _, ok := cc.mutation.UserID(); !ok {
-		return &ValidationError{Name: "user", err: errors.New("ent: missing required edge \"user\"")}
+		return &ValidationError{Name: "user", err: errors.New(`ent: missing required edge "Customer.user"`)}
 	}
 	return nil
 }
@@ -205,7 +213,11 @@ func (cc *CustomerCreate) sqlSave(ctx context.Context) (*Customer, error) {
 		return nil, err
 	}
 	if _spec.ID.Value != nil {
-		_node.ID = _spec.ID.Value.(uuid.UUID)
+		if id, ok := _spec.ID.Value.(*uuid.UUID); ok {
+			_node.ID = *id
+		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
+			return nil, err
+		}
 	}
 	return _node, nil
 }
@@ -223,7 +235,7 @@ func (cc *CustomerCreate) createSpec() (*Customer, *sqlgraph.CreateSpec) {
 	)
 	if id, ok := cc.mutation.ID(); ok {
 		_node.ID = id
-		_spec.ID.Value = id
+		_spec.ID.Value = &id
 	}
 	if value, ok := cc.mutation.FrequentFlyerNumber(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{

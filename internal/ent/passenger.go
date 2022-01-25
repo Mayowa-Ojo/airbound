@@ -25,6 +25,8 @@ type Passenger struct {
 	Lastname string `json:"lastname,omitempty"`
 	// Age holds the value of the "age" field.
 	Age int `json:"age,omitempty"`
+	// Nationality holds the value of the "nationality" field.
+	Nationality string `json:"nationality,omitempty"`
 	// PassportNumber holds the value of the "passport_number" field.
 	PassportNumber string `json:"passport_number,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
@@ -83,7 +85,7 @@ func (*Passenger) scanValues(columns []string) ([]interface{}, error) {
 		switch columns[i] {
 		case passenger.FieldAge:
 			values[i] = new(sql.NullInt64)
-		case passenger.FieldFirstname, passenger.FieldLastname, passenger.FieldPassportNumber:
+		case passenger.FieldFirstname, passenger.FieldLastname, passenger.FieldNationality, passenger.FieldPassportNumber:
 			values[i] = new(sql.NullString)
 		case passenger.FieldCreatedAt, passenger.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -129,6 +131,12 @@ func (pa *Passenger) assignValues(columns []string, values []interface{}) error 
 				return fmt.Errorf("unexpected type %T for field age", values[i])
 			} else if value.Valid {
 				pa.Age = int(value.Int64)
+			}
+		case passenger.FieldNationality:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field nationality", values[i])
+			} else if value.Valid {
+				pa.Nationality = value.String
 			}
 		case passenger.FieldPassportNumber:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -199,6 +207,8 @@ func (pa *Passenger) String() string {
 	builder.WriteString(pa.Lastname)
 	builder.WriteString(", age=")
 	builder.WriteString(fmt.Sprintf("%v", pa.Age))
+	builder.WriteString(", nationality=")
+	builder.WriteString(pa.Nationality)
 	builder.WriteString(", passport_number=")
 	builder.WriteString(pa.PassportNumber)
 	builder.WriteString(", created_at=")

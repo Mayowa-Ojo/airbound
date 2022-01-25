@@ -23,6 +23,7 @@ func (Flight) Fields() []ent.Field {
 		field.Int("duration").NonNegative(),
 		field.Int("distance").NonNegative(),
 		field.Enum("boarding_policy").GoType(enums.BoardingPolicy("")),
+		field.Enum("trip_type").GoType(enums.TripType("")),
 		field.Time("created_at").Default(time.Now),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 	}
@@ -39,5 +40,6 @@ func (Flight) Edges() []ent.Edge {
 			StorageKey(edge.Table("flight_crew"), edge.Columns("flight_id", "crew_id")),
 		edge.From("departure_airport", Airport.Type).Ref("departure_flights").Unique(),
 		edge.From("arrival_airport", Airport.Type).Ref("arrival_flights").Unique(),
+		edge.From("airline", Airline.Type).Ref("flights").Unique(),
 	}
 }

@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"airbound/internal/ent/airline"
 	"airbound/internal/ent/airport"
 	"airbound/internal/ent/crew"
 	"airbound/internal/ent/enums"
@@ -50,6 +51,12 @@ func (fc *FlightCreate) SetBoardingPolicy(ep enums.BoardingPolicy) *FlightCreate
 	return fc
 }
 
+// SetTripType sets the "trip_type" field.
+func (fc *FlightCreate) SetTripType(et enums.TripType) *FlightCreate {
+	fc.mutation.SetTripType(et)
+	return fc
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (fc *FlightCreate) SetCreatedAt(t time.Time) *FlightCreate {
 	fc.mutation.SetCreatedAt(t)
@@ -81,6 +88,14 @@ func (fc *FlightCreate) SetNillableUpdatedAt(t *time.Time) *FlightCreate {
 // SetID sets the "id" field.
 func (fc *FlightCreate) SetID(u uuid.UUID) *FlightCreate {
 	fc.mutation.SetID(u)
+	return fc
+}
+
+// SetNillableID sets the "id" field if the given value is not nil.
+func (fc *FlightCreate) SetNillableID(u *uuid.UUID) *FlightCreate {
+	if u != nil {
+		fc.SetID(*u)
+	}
 	return fc
 }
 
@@ -165,6 +180,25 @@ func (fc *FlightCreate) SetNillableArrivalAirportID(id *uuid.UUID) *FlightCreate
 // SetArrivalAirport sets the "arrival_airport" edge to the Airport entity.
 func (fc *FlightCreate) SetArrivalAirport(a *Airport) *FlightCreate {
 	return fc.SetArrivalAirportID(a.ID)
+}
+
+// SetAirlineID sets the "airline" edge to the Airline entity by ID.
+func (fc *FlightCreate) SetAirlineID(id uuid.UUID) *FlightCreate {
+	fc.mutation.SetAirlineID(id)
+	return fc
+}
+
+// SetNillableAirlineID sets the "airline" edge to the Airline entity by ID if the given value is not nil.
+func (fc *FlightCreate) SetNillableAirlineID(id *uuid.UUID) *FlightCreate {
+	if id != nil {
+		fc = fc.SetAirlineID(*id)
+	}
+	return fc
+}
+
+// SetAirline sets the "airline" edge to the Airline entity.
+func (fc *FlightCreate) SetAirline(a *Airline) *FlightCreate {
+	return fc.SetAirlineID(a.ID)
 }
 
 // Mutation returns the FlightMutation object of the builder.
@@ -255,42 +289,50 @@ func (fc *FlightCreate) defaults() {
 // check runs all checks and user-defined validators on the builder.
 func (fc *FlightCreate) check() error {
 	if _, ok := fc.mutation.FlightNumber(); !ok {
-		return &ValidationError{Name: "flight_number", err: errors.New(`ent: missing required field "flight_number"`)}
+		return &ValidationError{Name: "flight_number", err: errors.New(`ent: missing required field "Flight.flight_number"`)}
 	}
 	if v, ok := fc.mutation.FlightNumber(); ok {
 		if err := flight.FlightNumberValidator(v); err != nil {
-			return &ValidationError{Name: "flight_number", err: fmt.Errorf(`ent: validator failed for field "flight_number": %w`, err)}
+			return &ValidationError{Name: "flight_number", err: fmt.Errorf(`ent: validator failed for field "Flight.flight_number": %w`, err)}
 		}
 	}
 	if _, ok := fc.mutation.Duration(); !ok {
-		return &ValidationError{Name: "duration", err: errors.New(`ent: missing required field "duration"`)}
+		return &ValidationError{Name: "duration", err: errors.New(`ent: missing required field "Flight.duration"`)}
 	}
 	if v, ok := fc.mutation.Duration(); ok {
 		if err := flight.DurationValidator(v); err != nil {
-			return &ValidationError{Name: "duration", err: fmt.Errorf(`ent: validator failed for field "duration": %w`, err)}
+			return &ValidationError{Name: "duration", err: fmt.Errorf(`ent: validator failed for field "Flight.duration": %w`, err)}
 		}
 	}
 	if _, ok := fc.mutation.Distance(); !ok {
-		return &ValidationError{Name: "distance", err: errors.New(`ent: missing required field "distance"`)}
+		return &ValidationError{Name: "distance", err: errors.New(`ent: missing required field "Flight.distance"`)}
 	}
 	if v, ok := fc.mutation.Distance(); ok {
 		if err := flight.DistanceValidator(v); err != nil {
-			return &ValidationError{Name: "distance", err: fmt.Errorf(`ent: validator failed for field "distance": %w`, err)}
+			return &ValidationError{Name: "distance", err: fmt.Errorf(`ent: validator failed for field "Flight.distance": %w`, err)}
 		}
 	}
 	if _, ok := fc.mutation.BoardingPolicy(); !ok {
-		return &ValidationError{Name: "boarding_policy", err: errors.New(`ent: missing required field "boarding_policy"`)}
+		return &ValidationError{Name: "boarding_policy", err: errors.New(`ent: missing required field "Flight.boarding_policy"`)}
 	}
 	if v, ok := fc.mutation.BoardingPolicy(); ok {
 		if err := flight.BoardingPolicyValidator(v); err != nil {
-			return &ValidationError{Name: "boarding_policy", err: fmt.Errorf(`ent: validator failed for field "boarding_policy": %w`, err)}
+			return &ValidationError{Name: "boarding_policy", err: fmt.Errorf(`ent: validator failed for field "Flight.boarding_policy": %w`, err)}
+		}
+	}
+	if _, ok := fc.mutation.TripType(); !ok {
+		return &ValidationError{Name: "trip_type", err: errors.New(`ent: missing required field "Flight.trip_type"`)}
+	}
+	if v, ok := fc.mutation.TripType(); ok {
+		if err := flight.TripTypeValidator(v); err != nil {
+			return &ValidationError{Name: "trip_type", err: fmt.Errorf(`ent: validator failed for field "Flight.trip_type": %w`, err)}
 		}
 	}
 	if _, ok := fc.mutation.CreatedAt(); !ok {
-		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "created_at"`)}
+		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Flight.created_at"`)}
 	}
 	if _, ok := fc.mutation.UpdatedAt(); !ok {
-		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "updated_at"`)}
+		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "Flight.updated_at"`)}
 	}
 	return nil
 }
@@ -304,7 +346,11 @@ func (fc *FlightCreate) sqlSave(ctx context.Context) (*Flight, error) {
 		return nil, err
 	}
 	if _spec.ID.Value != nil {
-		_node.ID = _spec.ID.Value.(uuid.UUID)
+		if id, ok := _spec.ID.Value.(*uuid.UUID); ok {
+			_node.ID = *id
+		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
+			return nil, err
+		}
 	}
 	return _node, nil
 }
@@ -322,7 +368,7 @@ func (fc *FlightCreate) createSpec() (*Flight, *sqlgraph.CreateSpec) {
 	)
 	if id, ok := fc.mutation.ID(); ok {
 		_node.ID = id
-		_spec.ID.Value = id
+		_spec.ID.Value = &id
 	}
 	if value, ok := fc.mutation.FlightNumber(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
@@ -355,6 +401,14 @@ func (fc *FlightCreate) createSpec() (*Flight, *sqlgraph.CreateSpec) {
 			Column: flight.FieldBoardingPolicy,
 		})
 		_node.BoardingPolicy = value
+	}
+	if value, ok := fc.mutation.TripType(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeEnum,
+			Value:  value,
+			Column: flight.FieldTripType,
+		})
+		_node.TripType = value
 	}
 	if value, ok := fc.mutation.CreatedAt(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
@@ -467,6 +521,26 @@ func (fc *FlightCreate) createSpec() (*Flight, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.arrival_airport_id = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := fc.mutation.AirlineIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   flight.AirlineTable,
+			Columns: []string{flight.AirlineColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeUUID,
+					Column: airline.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.airline_id = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

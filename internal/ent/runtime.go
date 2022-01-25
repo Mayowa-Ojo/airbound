@@ -141,11 +141,11 @@ func init() {
 	// aircraft.RangeValidator is a validator for the "range" field. It is called by the builders before save.
 	aircraft.RangeValidator = aircraftDescRange.Validators[0].(func(int) error)
 	// aircraftDescCreatedAt is the schema descriptor for created_at field.
-	aircraftDescCreatedAt := aircraftFields[6].Descriptor()
+	aircraftDescCreatedAt := aircraftFields[7].Descriptor()
 	// aircraft.DefaultCreatedAt holds the default value on creation for the created_at field.
 	aircraft.DefaultCreatedAt = aircraftDescCreatedAt.Default.(func() time.Time)
 	// aircraftDescUpdatedAt is the schema descriptor for updated_at field.
-	aircraftDescUpdatedAt := aircraftFields[7].Descriptor()
+	aircraftDescUpdatedAt := aircraftFields[8].Descriptor()
 	// aircraft.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	aircraft.DefaultUpdatedAt = aircraftDescUpdatedAt.Default.(func() time.Time)
 	// aircraft.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
@@ -164,12 +164,16 @@ func init() {
 	airlineDescIataCode := airlineFields[2].Descriptor()
 	// airline.IataCodeValidator is a validator for the "iata_code" field. It is called by the builders before save.
 	airline.IataCodeValidator = airlineDescIataCode.Validators[0].(func(string) error)
+	// airlineDescCountry is the schema descriptor for country field.
+	airlineDescCountry := airlineFields[3].Descriptor()
+	// airline.CountryValidator is a validator for the "country" field. It is called by the builders before save.
+	airline.CountryValidator = airlineDescCountry.Validators[0].(func(string) error)
 	// airlineDescCreatedAt is the schema descriptor for created_at field.
-	airlineDescCreatedAt := airlineFields[3].Descriptor()
+	airlineDescCreatedAt := airlineFields[4].Descriptor()
 	// airline.DefaultCreatedAt holds the default value on creation for the created_at field.
 	airline.DefaultCreatedAt = airlineDescCreatedAt.Default.(func() time.Time)
 	// airlineDescUpdatedAt is the schema descriptor for updated_at field.
-	airlineDescUpdatedAt := airlineFields[4].Descriptor()
+	airlineDescUpdatedAt := airlineFields[5].Descriptor()
 	// airline.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	airline.DefaultUpdatedAt = airlineDescUpdatedAt.Default.(func() time.Time)
 	// airline.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
@@ -261,11 +265,11 @@ func init() {
 	// flight.DistanceValidator is a validator for the "distance" field. It is called by the builders before save.
 	flight.DistanceValidator = flightDescDistance.Validators[0].(func(int) error)
 	// flightDescCreatedAt is the schema descriptor for created_at field.
-	flightDescCreatedAt := flightFields[5].Descriptor()
+	flightDescCreatedAt := flightFields[6].Descriptor()
 	// flight.DefaultCreatedAt holds the default value on creation for the created_at field.
 	flight.DefaultCreatedAt = flightDescCreatedAt.Default.(func() time.Time)
 	// flightDescUpdatedAt is the schema descriptor for updated_at field.
-	flightDescUpdatedAt := flightFields[6].Descriptor()
+	flightDescUpdatedAt := flightFields[7].Descriptor()
 	// flight.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	flight.DefaultUpdatedAt = flightDescUpdatedAt.Default.(func() time.Time)
 	// flight.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
@@ -277,19 +281,19 @@ func init() {
 	flightinstanceFields := schema.FlightInstance{}.Fields()
 	_ = flightinstanceFields
 	// flightinstanceDescDepartureGate is the schema descriptor for departure_gate field.
-	flightinstanceDescDepartureGate := flightinstanceFields[1].Descriptor()
+	flightinstanceDescDepartureGate := flightinstanceFields[3].Descriptor()
 	// flightinstance.DepartureGateValidator is a validator for the "departure_gate" field. It is called by the builders before save.
 	flightinstance.DepartureGateValidator = flightinstanceDescDepartureGate.Validators[0].(func(int) error)
 	// flightinstanceDescArrivalGate is the schema descriptor for arrival_gate field.
-	flightinstanceDescArrivalGate := flightinstanceFields[2].Descriptor()
+	flightinstanceDescArrivalGate := flightinstanceFields[4].Descriptor()
 	// flightinstance.ArrivalGateValidator is a validator for the "arrival_gate" field. It is called by the builders before save.
 	flightinstance.ArrivalGateValidator = flightinstanceDescArrivalGate.Validators[0].(func(int) error)
 	// flightinstanceDescCreatedAt is the schema descriptor for created_at field.
-	flightinstanceDescCreatedAt := flightinstanceFields[4].Descriptor()
+	flightinstanceDescCreatedAt := flightinstanceFields[6].Descriptor()
 	// flightinstance.DefaultCreatedAt holds the default value on creation for the created_at field.
 	flightinstance.DefaultCreatedAt = flightinstanceDescCreatedAt.Default.(func() time.Time)
 	// flightinstanceDescUpdatedAt is the schema descriptor for updated_at field.
-	flightinstanceDescUpdatedAt := flightinstanceFields[5].Descriptor()
+	flightinstanceDescUpdatedAt := flightinstanceFields[7].Descriptor()
 	// flightinstance.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	flightinstance.DefaultUpdatedAt = flightinstanceDescUpdatedAt.Default.(func() time.Time)
 	// flightinstance.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
@@ -404,16 +408,20 @@ func init() {
 	passengerDescAge := passengerFields[3].Descriptor()
 	// passenger.AgeValidator is a validator for the "age" field. It is called by the builders before save.
 	passenger.AgeValidator = passengerDescAge.Validators[0].(func(int) error)
+	// passengerDescNationality is the schema descriptor for nationality field.
+	passengerDescNationality := passengerFields[4].Descriptor()
+	// passenger.NationalityValidator is a validator for the "nationality" field. It is called by the builders before save.
+	passenger.NationalityValidator = passengerDescNationality.Validators[0].(func(string) error)
 	// passengerDescPassportNumber is the schema descriptor for passport_number field.
-	passengerDescPassportNumber := passengerFields[4].Descriptor()
+	passengerDescPassportNumber := passengerFields[5].Descriptor()
 	// passenger.PassportNumberValidator is a validator for the "passport_number" field. It is called by the builders before save.
 	passenger.PassportNumberValidator = passengerDescPassportNumber.Validators[0].(func(string) error)
 	// passengerDescCreatedAt is the schema descriptor for created_at field.
-	passengerDescCreatedAt := passengerFields[5].Descriptor()
+	passengerDescCreatedAt := passengerFields[6].Descriptor()
 	// passenger.DefaultCreatedAt holds the default value on creation for the created_at field.
 	passenger.DefaultCreatedAt = passengerDescCreatedAt.Default.(func() time.Time)
 	// passengerDescUpdatedAt is the schema descriptor for updated_at field.
-	passengerDescUpdatedAt := passengerFields[6].Descriptor()
+	passengerDescUpdatedAt := passengerFields[7].Descriptor()
 	// passenger.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	passenger.DefaultUpdatedAt = passengerDescUpdatedAt.Default.(func() time.Time)
 	// passenger.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.

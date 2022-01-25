@@ -62,6 +62,14 @@ func (pc *PermissionCreate) SetID(u uuid.UUID) *PermissionCreate {
 	return pc
 }
 
+// SetNillableID sets the "id" field if the given value is not nil.
+func (pc *PermissionCreate) SetNillableID(u *uuid.UUID) *PermissionCreate {
+	if u != nil {
+		pc.SetID(*u)
+	}
+	return pc
+}
+
 // AddRoleIDs adds the "roles" edge to the Role entity by IDs.
 func (pc *PermissionCreate) AddRoleIDs(ids ...uuid.UUID) *PermissionCreate {
 	pc.mutation.AddRoleIDs(ids...)
@@ -165,18 +173,18 @@ func (pc *PermissionCreate) defaults() {
 // check runs all checks and user-defined validators on the builder.
 func (pc *PermissionCreate) check() error {
 	if _, ok := pc.mutation.Permission(); !ok {
-		return &ValidationError{Name: "permission", err: errors.New(`ent: missing required field "permission"`)}
+		return &ValidationError{Name: "permission", err: errors.New(`ent: missing required field "Permission.permission"`)}
 	}
 	if v, ok := pc.mutation.Permission(); ok {
 		if err := permission.PermissionValidator(v); err != nil {
-			return &ValidationError{Name: "permission", err: fmt.Errorf(`ent: validator failed for field "permission": %w`, err)}
+			return &ValidationError{Name: "permission", err: fmt.Errorf(`ent: validator failed for field "Permission.permission": %w`, err)}
 		}
 	}
 	if _, ok := pc.mutation.CreatedAt(); !ok {
-		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "created_at"`)}
+		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Permission.created_at"`)}
 	}
 	if _, ok := pc.mutation.UpdatedAt(); !ok {
-		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "updated_at"`)}
+		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "Permission.updated_at"`)}
 	}
 	return nil
 }
@@ -190,7 +198,11 @@ func (pc *PermissionCreate) sqlSave(ctx context.Context) (*Permission, error) {
 		return nil, err
 	}
 	if _spec.ID.Value != nil {
-		_node.ID = _spec.ID.Value.(uuid.UUID)
+		if id, ok := _spec.ID.Value.(*uuid.UUID); ok {
+			_node.ID = *id
+		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
+			return nil, err
+		}
 	}
 	return _node, nil
 }
@@ -208,7 +220,7 @@ func (pc *PermissionCreate) createSpec() (*Permission, *sqlgraph.CreateSpec) {
 	)
 	if id, ok := pc.mutation.ID(); ok {
 		_node.ID = id
-		_spec.ID.Value = id
+		_spec.ID.Value = &id
 	}
 	if value, ok := pc.mutation.Permission(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{

@@ -10,6 +10,7 @@ import (
 	"airbound/internal/ent/itenerary"
 	"airbound/internal/ent/predicate"
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -353,17 +354,17 @@ func (au *AirportUpdate) defaults() {
 func (au *AirportUpdate) check() error {
 	if v, ok := au.mutation.Name(); ok {
 		if err := airport.NameValidator(v); err != nil {
-			return &ValidationError{Name: "name", err: fmt.Errorf("ent: validator failed for field \"name\": %w", err)}
+			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Airport.name": %w`, err)}
 		}
 	}
 	if v, ok := au.mutation.IataCode(); ok {
 		if err := airport.IataCodeValidator(v); err != nil {
-			return &ValidationError{Name: "iata_code", err: fmt.Errorf("ent: validator failed for field \"iata_code\": %w", err)}
+			return &ValidationError{Name: "iata_code", err: fmt.Errorf(`ent: validator failed for field "Airport.iata_code": %w`, err)}
 		}
 	}
 	if v, ok := au.mutation.IcaoCode(); ok {
 		if err := airport.IcaoCodeValidator(v); err != nil {
-			return &ValidationError{Name: "icao_code", err: fmt.Errorf("ent: validator failed for field \"icao_code\": %w", err)}
+			return &ValidationError{Name: "icao_code", err: fmt.Errorf(`ent: validator failed for field "Airport.icao_code": %w`, err)}
 		}
 	}
 	return nil
@@ -1074,17 +1075,17 @@ func (auo *AirportUpdateOne) defaults() {
 func (auo *AirportUpdateOne) check() error {
 	if v, ok := auo.mutation.Name(); ok {
 		if err := airport.NameValidator(v); err != nil {
-			return &ValidationError{Name: "name", err: fmt.Errorf("ent: validator failed for field \"name\": %w", err)}
+			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Airport.name": %w`, err)}
 		}
 	}
 	if v, ok := auo.mutation.IataCode(); ok {
 		if err := airport.IataCodeValidator(v); err != nil {
-			return &ValidationError{Name: "iata_code", err: fmt.Errorf("ent: validator failed for field \"iata_code\": %w", err)}
+			return &ValidationError{Name: "iata_code", err: fmt.Errorf(`ent: validator failed for field "Airport.iata_code": %w`, err)}
 		}
 	}
 	if v, ok := auo.mutation.IcaoCode(); ok {
 		if err := airport.IcaoCodeValidator(v); err != nil {
-			return &ValidationError{Name: "icao_code", err: fmt.Errorf("ent: validator failed for field \"icao_code\": %w", err)}
+			return &ValidationError{Name: "icao_code", err: fmt.Errorf(`ent: validator failed for field "Airport.icao_code": %w`, err)}
 		}
 	}
 	return nil
@@ -1103,7 +1104,7 @@ func (auo *AirportUpdateOne) sqlSave(ctx context.Context) (_node *Airport, err e
 	}
 	id, ok := auo.mutation.ID()
 	if !ok {
-		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing Airport.ID for update")}
+		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "Airport.id" for update`)}
 	}
 	_spec.Node.ID.Value = id
 	if fields := auo.fields; len(fields) > 0 {
