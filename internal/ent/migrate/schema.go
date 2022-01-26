@@ -306,7 +306,7 @@ var (
 	// FlightSchedulesColumns holds the columns for the "flight_schedules" table.
 	FlightSchedulesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID, Unique: true},
-		{Name: "weekday", Type: field.TypeEnum, Nullable: true, Enums: []string{"MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"}},
+		{Name: "week_day", Type: field.TypeInt, Nullable: true},
 		{Name: "schedule_type", Type: field.TypeEnum, Enums: []string{"WEEKLY", "CUSTOM"}},
 		{Name: "custom_date", Type: field.TypeString, Nullable: true, SchemaType: map[string]string{"postgres": "date"}},
 		{Name: "departs_at", Type: field.TypeString},

@@ -33,23 +33,30 @@ func (fsu *FlightScheduleUpdate) Where(ps ...predicate.FlightSchedule) *FlightSc
 	return fsu
 }
 
-// SetWeekday sets the "weekday" field.
-func (fsu *FlightScheduleUpdate) SetWeekday(ed enums.WeekDay) *FlightScheduleUpdate {
-	fsu.mutation.SetWeekday(ed)
+// SetWeekDay sets the "week_day" field.
+func (fsu *FlightScheduleUpdate) SetWeekDay(cd customtypes.WeekDay) *FlightScheduleUpdate {
+	fsu.mutation.ResetWeekDay()
+	fsu.mutation.SetWeekDay(cd)
 	return fsu
 }
 
-// SetNillableWeekday sets the "weekday" field if the given value is not nil.
-func (fsu *FlightScheduleUpdate) SetNillableWeekday(ed *enums.WeekDay) *FlightScheduleUpdate {
-	if ed != nil {
-		fsu.SetWeekday(*ed)
+// SetNillableWeekDay sets the "week_day" field if the given value is not nil.
+func (fsu *FlightScheduleUpdate) SetNillableWeekDay(cd *customtypes.WeekDay) *FlightScheduleUpdate {
+	if cd != nil {
+		fsu.SetWeekDay(*cd)
 	}
 	return fsu
 }
 
-// ClearWeekday clears the value of the "weekday" field.
-func (fsu *FlightScheduleUpdate) ClearWeekday() *FlightScheduleUpdate {
-	fsu.mutation.ClearWeekday()
+// AddWeekDay adds cd to the "week_day" field.
+func (fsu *FlightScheduleUpdate) AddWeekDay(cd customtypes.WeekDay) *FlightScheduleUpdate {
+	fsu.mutation.AddWeekDay(cd)
+	return fsu
+}
+
+// ClearWeekDay clears the value of the "week_day" field.
+func (fsu *FlightScheduleUpdate) ClearWeekDay() *FlightScheduleUpdate {
+	fsu.mutation.ClearWeekDay()
 	return fsu
 }
 
@@ -248,11 +255,6 @@ func (fsu *FlightScheduleUpdate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (fsu *FlightScheduleUpdate) check() error {
-	if v, ok := fsu.mutation.Weekday(); ok {
-		if err := flightschedule.WeekdayValidator(v); err != nil {
-			return &ValidationError{Name: "weekday", err: fmt.Errorf(`ent: validator failed for field "FlightSchedule.weekday": %w`, err)}
-		}
-	}
 	if v, ok := fsu.mutation.ScheduleType(); ok {
 		if err := flightschedule.ScheduleTypeValidator(v); err != nil {
 			return &ValidationError{Name: "schedule_type", err: fmt.Errorf(`ent: validator failed for field "FlightSchedule.schedule_type": %w`, err)}
@@ -279,17 +281,24 @@ func (fsu *FlightScheduleUpdate) sqlSave(ctx context.Context) (n int, err error)
 			}
 		}
 	}
-	if value, ok := fsu.mutation.Weekday(); ok {
+	if value, ok := fsu.mutation.WeekDay(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeEnum,
+			Type:   field.TypeInt,
 			Value:  value,
-			Column: flightschedule.FieldWeekday,
+			Column: flightschedule.FieldWeekDay,
 		})
 	}
-	if fsu.mutation.WeekdayCleared() {
+	if value, ok := fsu.mutation.AddedWeekDay(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: flightschedule.FieldWeekDay,
+		})
+	}
+	if fsu.mutation.WeekDayCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
-			Type:   field.TypeEnum,
-			Column: flightschedule.FieldWeekday,
+			Type:   field.TypeInt,
+			Column: flightschedule.FieldWeekDay,
 		})
 	}
 	if value, ok := fsu.mutation.ScheduleType(); ok {
@@ -448,23 +457,30 @@ type FlightScheduleUpdateOne struct {
 	mutation *FlightScheduleMutation
 }
 
-// SetWeekday sets the "weekday" field.
-func (fsuo *FlightScheduleUpdateOne) SetWeekday(ed enums.WeekDay) *FlightScheduleUpdateOne {
-	fsuo.mutation.SetWeekday(ed)
+// SetWeekDay sets the "week_day" field.
+func (fsuo *FlightScheduleUpdateOne) SetWeekDay(cd customtypes.WeekDay) *FlightScheduleUpdateOne {
+	fsuo.mutation.ResetWeekDay()
+	fsuo.mutation.SetWeekDay(cd)
 	return fsuo
 }
 
-// SetNillableWeekday sets the "weekday" field if the given value is not nil.
-func (fsuo *FlightScheduleUpdateOne) SetNillableWeekday(ed *enums.WeekDay) *FlightScheduleUpdateOne {
-	if ed != nil {
-		fsuo.SetWeekday(*ed)
+// SetNillableWeekDay sets the "week_day" field if the given value is not nil.
+func (fsuo *FlightScheduleUpdateOne) SetNillableWeekDay(cd *customtypes.WeekDay) *FlightScheduleUpdateOne {
+	if cd != nil {
+		fsuo.SetWeekDay(*cd)
 	}
 	return fsuo
 }
 
-// ClearWeekday clears the value of the "weekday" field.
-func (fsuo *FlightScheduleUpdateOne) ClearWeekday() *FlightScheduleUpdateOne {
-	fsuo.mutation.ClearWeekday()
+// AddWeekDay adds cd to the "week_day" field.
+func (fsuo *FlightScheduleUpdateOne) AddWeekDay(cd customtypes.WeekDay) *FlightScheduleUpdateOne {
+	fsuo.mutation.AddWeekDay(cd)
+	return fsuo
+}
+
+// ClearWeekDay clears the value of the "week_day" field.
+func (fsuo *FlightScheduleUpdateOne) ClearWeekDay() *FlightScheduleUpdateOne {
+	fsuo.mutation.ClearWeekDay()
 	return fsuo
 }
 
@@ -670,11 +686,6 @@ func (fsuo *FlightScheduleUpdateOne) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (fsuo *FlightScheduleUpdateOne) check() error {
-	if v, ok := fsuo.mutation.Weekday(); ok {
-		if err := flightschedule.WeekdayValidator(v); err != nil {
-			return &ValidationError{Name: "weekday", err: fmt.Errorf(`ent: validator failed for field "FlightSchedule.weekday": %w`, err)}
-		}
-	}
 	if v, ok := fsuo.mutation.ScheduleType(); ok {
 		if err := flightschedule.ScheduleTypeValidator(v); err != nil {
 			return &ValidationError{Name: "schedule_type", err: fmt.Errorf(`ent: validator failed for field "FlightSchedule.schedule_type": %w`, err)}
@@ -718,17 +729,24 @@ func (fsuo *FlightScheduleUpdateOne) sqlSave(ctx context.Context) (_node *Flight
 			}
 		}
 	}
-	if value, ok := fsuo.mutation.Weekday(); ok {
+	if value, ok := fsuo.mutation.WeekDay(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeEnum,
+			Type:   field.TypeInt,
 			Value:  value,
-			Column: flightschedule.FieldWeekday,
+			Column: flightschedule.FieldWeekDay,
 		})
 	}
-	if fsuo.mutation.WeekdayCleared() {
+	if value, ok := fsuo.mutation.AddedWeekDay(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: flightschedule.FieldWeekDay,
+		})
+	}
+	if fsuo.mutation.WeekDayCleared() {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
-			Type:   field.TypeEnum,
-			Column: flightschedule.FieldWeekday,
+			Type:   field.TypeInt,
+			Column: flightschedule.FieldWeekDay,
 		})
 	}
 	if value, ok := fsuo.mutation.ScheduleType(); ok {

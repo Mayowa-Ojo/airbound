@@ -96,6 +96,14 @@ func IDLTE(id uuid.UUID) predicate.FlightSchedule {
 	})
 }
 
+// WeekDay applies equality check predicate on the "week_day" field. It's identical to WeekDayEQ.
+func WeekDay(v customtypes.WeekDay) predicate.FlightSchedule {
+	vc := int(v)
+	return predicate.FlightSchedule(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldWeekDay), vc))
+	})
+}
+
 // CustomDate applies equality check predicate on the "custom_date" field. It's identical to CustomDateEQ.
 func CustomDate(v customtypes.Date) predicate.FlightSchedule {
 	return predicate.FlightSchedule(func(s *sql.Selector) {
@@ -131,25 +139,27 @@ func UpdatedAt(v time.Time) predicate.FlightSchedule {
 	})
 }
 
-// WeekdayEQ applies the EQ predicate on the "weekday" field.
-func WeekdayEQ(v enums.WeekDay) predicate.FlightSchedule {
+// WeekDayEQ applies the EQ predicate on the "week_day" field.
+func WeekDayEQ(v customtypes.WeekDay) predicate.FlightSchedule {
+	vc := int(v)
 	return predicate.FlightSchedule(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldWeekday), v))
+		s.Where(sql.EQ(s.C(FieldWeekDay), vc))
 	})
 }
 
-// WeekdayNEQ applies the NEQ predicate on the "weekday" field.
-func WeekdayNEQ(v enums.WeekDay) predicate.FlightSchedule {
+// WeekDayNEQ applies the NEQ predicate on the "week_day" field.
+func WeekDayNEQ(v customtypes.WeekDay) predicate.FlightSchedule {
+	vc := int(v)
 	return predicate.FlightSchedule(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldWeekday), v))
+		s.Where(sql.NEQ(s.C(FieldWeekDay), vc))
 	})
 }
 
-// WeekdayIn applies the In predicate on the "weekday" field.
-func WeekdayIn(vs ...enums.WeekDay) predicate.FlightSchedule {
+// WeekDayIn applies the In predicate on the "week_day" field.
+func WeekDayIn(vs ...customtypes.WeekDay) predicate.FlightSchedule {
 	v := make([]interface{}, len(vs))
 	for i := range v {
-		v[i] = vs[i]
+		v[i] = int(vs[i])
 	}
 	return predicate.FlightSchedule(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
@@ -158,15 +168,15 @@ func WeekdayIn(vs ...enums.WeekDay) predicate.FlightSchedule {
 			s.Where(sql.False())
 			return
 		}
-		s.Where(sql.In(s.C(FieldWeekday), v...))
+		s.Where(sql.In(s.C(FieldWeekDay), v...))
 	})
 }
 
-// WeekdayNotIn applies the NotIn predicate on the "weekday" field.
-func WeekdayNotIn(vs ...enums.WeekDay) predicate.FlightSchedule {
+// WeekDayNotIn applies the NotIn predicate on the "week_day" field.
+func WeekDayNotIn(vs ...customtypes.WeekDay) predicate.FlightSchedule {
 	v := make([]interface{}, len(vs))
 	for i := range v {
-		v[i] = vs[i]
+		v[i] = int(vs[i])
 	}
 	return predicate.FlightSchedule(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
@@ -175,21 +185,53 @@ func WeekdayNotIn(vs ...enums.WeekDay) predicate.FlightSchedule {
 			s.Where(sql.False())
 			return
 		}
-		s.Where(sql.NotIn(s.C(FieldWeekday), v...))
+		s.Where(sql.NotIn(s.C(FieldWeekDay), v...))
 	})
 }
 
-// WeekdayIsNil applies the IsNil predicate on the "weekday" field.
-func WeekdayIsNil() predicate.FlightSchedule {
+// WeekDayGT applies the GT predicate on the "week_day" field.
+func WeekDayGT(v customtypes.WeekDay) predicate.FlightSchedule {
+	vc := int(v)
 	return predicate.FlightSchedule(func(s *sql.Selector) {
-		s.Where(sql.IsNull(s.C(FieldWeekday)))
+		s.Where(sql.GT(s.C(FieldWeekDay), vc))
 	})
 }
 
-// WeekdayNotNil applies the NotNil predicate on the "weekday" field.
-func WeekdayNotNil() predicate.FlightSchedule {
+// WeekDayGTE applies the GTE predicate on the "week_day" field.
+func WeekDayGTE(v customtypes.WeekDay) predicate.FlightSchedule {
+	vc := int(v)
 	return predicate.FlightSchedule(func(s *sql.Selector) {
-		s.Where(sql.NotNull(s.C(FieldWeekday)))
+		s.Where(sql.GTE(s.C(FieldWeekDay), vc))
+	})
+}
+
+// WeekDayLT applies the LT predicate on the "week_day" field.
+func WeekDayLT(v customtypes.WeekDay) predicate.FlightSchedule {
+	vc := int(v)
+	return predicate.FlightSchedule(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldWeekDay), vc))
+	})
+}
+
+// WeekDayLTE applies the LTE predicate on the "week_day" field.
+func WeekDayLTE(v customtypes.WeekDay) predicate.FlightSchedule {
+	vc := int(v)
+	return predicate.FlightSchedule(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldWeekDay), vc))
+	})
+}
+
+// WeekDayIsNil applies the IsNil predicate on the "week_day" field.
+func WeekDayIsNil() predicate.FlightSchedule {
+	return predicate.FlightSchedule(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldWeekDay)))
+	})
+}
+
+// WeekDayNotNil applies the NotNil predicate on the "week_day" field.
+func WeekDayNotNil() predicate.FlightSchedule {
+	return predicate.FlightSchedule(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldWeekDay)))
 	})
 }
 

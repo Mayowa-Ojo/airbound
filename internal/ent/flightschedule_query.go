@@ -329,12 +329,12 @@ func (fsq *FlightScheduleQuery) WithFlightInstances(opts ...func(*FlightInstance
 // Example:
 //
 //	var v []struct {
-//		Weekday enums.WeekDay `json:"weekday,omitempty"`
+//		WeekDay customtypes.WeekDay `json:"week_day,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.FlightSchedule.Query().
-//		GroupBy(flightschedule.FieldWeekday).
+//		GroupBy(flightschedule.FieldWeekDay).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 //
@@ -356,11 +356,11 @@ func (fsq *FlightScheduleQuery) GroupBy(field string, fields ...string) *FlightS
 // Example:
 //
 //	var v []struct {
-//		Weekday enums.WeekDay `json:"weekday,omitempty"`
+//		WeekDay customtypes.WeekDay `json:"week_day,omitempty"`
 //	}
 //
 //	client.FlightSchedule.Query().
-//		Select(flightschedule.FieldWeekday).
+//		Select(flightschedule.FieldWeekDay).
 //		Scan(ctx, &v)
 //
 func (fsq *FlightScheduleQuery) Select(fields ...string) *FlightScheduleSelect {

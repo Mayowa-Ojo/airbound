@@ -9327,7 +9327,8 @@ type FlightScheduleMutation struct {
 	op                      Op
 	typ                     string
 	id                      *uuid.UUID
-	weekday                 *enums.WeekDay
+	week_day                *customtypes.WeekDay
+	addweek_day             *customtypes.WeekDay
 	schedule_type           *enums.FlightScheduleType
 	custom_date             *customtypes.Date
 	departs_at              *customtypes.Time
@@ -9449,53 +9450,74 @@ func (m *FlightScheduleMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
 	}
 }
 
-// SetWeekday sets the "weekday" field.
-func (m *FlightScheduleMutation) SetWeekday(ed enums.WeekDay) {
-	m.weekday = &ed
+// SetWeekDay sets the "week_day" field.
+func (m *FlightScheduleMutation) SetWeekDay(cd customtypes.WeekDay) {
+	m.week_day = &cd
+	m.addweek_day = nil
 }
 
-// Weekday returns the value of the "weekday" field in the mutation.
-func (m *FlightScheduleMutation) Weekday() (r enums.WeekDay, exists bool) {
-	v := m.weekday
+// WeekDay returns the value of the "week_day" field in the mutation.
+func (m *FlightScheduleMutation) WeekDay() (r customtypes.WeekDay, exists bool) {
+	v := m.week_day
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldWeekday returns the old "weekday" field's value of the FlightSchedule entity.
+// OldWeekDay returns the old "week_day" field's value of the FlightSchedule entity.
 // If the FlightSchedule object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *FlightScheduleMutation) OldWeekday(ctx context.Context) (v enums.WeekDay, err error) {
+func (m *FlightScheduleMutation) OldWeekDay(ctx context.Context) (v customtypes.WeekDay, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldWeekday is only allowed on UpdateOne operations")
+		return v, errors.New("OldWeekDay is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldWeekday requires an ID field in the mutation")
+		return v, errors.New("OldWeekDay requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldWeekday: %w", err)
+		return v, fmt.Errorf("querying old value for OldWeekDay: %w", err)
 	}
-	return oldValue.Weekday, nil
+	return oldValue.WeekDay, nil
 }
 
-// ClearWeekday clears the value of the "weekday" field.
-func (m *FlightScheduleMutation) ClearWeekday() {
-	m.weekday = nil
-	m.clearedFields[flightschedule.FieldWeekday] = struct{}{}
+// AddWeekDay adds cd to the "week_day" field.
+func (m *FlightScheduleMutation) AddWeekDay(cd customtypes.WeekDay) {
+	if m.addweek_day != nil {
+		*m.addweek_day += cd
+	} else {
+		m.addweek_day = &cd
+	}
 }
 
-// WeekdayCleared returns if the "weekday" field was cleared in this mutation.
-func (m *FlightScheduleMutation) WeekdayCleared() bool {
-	_, ok := m.clearedFields[flightschedule.FieldWeekday]
+// AddedWeekDay returns the value that was added to the "week_day" field in this mutation.
+func (m *FlightScheduleMutation) AddedWeekDay() (r customtypes.WeekDay, exists bool) {
+	v := m.addweek_day
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearWeekDay clears the value of the "week_day" field.
+func (m *FlightScheduleMutation) ClearWeekDay() {
+	m.week_day = nil
+	m.addweek_day = nil
+	m.clearedFields[flightschedule.FieldWeekDay] = struct{}{}
+}
+
+// WeekDayCleared returns if the "week_day" field was cleared in this mutation.
+func (m *FlightScheduleMutation) WeekDayCleared() bool {
+	_, ok := m.clearedFields[flightschedule.FieldWeekDay]
 	return ok
 }
 
-// ResetWeekday resets all changes to the "weekday" field.
-func (m *FlightScheduleMutation) ResetWeekday() {
-	m.weekday = nil
-	delete(m.clearedFields, flightschedule.FieldWeekday)
+// ResetWeekDay resets all changes to the "week_day" field.
+func (m *FlightScheduleMutation) ResetWeekDay() {
+	m.week_day = nil
+	m.addweek_day = nil
+	delete(m.clearedFields, flightschedule.FieldWeekDay)
 }
 
 // SetScheduleType sets the "schedule_type" field.
@@ -9840,8 +9862,8 @@ func (m *FlightScheduleMutation) Type() string {
 // AddedFields().
 func (m *FlightScheduleMutation) Fields() []string {
 	fields := make([]string, 0, 7)
-	if m.weekday != nil {
-		fields = append(fields, flightschedule.FieldWeekday)
+	if m.week_day != nil {
+		fields = append(fields, flightschedule.FieldWeekDay)
 	}
 	if m.schedule_type != nil {
 		fields = append(fields, flightschedule.FieldScheduleType)
@@ -9869,8 +9891,8 @@ func (m *FlightScheduleMutation) Fields() []string {
 // schema.
 func (m *FlightScheduleMutation) Field(name string) (ent.Value, bool) {
 	switch name {
-	case flightschedule.FieldWeekday:
-		return m.Weekday()
+	case flightschedule.FieldWeekDay:
+		return m.WeekDay()
 	case flightschedule.FieldScheduleType:
 		return m.ScheduleType()
 	case flightschedule.FieldCustomDate:
@@ -9892,8 +9914,8 @@ func (m *FlightScheduleMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *FlightScheduleMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
-	case flightschedule.FieldWeekday:
-		return m.OldWeekday(ctx)
+	case flightschedule.FieldWeekDay:
+		return m.OldWeekDay(ctx)
 	case flightschedule.FieldScheduleType:
 		return m.OldScheduleType(ctx)
 	case flightschedule.FieldCustomDate:
@@ -9915,12 +9937,12 @@ func (m *FlightScheduleMutation) OldField(ctx context.Context, name string) (ent
 // type.
 func (m *FlightScheduleMutation) SetField(name string, value ent.Value) error {
 	switch name {
-	case flightschedule.FieldWeekday:
-		v, ok := value.(enums.WeekDay)
+	case flightschedule.FieldWeekDay:
+		v, ok := value.(customtypes.WeekDay)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetWeekday(v)
+		m.SetWeekDay(v)
 		return nil
 	case flightschedule.FieldScheduleType:
 		v, ok := value.(enums.FlightScheduleType)
@@ -9971,13 +9993,21 @@ func (m *FlightScheduleMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *FlightScheduleMutation) AddedFields() []string {
-	return nil
+	var fields []string
+	if m.addweek_day != nil {
+		fields = append(fields, flightschedule.FieldWeekDay)
+	}
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *FlightScheduleMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case flightschedule.FieldWeekDay:
+		return m.AddedWeekDay()
+	}
 	return nil, false
 }
 
@@ -9986,6 +10016,13 @@ func (m *FlightScheduleMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *FlightScheduleMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case flightschedule.FieldWeekDay:
+		v, ok := value.(customtypes.WeekDay)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddWeekDay(v)
+		return nil
 	}
 	return fmt.Errorf("unknown FlightSchedule numeric field %s", name)
 }
@@ -9994,8 +10031,8 @@ func (m *FlightScheduleMutation) AddField(name string, value ent.Value) error {
 // mutation.
 func (m *FlightScheduleMutation) ClearedFields() []string {
 	var fields []string
-	if m.FieldCleared(flightschedule.FieldWeekday) {
-		fields = append(fields, flightschedule.FieldWeekday)
+	if m.FieldCleared(flightschedule.FieldWeekDay) {
+		fields = append(fields, flightschedule.FieldWeekDay)
 	}
 	if m.FieldCleared(flightschedule.FieldCustomDate) {
 		fields = append(fields, flightschedule.FieldCustomDate)
@@ -10014,8 +10051,8 @@ func (m *FlightScheduleMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *FlightScheduleMutation) ClearField(name string) error {
 	switch name {
-	case flightschedule.FieldWeekday:
-		m.ClearWeekday()
+	case flightschedule.FieldWeekDay:
+		m.ClearWeekDay()
 		return nil
 	case flightschedule.FieldCustomDate:
 		m.ClearCustomDate()
@@ -10028,8 +10065,8 @@ func (m *FlightScheduleMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *FlightScheduleMutation) ResetField(name string) error {
 	switch name {
-	case flightschedule.FieldWeekday:
-		m.ResetWeekday()
+	case flightschedule.FieldWeekDay:
+		m.ResetWeekDay()
 		return nil
 	case flightschedule.FieldScheduleType:
 		m.ResetScheduleType()

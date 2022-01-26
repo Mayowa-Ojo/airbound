@@ -101,3 +101,15 @@ func (d Date) Scan(value interface{}) error {
 
 	return nil
 }
+
+type WeekDay int
+
+const (
+	Sunday WeekDay = iota
+	Monday
+	Tuesday
+	Wednesday
+	Thursday
+	Friday
+	Saturday
+)

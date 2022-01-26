@@ -17,11 +17,18 @@ type FlightSchedule struct {
 	ent.Schema
 }
 
+type Day int
+
+const (
+	DayOne Day = iota
+	DayTwo
+)
+
 // Fields of the FlightSchedule.
 func (FlightSchedule) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}).Default(uuid.New).Unique().Immutable(),
-		field.Enum("weekday").GoType(enums.WeekDay(0)).Optional(),
+		field.Int("week_day").GoType(customtypes.WeekDay(0)).Optional(),
 		field.Enum("schedule_type").GoType(enums.FlightScheduleType("")),
 		field.String("custom_date").GoType(customtypes.Date{}).SchemaType(map[string]string{dialect.Postgres: "date"}).Optional(),
 		// temporarily storing this as 'string' till 'time without timezone' is added to the scanColumns method - ref: https://github.com/ent/ent/issues/2244

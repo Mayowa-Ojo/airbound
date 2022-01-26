@@ -15,8 +15,8 @@ const (
 	Label = "flight_schedule"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
-	// FieldWeekday holds the string denoting the weekday field in the database.
-	FieldWeekday = "weekday"
+	// FieldWeekDay holds the string denoting the week_day field in the database.
+	FieldWeekDay = "week_day"
 	// FieldScheduleType holds the string denoting the schedule_type field in the database.
 	FieldScheduleType = "schedule_type"
 	// FieldCustomDate holds the string denoting the custom_date field in the database.
@@ -54,7 +54,7 @@ const (
 // Columns holds all SQL columns for flightschedule fields.
 var Columns = []string{
 	FieldID,
-	FieldWeekday,
+	FieldWeekDay,
 	FieldScheduleType,
 	FieldCustomDate,
 	FieldDepartsAt,
@@ -94,16 +94,6 @@ var (
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
-
-// WeekdayValidator is a validator for the "weekday" field enum values. It is called by the builders before save.
-func WeekdayValidator(w enums.WeekDay) error {
-	switch w.String() {
-	case "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY":
-		return nil
-	default:
-		return fmt.Errorf("flightschedule: invalid enum value for weekday field: %q", w)
-	}
-}
 
 // ScheduleTypeValidator is a validator for the "schedule_type" field enum values. It is called by the builders before save.
 func ScheduleTypeValidator(st enums.FlightScheduleType) error {

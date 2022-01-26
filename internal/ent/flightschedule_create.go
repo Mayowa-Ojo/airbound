@@ -25,16 +25,16 @@ type FlightScheduleCreate struct {
 	hooks    []Hook
 }
 
-// SetWeekday sets the "weekday" field.
-func (fsc *FlightScheduleCreate) SetWeekday(ed enums.WeekDay) *FlightScheduleCreate {
-	fsc.mutation.SetWeekday(ed)
+// SetWeekDay sets the "week_day" field.
+func (fsc *FlightScheduleCreate) SetWeekDay(cd customtypes.WeekDay) *FlightScheduleCreate {
+	fsc.mutation.SetWeekDay(cd)
 	return fsc
 }
 
-// SetNillableWeekday sets the "weekday" field if the given value is not nil.
-func (fsc *FlightScheduleCreate) SetNillableWeekday(ed *enums.WeekDay) *FlightScheduleCreate {
-	if ed != nil {
-		fsc.SetWeekday(*ed)
+// SetNillableWeekDay sets the "week_day" field if the given value is not nil.
+func (fsc *FlightScheduleCreate) SetNillableWeekDay(cd *customtypes.WeekDay) *FlightScheduleCreate {
+	if cd != nil {
+		fsc.SetWeekDay(*cd)
 	}
 	return fsc
 }
@@ -234,11 +234,6 @@ func (fsc *FlightScheduleCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (fsc *FlightScheduleCreate) check() error {
-	if v, ok := fsc.mutation.Weekday(); ok {
-		if err := flightschedule.WeekdayValidator(v); err != nil {
-			return &ValidationError{Name: "weekday", err: fmt.Errorf(`ent: validator failed for field "FlightSchedule.weekday": %w`, err)}
-		}
-	}
 	if _, ok := fsc.mutation.ScheduleType(); !ok {
 		return &ValidationError{Name: "schedule_type", err: errors.New(`ent: missing required field "FlightSchedule.schedule_type"`)}
 	}
@@ -295,13 +290,13 @@ func (fsc *FlightScheduleCreate) createSpec() (*FlightSchedule, *sqlgraph.Create
 		_node.ID = id
 		_spec.ID.Value = &id
 	}
-	if value, ok := fsc.mutation.Weekday(); ok {
+	if value, ok := fsc.mutation.WeekDay(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeEnum,
+			Type:   field.TypeInt,
 			Value:  value,
-			Column: flightschedule.FieldWeekday,
+			Column: flightschedule.FieldWeekDay,
 		})
-		_node.Weekday = value
+		_node.WeekDay = value
 	}
 	if value, ok := fsc.mutation.ScheduleType(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{

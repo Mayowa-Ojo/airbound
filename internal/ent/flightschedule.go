@@ -20,8 +20,8 @@ type FlightSchedule struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID uuid.UUID `json:"id,omitempty"`
-	// Weekday holds the value of the "weekday" field.
-	Weekday enums.WeekDay `json:"weekday,omitempty"`
+	// WeekDay holds the value of the "week_day" field.
+	WeekDay customtypes.WeekDay `json:"week_day,omitempty"`
 	// ScheduleType holds the value of the "schedule_type" field.
 	ScheduleType enums.FlightScheduleType `json:"schedule_type,omitempty"`
 	// CustomDate holds the value of the "custom_date" field.
@@ -83,8 +83,8 @@ func (*FlightSchedule) scanValues(columns []string) ([]interface{}, error) {
 			values[i] = new(customtypes.Date)
 		case flightschedule.FieldDepartsAt, flightschedule.FieldArrivesAt:
 			values[i] = new(customtypes.Time)
-		case flightschedule.FieldWeekday:
-			values[i] = new(enums.WeekDay)
+		case flightschedule.FieldWeekDay:
+			values[i] = new(sql.NullInt64)
 		case flightschedule.FieldScheduleType:
 			values[i] = new(sql.NullString)
 		case flightschedule.FieldCreatedAt, flightschedule.FieldUpdatedAt:
@@ -114,11 +114,11 @@ func (fs *FlightSchedule) assignValues(columns []string, values []interface{}) e
 			} else if value != nil {
 				fs.ID = *value
 			}
-		case flightschedule.FieldWeekday:
-			if value, ok := values[i].(*enums.WeekDay); !ok {
-				return fmt.Errorf("unexpected type %T for field weekday", values[i])
-			} else if value != nil {
-				fs.Weekday = *value
+		case flightschedule.FieldWeekDay:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field week_day", values[i])
+			} else if value.Valid {
+				fs.WeekDay = customtypes.WeekDay(value.Int64)
 			}
 		case flightschedule.FieldScheduleType:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -201,8 +201,8 @@ func (fs *FlightSchedule) String() string {
 	var builder strings.Builder
 	builder.WriteString("FlightSchedule(")
 	builder.WriteString(fmt.Sprintf("id=%v", fs.ID))
-	builder.WriteString(", weekday=")
-	builder.WriteString(fmt.Sprintf("%v", fs.Weekday))
+	builder.WriteString(", week_day=")
+	builder.WriteString(fmt.Sprintf("%v", fs.WeekDay))
 	builder.WriteString(", schedule_type=")
 	builder.WriteString(fmt.Sprintf("%v", fs.ScheduleType))
 	builder.WriteString(", custom_date=")
