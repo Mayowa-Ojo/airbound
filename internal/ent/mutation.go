@@ -3325,7 +3325,10 @@ type AirlineMutation struct {
 	id               *uuid.UUID
 	name             *string
 	iata_code        *string
+	icao_code        *string
+	call_sign        *string
 	country          *string
+	license_code     *string
 	created_at       *time.Time
 	updated_at       *time.Time
 	clearedFields    map[string]struct{}
@@ -3522,6 +3525,78 @@ func (m *AirlineMutation) ResetIataCode() {
 	m.iata_code = nil
 }
 
+// SetIcaoCode sets the "icao_code" field.
+func (m *AirlineMutation) SetIcaoCode(s string) {
+	m.icao_code = &s
+}
+
+// IcaoCode returns the value of the "icao_code" field in the mutation.
+func (m *AirlineMutation) IcaoCode() (r string, exists bool) {
+	v := m.icao_code
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIcaoCode returns the old "icao_code" field's value of the Airline entity.
+// If the Airline object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirlineMutation) OldIcaoCode(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIcaoCode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIcaoCode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIcaoCode: %w", err)
+	}
+	return oldValue.IcaoCode, nil
+}
+
+// ResetIcaoCode resets all changes to the "icao_code" field.
+func (m *AirlineMutation) ResetIcaoCode() {
+	m.icao_code = nil
+}
+
+// SetCallSign sets the "call_sign" field.
+func (m *AirlineMutation) SetCallSign(s string) {
+	m.call_sign = &s
+}
+
+// CallSign returns the value of the "call_sign" field in the mutation.
+func (m *AirlineMutation) CallSign() (r string, exists bool) {
+	v := m.call_sign
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCallSign returns the old "call_sign" field's value of the Airline entity.
+// If the Airline object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirlineMutation) OldCallSign(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCallSign is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCallSign requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCallSign: %w", err)
+	}
+	return oldValue.CallSign, nil
+}
+
+// ResetCallSign resets all changes to the "call_sign" field.
+func (m *AirlineMutation) ResetCallSign() {
+	m.call_sign = nil
+}
+
 // SetCountry sets the "country" field.
 func (m *AirlineMutation) SetCountry(s string) {
 	m.country = &s
@@ -3556,6 +3631,42 @@ func (m *AirlineMutation) OldCountry(ctx context.Context) (v string, err error) 
 // ResetCountry resets all changes to the "country" field.
 func (m *AirlineMutation) ResetCountry() {
 	m.country = nil
+}
+
+// SetLicenseCode sets the "license_code" field.
+func (m *AirlineMutation) SetLicenseCode(s string) {
+	m.license_code = &s
+}
+
+// LicenseCode returns the value of the "license_code" field in the mutation.
+func (m *AirlineMutation) LicenseCode() (r string, exists bool) {
+	v := m.license_code
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLicenseCode returns the old "license_code" field's value of the Airline entity.
+// If the Airline object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirlineMutation) OldLicenseCode(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLicenseCode is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLicenseCode requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLicenseCode: %w", err)
+	}
+	return oldValue.LicenseCode, nil
+}
+
+// ResetLicenseCode resets all changes to the "license_code" field.
+func (m *AirlineMutation) ResetLicenseCode() {
+	m.license_code = nil
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -3865,15 +3976,24 @@ func (m *AirlineMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *AirlineMutation) Fields() []string {
-	fields := make([]string, 0, 5)
+	fields := make([]string, 0, 8)
 	if m.name != nil {
 		fields = append(fields, airline.FieldName)
 	}
 	if m.iata_code != nil {
 		fields = append(fields, airline.FieldIataCode)
 	}
+	if m.icao_code != nil {
+		fields = append(fields, airline.FieldIcaoCode)
+	}
+	if m.call_sign != nil {
+		fields = append(fields, airline.FieldCallSign)
+	}
 	if m.country != nil {
 		fields = append(fields, airline.FieldCountry)
+	}
+	if m.license_code != nil {
+		fields = append(fields, airline.FieldLicenseCode)
 	}
 	if m.created_at != nil {
 		fields = append(fields, airline.FieldCreatedAt)
@@ -3893,8 +4013,14 @@ func (m *AirlineMutation) Field(name string) (ent.Value, bool) {
 		return m.Name()
 	case airline.FieldIataCode:
 		return m.IataCode()
+	case airline.FieldIcaoCode:
+		return m.IcaoCode()
+	case airline.FieldCallSign:
+		return m.CallSign()
 	case airline.FieldCountry:
 		return m.Country()
+	case airline.FieldLicenseCode:
+		return m.LicenseCode()
 	case airline.FieldCreatedAt:
 		return m.CreatedAt()
 	case airline.FieldUpdatedAt:
@@ -3912,8 +4038,14 @@ func (m *AirlineMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldName(ctx)
 	case airline.FieldIataCode:
 		return m.OldIataCode(ctx)
+	case airline.FieldIcaoCode:
+		return m.OldIcaoCode(ctx)
+	case airline.FieldCallSign:
+		return m.OldCallSign(ctx)
 	case airline.FieldCountry:
 		return m.OldCountry(ctx)
+	case airline.FieldLicenseCode:
+		return m.OldLicenseCode(ctx)
 	case airline.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case airline.FieldUpdatedAt:
@@ -3941,12 +4073,33 @@ func (m *AirlineMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetIataCode(v)
 		return nil
+	case airline.FieldIcaoCode:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIcaoCode(v)
+		return nil
+	case airline.FieldCallSign:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCallSign(v)
+		return nil
 	case airline.FieldCountry:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetCountry(v)
+		return nil
+	case airline.FieldLicenseCode:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLicenseCode(v)
 		return nil
 	case airline.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -4017,8 +4170,17 @@ func (m *AirlineMutation) ResetField(name string) error {
 	case airline.FieldIataCode:
 		m.ResetIataCode()
 		return nil
+	case airline.FieldIcaoCode:
+		m.ResetIcaoCode()
+		return nil
+	case airline.FieldCallSign:
+		m.ResetCallSign()
+		return nil
 	case airline.FieldCountry:
 		m.ResetCountry()
+		return nil
+	case airline.FieldLicenseCode:
+		m.ResetLicenseCode()
 		return nil
 	case airline.FieldCreatedAt:
 		m.ResetCreatedAt()

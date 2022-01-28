@@ -19,8 +19,8 @@ func (Airport) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}).Default(uuid.New).Unique().Immutable(),
 		field.String("name").MaxLen(250),
-		field.String("iata_code").MaxLen(3),
-		field.String("icao_code").MaxLen(4),
+		field.String("iata_code").MaxLen(3).Unique(),
+		field.String("icao_code").MaxLen(4).Unique(),
 		field.Time("created_at").Default(time.Now),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 	}

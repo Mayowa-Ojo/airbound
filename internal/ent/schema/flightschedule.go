@@ -32,10 +32,8 @@ func (FlightSchedule) Fields() []ent.Field {
 		field.Enum("schedule_type").GoType(enums.FlightScheduleType("")),
 		field.String("custom_date").GoType(customtypes.Date{}).SchemaType(map[string]string{dialect.Postgres: "date"}).Optional(),
 		// temporarily storing this as 'string' till 'time without timezone' is added to the scanColumns method - ref: https://github.com/ent/ent/issues/2244
-		field.String("departs_at").GoType(customtypes.Time{}),
-		// field.String("departs_at").GoType(customtypes.Time{}).SchemaType(map[string]string{dialect.Postgres: "time"}),
-		field.String("arrives_at").GoType(customtypes.Time{}),
-		// field.String("arrives_at").GoType(customtypes.Time{}).SchemaType(map[string]string{dialect.Postgres: "time"}),
+		field.String("departs_at").GoType(customtypes.Time{}).SchemaType(map[string]string{dialect.Postgres: "time"}),
+		field.String("arrives_at").GoType(customtypes.Time{}).SchemaType(map[string]string{dialect.Postgres: "time"}),
 		field.Time("created_at").Default(time.Now),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 	}

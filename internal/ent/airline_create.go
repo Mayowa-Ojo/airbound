@@ -37,9 +37,27 @@ func (ac *AirlineCreate) SetIataCode(s string) *AirlineCreate {
 	return ac
 }
 
+// SetIcaoCode sets the "icao_code" field.
+func (ac *AirlineCreate) SetIcaoCode(s string) *AirlineCreate {
+	ac.mutation.SetIcaoCode(s)
+	return ac
+}
+
+// SetCallSign sets the "call_sign" field.
+func (ac *AirlineCreate) SetCallSign(s string) *AirlineCreate {
+	ac.mutation.SetCallSign(s)
+	return ac
+}
+
 // SetCountry sets the "country" field.
 func (ac *AirlineCreate) SetCountry(s string) *AirlineCreate {
 	ac.mutation.SetCountry(s)
+	return ac
+}
+
+// SetLicenseCode sets the "license_code" field.
+func (ac *AirlineCreate) SetLicenseCode(s string) *AirlineCreate {
+	ac.mutation.SetLicenseCode(s)
 	return ac
 }
 
@@ -248,12 +266,36 @@ func (ac *AirlineCreate) check() error {
 			return &ValidationError{Name: "iata_code", err: fmt.Errorf(`ent: validator failed for field "Airline.iata_code": %w`, err)}
 		}
 	}
+	if _, ok := ac.mutation.IcaoCode(); !ok {
+		return &ValidationError{Name: "icao_code", err: errors.New(`ent: missing required field "Airline.icao_code"`)}
+	}
+	if v, ok := ac.mutation.IcaoCode(); ok {
+		if err := airline.IcaoCodeValidator(v); err != nil {
+			return &ValidationError{Name: "icao_code", err: fmt.Errorf(`ent: validator failed for field "Airline.icao_code": %w`, err)}
+		}
+	}
+	if _, ok := ac.mutation.CallSign(); !ok {
+		return &ValidationError{Name: "call_sign", err: errors.New(`ent: missing required field "Airline.call_sign"`)}
+	}
+	if v, ok := ac.mutation.CallSign(); ok {
+		if err := airline.CallSignValidator(v); err != nil {
+			return &ValidationError{Name: "call_sign", err: fmt.Errorf(`ent: validator failed for field "Airline.call_sign": %w`, err)}
+		}
+	}
 	if _, ok := ac.mutation.Country(); !ok {
 		return &ValidationError{Name: "country", err: errors.New(`ent: missing required field "Airline.country"`)}
 	}
 	if v, ok := ac.mutation.Country(); ok {
 		if err := airline.CountryValidator(v); err != nil {
 			return &ValidationError{Name: "country", err: fmt.Errorf(`ent: validator failed for field "Airline.country": %w`, err)}
+		}
+	}
+	if _, ok := ac.mutation.LicenseCode(); !ok {
+		return &ValidationError{Name: "license_code", err: errors.New(`ent: missing required field "Airline.license_code"`)}
+	}
+	if v, ok := ac.mutation.LicenseCode(); ok {
+		if err := airline.LicenseCodeValidator(v); err != nil {
+			return &ValidationError{Name: "license_code", err: fmt.Errorf(`ent: validator failed for field "Airline.license_code": %w`, err)}
 		}
 	}
 	if _, ok := ac.mutation.CreatedAt(); !ok {
@@ -314,6 +356,22 @@ func (ac *AirlineCreate) createSpec() (*Airline, *sqlgraph.CreateSpec) {
 		})
 		_node.IataCode = value
 	}
+	if value, ok := ac.mutation.IcaoCode(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: airline.FieldIcaoCode,
+		})
+		_node.IcaoCode = value
+	}
+	if value, ok := ac.mutation.CallSign(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: airline.FieldCallSign,
+		})
+		_node.CallSign = value
+	}
 	if value, ok := ac.mutation.Country(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
@@ -321,6 +379,14 @@ func (ac *AirlineCreate) createSpec() (*Airline, *sqlgraph.CreateSpec) {
 			Column: airline.FieldCountry,
 		})
 		_node.Country = value
+	}
+	if value, ok := ac.mutation.LicenseCode(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: airline.FieldLicenseCode,
+		})
+		_node.LicenseCode = value
 	}
 	if value, ok := ac.mutation.CreatedAt(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{

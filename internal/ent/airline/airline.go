@@ -17,8 +17,14 @@ const (
 	FieldName = "name"
 	// FieldIataCode holds the string denoting the iata_code field in the database.
 	FieldIataCode = "iata_code"
+	// FieldIcaoCode holds the string denoting the icao_code field in the database.
+	FieldIcaoCode = "icao_code"
+	// FieldCallSign holds the string denoting the call_sign field in the database.
+	FieldCallSign = "call_sign"
 	// FieldCountry holds the string denoting the country field in the database.
 	FieldCountry = "country"
+	// FieldLicenseCode holds the string denoting the license_code field in the database.
+	FieldLicenseCode = "license_code"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
@@ -68,7 +74,10 @@ var Columns = []string{
 	FieldID,
 	FieldName,
 	FieldIataCode,
+	FieldIcaoCode,
+	FieldCallSign,
 	FieldCountry,
+	FieldLicenseCode,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }
@@ -88,8 +97,14 @@ var (
 	NameValidator func(string) error
 	// IataCodeValidator is a validator for the "iata_code" field. It is called by the builders before save.
 	IataCodeValidator func(string) error
+	// IcaoCodeValidator is a validator for the "icao_code" field. It is called by the builders before save.
+	IcaoCodeValidator func(string) error
+	// CallSignValidator is a validator for the "call_sign" field. It is called by the builders before save.
+	CallSignValidator func(string) error
 	// CountryValidator is a validator for the "country" field. It is called by the builders before save.
 	CountryValidator func(string) error
+	// LicenseCodeValidator is a validator for the "license_code" field. It is called by the builders before save.
+	LicenseCodeValidator func(string) error
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.

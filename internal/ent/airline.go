@@ -21,8 +21,14 @@ type Airline struct {
 	Name string `json:"name,omitempty"`
 	// IataCode holds the value of the "iata_code" field.
 	IataCode string `json:"iata_code,omitempty"`
+	// IcaoCode holds the value of the "icao_code" field.
+	IcaoCode string `json:"icao_code,omitempty"`
+	// CallSign holds the value of the "call_sign" field.
+	CallSign string `json:"call_sign,omitempty"`
 	// Country holds the value of the "country" field.
 	Country string `json:"country,omitempty"`
+	// LicenseCode holds the value of the "license_code" field.
+	LicenseCode string `json:"license_code,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -88,7 +94,7 @@ func (*Airline) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case airline.FieldName, airline.FieldIataCode, airline.FieldCountry:
+		case airline.FieldName, airline.FieldIataCode, airline.FieldIcaoCode, airline.FieldCallSign, airline.FieldCountry, airline.FieldLicenseCode:
 			values[i] = new(sql.NullString)
 		case airline.FieldCreatedAt, airline.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -127,11 +133,29 @@ func (a *Airline) assignValues(columns []string, values []interface{}) error {
 			} else if value.Valid {
 				a.IataCode = value.String
 			}
+		case airline.FieldIcaoCode:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field icao_code", values[i])
+			} else if value.Valid {
+				a.IcaoCode = value.String
+			}
+		case airline.FieldCallSign:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field call_sign", values[i])
+			} else if value.Valid {
+				a.CallSign = value.String
+			}
 		case airline.FieldCountry:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field country", values[i])
 			} else if value.Valid {
 				a.Country = value.String
+			}
+		case airline.FieldLicenseCode:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field license_code", values[i])
+			} else if value.Valid {
+				a.LicenseCode = value.String
 			}
 		case airline.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -197,8 +221,14 @@ func (a *Airline) String() string {
 	builder.WriteString(a.Name)
 	builder.WriteString(", iata_code=")
 	builder.WriteString(a.IataCode)
+	builder.WriteString(", icao_code=")
+	builder.WriteString(a.IcaoCode)
+	builder.WriteString(", call_sign=")
+	builder.WriteString(a.CallSign)
 	builder.WriteString(", country=")
 	builder.WriteString(a.Country)
+	builder.WriteString(", license_code=")
+	builder.WriteString(a.LicenseCode)
 	builder.WriteString(", created_at=")
 	builder.WriteString(a.CreatedAt.Format(time.ANSIC))
 	builder.WriteString(", updated_at=")

@@ -45,9 +45,27 @@ func (au *AirlineUpdate) SetIataCode(s string) *AirlineUpdate {
 	return au
 }
 
+// SetIcaoCode sets the "icao_code" field.
+func (au *AirlineUpdate) SetIcaoCode(s string) *AirlineUpdate {
+	au.mutation.SetIcaoCode(s)
+	return au
+}
+
+// SetCallSign sets the "call_sign" field.
+func (au *AirlineUpdate) SetCallSign(s string) *AirlineUpdate {
+	au.mutation.SetCallSign(s)
+	return au
+}
+
 // SetCountry sets the "country" field.
 func (au *AirlineUpdate) SetCountry(s string) *AirlineUpdate {
 	au.mutation.SetCountry(s)
+	return au
+}
+
+// SetLicenseCode sets the "license_code" field.
+func (au *AirlineUpdate) SetLicenseCode(s string) *AirlineUpdate {
+	au.mutation.SetLicenseCode(s)
 	return au
 }
 
@@ -301,9 +319,24 @@ func (au *AirlineUpdate) check() error {
 			return &ValidationError{Name: "iata_code", err: fmt.Errorf(`ent: validator failed for field "Airline.iata_code": %w`, err)}
 		}
 	}
+	if v, ok := au.mutation.IcaoCode(); ok {
+		if err := airline.IcaoCodeValidator(v); err != nil {
+			return &ValidationError{Name: "icao_code", err: fmt.Errorf(`ent: validator failed for field "Airline.icao_code": %w`, err)}
+		}
+	}
+	if v, ok := au.mutation.CallSign(); ok {
+		if err := airline.CallSignValidator(v); err != nil {
+			return &ValidationError{Name: "call_sign", err: fmt.Errorf(`ent: validator failed for field "Airline.call_sign": %w`, err)}
+		}
+	}
 	if v, ok := au.mutation.Country(); ok {
 		if err := airline.CountryValidator(v); err != nil {
 			return &ValidationError{Name: "country", err: fmt.Errorf(`ent: validator failed for field "Airline.country": %w`, err)}
+		}
+	}
+	if v, ok := au.mutation.LicenseCode(); ok {
+		if err := airline.LicenseCodeValidator(v); err != nil {
+			return &ValidationError{Name: "license_code", err: fmt.Errorf(`ent: validator failed for field "Airline.license_code": %w`, err)}
 		}
 	}
 	return nil
@@ -341,11 +374,32 @@ func (au *AirlineUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: airline.FieldIataCode,
 		})
 	}
+	if value, ok := au.mutation.IcaoCode(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: airline.FieldIcaoCode,
+		})
+	}
+	if value, ok := au.mutation.CallSign(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: airline.FieldCallSign,
+		})
+	}
 	if value, ok := au.mutation.Country(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  value,
 			Column: airline.FieldCountry,
+		})
+	}
+	if value, ok := au.mutation.LicenseCode(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: airline.FieldLicenseCode,
 		})
 	}
 	if value, ok := au.mutation.CreatedAt(); ok {
@@ -609,9 +663,27 @@ func (auo *AirlineUpdateOne) SetIataCode(s string) *AirlineUpdateOne {
 	return auo
 }
 
+// SetIcaoCode sets the "icao_code" field.
+func (auo *AirlineUpdateOne) SetIcaoCode(s string) *AirlineUpdateOne {
+	auo.mutation.SetIcaoCode(s)
+	return auo
+}
+
+// SetCallSign sets the "call_sign" field.
+func (auo *AirlineUpdateOne) SetCallSign(s string) *AirlineUpdateOne {
+	auo.mutation.SetCallSign(s)
+	return auo
+}
+
 // SetCountry sets the "country" field.
 func (auo *AirlineUpdateOne) SetCountry(s string) *AirlineUpdateOne {
 	auo.mutation.SetCountry(s)
+	return auo
+}
+
+// SetLicenseCode sets the "license_code" field.
+func (auo *AirlineUpdateOne) SetLicenseCode(s string) *AirlineUpdateOne {
+	auo.mutation.SetLicenseCode(s)
 	return auo
 }
 
@@ -872,9 +944,24 @@ func (auo *AirlineUpdateOne) check() error {
 			return &ValidationError{Name: "iata_code", err: fmt.Errorf(`ent: validator failed for field "Airline.iata_code": %w`, err)}
 		}
 	}
+	if v, ok := auo.mutation.IcaoCode(); ok {
+		if err := airline.IcaoCodeValidator(v); err != nil {
+			return &ValidationError{Name: "icao_code", err: fmt.Errorf(`ent: validator failed for field "Airline.icao_code": %w`, err)}
+		}
+	}
+	if v, ok := auo.mutation.CallSign(); ok {
+		if err := airline.CallSignValidator(v); err != nil {
+			return &ValidationError{Name: "call_sign", err: fmt.Errorf(`ent: validator failed for field "Airline.call_sign": %w`, err)}
+		}
+	}
 	if v, ok := auo.mutation.Country(); ok {
 		if err := airline.CountryValidator(v); err != nil {
 			return &ValidationError{Name: "country", err: fmt.Errorf(`ent: validator failed for field "Airline.country": %w`, err)}
+		}
+	}
+	if v, ok := auo.mutation.LicenseCode(); ok {
+		if err := airline.LicenseCodeValidator(v); err != nil {
+			return &ValidationError{Name: "license_code", err: fmt.Errorf(`ent: validator failed for field "Airline.license_code": %w`, err)}
 		}
 	}
 	return nil
@@ -929,11 +1016,32 @@ func (auo *AirlineUpdateOne) sqlSave(ctx context.Context) (_node *Airline, err e
 			Column: airline.FieldIataCode,
 		})
 	}
+	if value, ok := auo.mutation.IcaoCode(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: airline.FieldIcaoCode,
+		})
+	}
+	if value, ok := auo.mutation.CallSign(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: airline.FieldCallSign,
+		})
+	}
 	if value, ok := auo.mutation.Country(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  value,
 			Column: airline.FieldCountry,
+		})
+	}
+	if value, ok := auo.mutation.LicenseCode(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: airline.FieldLicenseCode,
 		})
 	}
 	if value, ok := auo.mutation.CreatedAt(); ok {

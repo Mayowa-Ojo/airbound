@@ -164,16 +164,28 @@ func init() {
 	airlineDescIataCode := airlineFields[2].Descriptor()
 	// airline.IataCodeValidator is a validator for the "iata_code" field. It is called by the builders before save.
 	airline.IataCodeValidator = airlineDescIataCode.Validators[0].(func(string) error)
+	// airlineDescIcaoCode is the schema descriptor for icao_code field.
+	airlineDescIcaoCode := airlineFields[3].Descriptor()
+	// airline.IcaoCodeValidator is a validator for the "icao_code" field. It is called by the builders before save.
+	airline.IcaoCodeValidator = airlineDescIcaoCode.Validators[0].(func(string) error)
+	// airlineDescCallSign is the schema descriptor for call_sign field.
+	airlineDescCallSign := airlineFields[4].Descriptor()
+	// airline.CallSignValidator is a validator for the "call_sign" field. It is called by the builders before save.
+	airline.CallSignValidator = airlineDescCallSign.Validators[0].(func(string) error)
 	// airlineDescCountry is the schema descriptor for country field.
-	airlineDescCountry := airlineFields[3].Descriptor()
+	airlineDescCountry := airlineFields[5].Descriptor()
 	// airline.CountryValidator is a validator for the "country" field. It is called by the builders before save.
 	airline.CountryValidator = airlineDescCountry.Validators[0].(func(string) error)
+	// airlineDescLicenseCode is the schema descriptor for license_code field.
+	airlineDescLicenseCode := airlineFields[6].Descriptor()
+	// airline.LicenseCodeValidator is a validator for the "license_code" field. It is called by the builders before save.
+	airline.LicenseCodeValidator = airlineDescLicenseCode.Validators[0].(func(string) error)
 	// airlineDescCreatedAt is the schema descriptor for created_at field.
-	airlineDescCreatedAt := airlineFields[4].Descriptor()
+	airlineDescCreatedAt := airlineFields[7].Descriptor()
 	// airline.DefaultCreatedAt holds the default value on creation for the created_at field.
 	airline.DefaultCreatedAt = airlineDescCreatedAt.Default.(func() time.Time)
 	// airlineDescUpdatedAt is the schema descriptor for updated_at field.
-	airlineDescUpdatedAt := airlineFields[5].Descriptor()
+	airlineDescUpdatedAt := airlineFields[8].Descriptor()
 	// airline.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	airline.DefaultUpdatedAt = airlineDescUpdatedAt.Default.(func() time.Time)
 	// airline.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.

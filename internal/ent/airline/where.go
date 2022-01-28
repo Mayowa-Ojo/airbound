@@ -108,10 +108,31 @@ func IataCode(v string) predicate.Airline {
 	})
 }
 
+// IcaoCode applies equality check predicate on the "icao_code" field. It's identical to IcaoCodeEQ.
+func IcaoCode(v string) predicate.Airline {
+	return predicate.Airline(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldIcaoCode), v))
+	})
+}
+
+// CallSign applies equality check predicate on the "call_sign" field. It's identical to CallSignEQ.
+func CallSign(v string) predicate.Airline {
+	return predicate.Airline(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldCallSign), v))
+	})
+}
+
 // Country applies equality check predicate on the "country" field. It's identical to CountryEQ.
 func Country(v string) predicate.Airline {
 	return predicate.Airline(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldCountry), v))
+	})
+}
+
+// LicenseCode applies equality check predicate on the "license_code" field. It's identical to LicenseCodeEQ.
+func LicenseCode(v string) predicate.Airline {
+	return predicate.Airline(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldLicenseCode), v))
 	})
 }
 
@@ -351,6 +372,228 @@ func IataCodeContainsFold(v string) predicate.Airline {
 	})
 }
 
+// IcaoCodeEQ applies the EQ predicate on the "icao_code" field.
+func IcaoCodeEQ(v string) predicate.Airline {
+	return predicate.Airline(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldIcaoCode), v))
+	})
+}
+
+// IcaoCodeNEQ applies the NEQ predicate on the "icao_code" field.
+func IcaoCodeNEQ(v string) predicate.Airline {
+	return predicate.Airline(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldIcaoCode), v))
+	})
+}
+
+// IcaoCodeIn applies the In predicate on the "icao_code" field.
+func IcaoCodeIn(vs ...string) predicate.Airline {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Airline(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldIcaoCode), v...))
+	})
+}
+
+// IcaoCodeNotIn applies the NotIn predicate on the "icao_code" field.
+func IcaoCodeNotIn(vs ...string) predicate.Airline {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Airline(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldIcaoCode), v...))
+	})
+}
+
+// IcaoCodeGT applies the GT predicate on the "icao_code" field.
+func IcaoCodeGT(v string) predicate.Airline {
+	return predicate.Airline(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldIcaoCode), v))
+	})
+}
+
+// IcaoCodeGTE applies the GTE predicate on the "icao_code" field.
+func IcaoCodeGTE(v string) predicate.Airline {
+	return predicate.Airline(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldIcaoCode), v))
+	})
+}
+
+// IcaoCodeLT applies the LT predicate on the "icao_code" field.
+func IcaoCodeLT(v string) predicate.Airline {
+	return predicate.Airline(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldIcaoCode), v))
+	})
+}
+
+// IcaoCodeLTE applies the LTE predicate on the "icao_code" field.
+func IcaoCodeLTE(v string) predicate.Airline {
+	return predicate.Airline(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldIcaoCode), v))
+	})
+}
+
+// IcaoCodeContains applies the Contains predicate on the "icao_code" field.
+func IcaoCodeContains(v string) predicate.Airline {
+	return predicate.Airline(func(s *sql.Selector) {
+		s.Where(sql.Contains(s.C(FieldIcaoCode), v))
+	})
+}
+
+// IcaoCodeHasPrefix applies the HasPrefix predicate on the "icao_code" field.
+func IcaoCodeHasPrefix(v string) predicate.Airline {
+	return predicate.Airline(func(s *sql.Selector) {
+		s.Where(sql.HasPrefix(s.C(FieldIcaoCode), v))
+	})
+}
+
+// IcaoCodeHasSuffix applies the HasSuffix predicate on the "icao_code" field.
+func IcaoCodeHasSuffix(v string) predicate.Airline {
+	return predicate.Airline(func(s *sql.Selector) {
+		s.Where(sql.HasSuffix(s.C(FieldIcaoCode), v))
+	})
+}
+
+// IcaoCodeEqualFold applies the EqualFold predicate on the "icao_code" field.
+func IcaoCodeEqualFold(v string) predicate.Airline {
+	return predicate.Airline(func(s *sql.Selector) {
+		s.Where(sql.EqualFold(s.C(FieldIcaoCode), v))
+	})
+}
+
+// IcaoCodeContainsFold applies the ContainsFold predicate on the "icao_code" field.
+func IcaoCodeContainsFold(v string) predicate.Airline {
+	return predicate.Airline(func(s *sql.Selector) {
+		s.Where(sql.ContainsFold(s.C(FieldIcaoCode), v))
+	})
+}
+
+// CallSignEQ applies the EQ predicate on the "call_sign" field.
+func CallSignEQ(v string) predicate.Airline {
+	return predicate.Airline(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldCallSign), v))
+	})
+}
+
+// CallSignNEQ applies the NEQ predicate on the "call_sign" field.
+func CallSignNEQ(v string) predicate.Airline {
+	return predicate.Airline(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldCallSign), v))
+	})
+}
+
+// CallSignIn applies the In predicate on the "call_sign" field.
+func CallSignIn(vs ...string) predicate.Airline {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Airline(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldCallSign), v...))
+	})
+}
+
+// CallSignNotIn applies the NotIn predicate on the "call_sign" field.
+func CallSignNotIn(vs ...string) predicate.Airline {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Airline(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldCallSign), v...))
+	})
+}
+
+// CallSignGT applies the GT predicate on the "call_sign" field.
+func CallSignGT(v string) predicate.Airline {
+	return predicate.Airline(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldCallSign), v))
+	})
+}
+
+// CallSignGTE applies the GTE predicate on the "call_sign" field.
+func CallSignGTE(v string) predicate.Airline {
+	return predicate.Airline(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldCallSign), v))
+	})
+}
+
+// CallSignLT applies the LT predicate on the "call_sign" field.
+func CallSignLT(v string) predicate.Airline {
+	return predicate.Airline(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldCallSign), v))
+	})
+}
+
+// CallSignLTE applies the LTE predicate on the "call_sign" field.
+func CallSignLTE(v string) predicate.Airline {
+	return predicate.Airline(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldCallSign), v))
+	})
+}
+
+// CallSignContains applies the Contains predicate on the "call_sign" field.
+func CallSignContains(v string) predicate.Airline {
+	return predicate.Airline(func(s *sql.Selector) {
+		s.Where(sql.Contains(s.C(FieldCallSign), v))
+	})
+}
+
+// CallSignHasPrefix applies the HasPrefix predicate on the "call_sign" field.
+func CallSignHasPrefix(v string) predicate.Airline {
+	return predicate.Airline(func(s *sql.Selector) {
+		s.Where(sql.HasPrefix(s.C(FieldCallSign), v))
+	})
+}
+
+// CallSignHasSuffix applies the HasSuffix predicate on the "call_sign" field.
+func CallSignHasSuffix(v string) predicate.Airline {
+	return predicate.Airline(func(s *sql.Selector) {
+		s.Where(sql.HasSuffix(s.C(FieldCallSign), v))
+	})
+}
+
+// CallSignEqualFold applies the EqualFold predicate on the "call_sign" field.
+func CallSignEqualFold(v string) predicate.Airline {
+	return predicate.Airline(func(s *sql.Selector) {
+		s.Where(sql.EqualFold(s.C(FieldCallSign), v))
+	})
+}
+
+// CallSignContainsFold applies the ContainsFold predicate on the "call_sign" field.
+func CallSignContainsFold(v string) predicate.Airline {
+	return predicate.Airline(func(s *sql.Selector) {
+		s.Where(sql.ContainsFold(s.C(FieldCallSign), v))
+	})
+}
+
 // CountryEQ applies the EQ predicate on the "country" field.
 func CountryEQ(v string) predicate.Airline {
 	return predicate.Airline(func(s *sql.Selector) {
@@ -459,6 +702,117 @@ func CountryEqualFold(v string) predicate.Airline {
 func CountryContainsFold(v string) predicate.Airline {
 	return predicate.Airline(func(s *sql.Selector) {
 		s.Where(sql.ContainsFold(s.C(FieldCountry), v))
+	})
+}
+
+// LicenseCodeEQ applies the EQ predicate on the "license_code" field.
+func LicenseCodeEQ(v string) predicate.Airline {
+	return predicate.Airline(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldLicenseCode), v))
+	})
+}
+
+// LicenseCodeNEQ applies the NEQ predicate on the "license_code" field.
+func LicenseCodeNEQ(v string) predicate.Airline {
+	return predicate.Airline(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldLicenseCode), v))
+	})
+}
+
+// LicenseCodeIn applies the In predicate on the "license_code" field.
+func LicenseCodeIn(vs ...string) predicate.Airline {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Airline(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldLicenseCode), v...))
+	})
+}
+
+// LicenseCodeNotIn applies the NotIn predicate on the "license_code" field.
+func LicenseCodeNotIn(vs ...string) predicate.Airline {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Airline(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldLicenseCode), v...))
+	})
+}
+
+// LicenseCodeGT applies the GT predicate on the "license_code" field.
+func LicenseCodeGT(v string) predicate.Airline {
+	return predicate.Airline(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldLicenseCode), v))
+	})
+}
+
+// LicenseCodeGTE applies the GTE predicate on the "license_code" field.
+func LicenseCodeGTE(v string) predicate.Airline {
+	return predicate.Airline(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldLicenseCode), v))
+	})
+}
+
+// LicenseCodeLT applies the LT predicate on the "license_code" field.
+func LicenseCodeLT(v string) predicate.Airline {
+	return predicate.Airline(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldLicenseCode), v))
+	})
+}
+
+// LicenseCodeLTE applies the LTE predicate on the "license_code" field.
+func LicenseCodeLTE(v string) predicate.Airline {
+	return predicate.Airline(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldLicenseCode), v))
+	})
+}
+
+// LicenseCodeContains applies the Contains predicate on the "license_code" field.
+func LicenseCodeContains(v string) predicate.Airline {
+	return predicate.Airline(func(s *sql.Selector) {
+		s.Where(sql.Contains(s.C(FieldLicenseCode), v))
+	})
+}
+
+// LicenseCodeHasPrefix applies the HasPrefix predicate on the "license_code" field.
+func LicenseCodeHasPrefix(v string) predicate.Airline {
+	return predicate.Airline(func(s *sql.Selector) {
+		s.Where(sql.HasPrefix(s.C(FieldLicenseCode), v))
+	})
+}
+
+// LicenseCodeHasSuffix applies the HasSuffix predicate on the "license_code" field.
+func LicenseCodeHasSuffix(v string) predicate.Airline {
+	return predicate.Airline(func(s *sql.Selector) {
+		s.Where(sql.HasSuffix(s.C(FieldLicenseCode), v))
+	})
+}
+
+// LicenseCodeEqualFold applies the EqualFold predicate on the "license_code" field.
+func LicenseCodeEqualFold(v string) predicate.Airline {
+	return predicate.Airline(func(s *sql.Selector) {
+		s.Where(sql.EqualFold(s.C(FieldLicenseCode), v))
+	})
+}
+
+// LicenseCodeContainsFold applies the ContainsFold predicate on the "license_code" field.
+func LicenseCodeContainsFold(v string) predicate.Airline {
+	return predicate.Airline(func(s *sql.Selector) {
+		s.Where(sql.ContainsFold(s.C(FieldLicenseCode), v))
 	})
 }
 
