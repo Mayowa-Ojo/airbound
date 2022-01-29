@@ -33,7 +33,9 @@ func NewCustomLogger() *CustomLogger {
 	defaultLogger := logrus.New()
 
 	customLogger := &CustomLogger{defaultLogger}
-	customLogger.Formatter = &logrus.JSONFormatter{}
+	customLogger.Formatter = &logrus.JSONFormatter{
+		DisableHTMLEscape: true,
+	}
 
 	return customLogger
 }
