@@ -136,6 +136,20 @@ func ManufacturedAt(v time.Time) predicate.Aircraft {
 	})
 }
 
+// IsGrounded applies equality check predicate on the "is_grounded" field. It's identical to IsGroundedEQ.
+func IsGrounded(v bool) predicate.Aircraft {
+	return predicate.Aircraft(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldIsGrounded), v))
+	})
+}
+
+// GroundedAt applies equality check predicate on the "grounded_at" field. It's identical to GroundedAtEQ.
+func GroundedAt(v time.Time) predicate.Aircraft {
+	return predicate.Aircraft(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldGroundedAt), v))
+	})
+}
+
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.Aircraft {
 	return predicate.Aircraft(func(s *sql.Selector) {
@@ -708,6 +722,110 @@ func ManufacturedAtLT(v time.Time) predicate.Aircraft {
 func ManufacturedAtLTE(v time.Time) predicate.Aircraft {
 	return predicate.Aircraft(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldManufacturedAt), v))
+	})
+}
+
+// IsGroundedEQ applies the EQ predicate on the "is_grounded" field.
+func IsGroundedEQ(v bool) predicate.Aircraft {
+	return predicate.Aircraft(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldIsGrounded), v))
+	})
+}
+
+// IsGroundedNEQ applies the NEQ predicate on the "is_grounded" field.
+func IsGroundedNEQ(v bool) predicate.Aircraft {
+	return predicate.Aircraft(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldIsGrounded), v))
+	})
+}
+
+// GroundedAtEQ applies the EQ predicate on the "grounded_at" field.
+func GroundedAtEQ(v time.Time) predicate.Aircraft {
+	return predicate.Aircraft(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldGroundedAt), v))
+	})
+}
+
+// GroundedAtNEQ applies the NEQ predicate on the "grounded_at" field.
+func GroundedAtNEQ(v time.Time) predicate.Aircraft {
+	return predicate.Aircraft(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldGroundedAt), v))
+	})
+}
+
+// GroundedAtIn applies the In predicate on the "grounded_at" field.
+func GroundedAtIn(vs ...time.Time) predicate.Aircraft {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Aircraft(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldGroundedAt), v...))
+	})
+}
+
+// GroundedAtNotIn applies the NotIn predicate on the "grounded_at" field.
+func GroundedAtNotIn(vs ...time.Time) predicate.Aircraft {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Aircraft(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldGroundedAt), v...))
+	})
+}
+
+// GroundedAtGT applies the GT predicate on the "grounded_at" field.
+func GroundedAtGT(v time.Time) predicate.Aircraft {
+	return predicate.Aircraft(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldGroundedAt), v))
+	})
+}
+
+// GroundedAtGTE applies the GTE predicate on the "grounded_at" field.
+func GroundedAtGTE(v time.Time) predicate.Aircraft {
+	return predicate.Aircraft(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldGroundedAt), v))
+	})
+}
+
+// GroundedAtLT applies the LT predicate on the "grounded_at" field.
+func GroundedAtLT(v time.Time) predicate.Aircraft {
+	return predicate.Aircraft(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldGroundedAt), v))
+	})
+}
+
+// GroundedAtLTE applies the LTE predicate on the "grounded_at" field.
+func GroundedAtLTE(v time.Time) predicate.Aircraft {
+	return predicate.Aircraft(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldGroundedAt), v))
+	})
+}
+
+// GroundedAtIsNil applies the IsNil predicate on the "grounded_at" field.
+func GroundedAtIsNil() predicate.Aircraft {
+	return predicate.Aircraft(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldGroundedAt)))
+	})
+}
+
+// GroundedAtNotNil applies the NotNil predicate on the "grounded_at" field.
+func GroundedAtNotNil() predicate.Aircraft {
+	return predicate.Aircraft(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldGroundedAt)))
 	})
 }
 

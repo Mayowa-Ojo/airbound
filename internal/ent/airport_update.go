@@ -51,6 +51,45 @@ func (au *AirportUpdate) SetIcaoCode(s string) *AirportUpdate {
 	return au
 }
 
+// SetElevation sets the "elevation" field.
+func (au *AirportUpdate) SetElevation(i int) *AirportUpdate {
+	au.mutation.ResetElevation()
+	au.mutation.SetElevation(i)
+	return au
+}
+
+// AddElevation adds i to the "elevation" field.
+func (au *AirportUpdate) AddElevation(i int) *AirportUpdate {
+	au.mutation.AddElevation(i)
+	return au
+}
+
+// SetTerminals sets the "terminals" field.
+func (au *AirportUpdate) SetTerminals(i int) *AirportUpdate {
+	au.mutation.ResetTerminals()
+	au.mutation.SetTerminals(i)
+	return au
+}
+
+// AddTerminals adds i to the "terminals" field.
+func (au *AirportUpdate) AddTerminals(i int) *AirportUpdate {
+	au.mutation.AddTerminals(i)
+	return au
+}
+
+// SetRunways sets the "runways" field.
+func (au *AirportUpdate) SetRunways(i int) *AirportUpdate {
+	au.mutation.ResetRunways()
+	au.mutation.SetRunways(i)
+	return au
+}
+
+// AddRunways adds i to the "runways" field.
+func (au *AirportUpdate) AddRunways(i int) *AirportUpdate {
+	au.mutation.AddRunways(i)
+	return au
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (au *AirportUpdate) SetCreatedAt(t time.Time) *AirportUpdate {
 	au.mutation.SetCreatedAt(t)
@@ -367,6 +406,21 @@ func (au *AirportUpdate) check() error {
 			return &ValidationError{Name: "icao_code", err: fmt.Errorf(`ent: validator failed for field "Airport.icao_code": %w`, err)}
 		}
 	}
+	if v, ok := au.mutation.Elevation(); ok {
+		if err := airport.ElevationValidator(v); err != nil {
+			return &ValidationError{Name: "elevation", err: fmt.Errorf(`ent: validator failed for field "Airport.elevation": %w`, err)}
+		}
+	}
+	if v, ok := au.mutation.Terminals(); ok {
+		if err := airport.TerminalsValidator(v); err != nil {
+			return &ValidationError{Name: "terminals", err: fmt.Errorf(`ent: validator failed for field "Airport.terminals": %w`, err)}
+		}
+	}
+	if v, ok := au.mutation.Runways(); ok {
+		if err := airport.RunwaysValidator(v); err != nil {
+			return &ValidationError{Name: "runways", err: fmt.Errorf(`ent: validator failed for field "Airport.runways": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -407,6 +461,48 @@ func (au *AirportUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Type:   field.TypeString,
 			Value:  value,
 			Column: airport.FieldIcaoCode,
+		})
+	}
+	if value, ok := au.mutation.Elevation(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: airport.FieldElevation,
+		})
+	}
+	if value, ok := au.mutation.AddedElevation(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: airport.FieldElevation,
+		})
+	}
+	if value, ok := au.mutation.Terminals(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: airport.FieldTerminals,
+		})
+	}
+	if value, ok := au.mutation.AddedTerminals(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: airport.FieldTerminals,
+		})
+	}
+	if value, ok := au.mutation.Runways(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: airport.FieldRunways,
+		})
+	}
+	if value, ok := au.mutation.AddedRunways(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: airport.FieldRunways,
 		})
 	}
 	if value, ok := au.mutation.CreatedAt(); ok {
@@ -765,6 +861,45 @@ func (auo *AirportUpdateOne) SetIcaoCode(s string) *AirportUpdateOne {
 	return auo
 }
 
+// SetElevation sets the "elevation" field.
+func (auo *AirportUpdateOne) SetElevation(i int) *AirportUpdateOne {
+	auo.mutation.ResetElevation()
+	auo.mutation.SetElevation(i)
+	return auo
+}
+
+// AddElevation adds i to the "elevation" field.
+func (auo *AirportUpdateOne) AddElevation(i int) *AirportUpdateOne {
+	auo.mutation.AddElevation(i)
+	return auo
+}
+
+// SetTerminals sets the "terminals" field.
+func (auo *AirportUpdateOne) SetTerminals(i int) *AirportUpdateOne {
+	auo.mutation.ResetTerminals()
+	auo.mutation.SetTerminals(i)
+	return auo
+}
+
+// AddTerminals adds i to the "terminals" field.
+func (auo *AirportUpdateOne) AddTerminals(i int) *AirportUpdateOne {
+	auo.mutation.AddTerminals(i)
+	return auo
+}
+
+// SetRunways sets the "runways" field.
+func (auo *AirportUpdateOne) SetRunways(i int) *AirportUpdateOne {
+	auo.mutation.ResetRunways()
+	auo.mutation.SetRunways(i)
+	return auo
+}
+
+// AddRunways adds i to the "runways" field.
+func (auo *AirportUpdateOne) AddRunways(i int) *AirportUpdateOne {
+	auo.mutation.AddRunways(i)
+	return auo
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (auo *AirportUpdateOne) SetCreatedAt(t time.Time) *AirportUpdateOne {
 	auo.mutation.SetCreatedAt(t)
@@ -1088,6 +1223,21 @@ func (auo *AirportUpdateOne) check() error {
 			return &ValidationError{Name: "icao_code", err: fmt.Errorf(`ent: validator failed for field "Airport.icao_code": %w`, err)}
 		}
 	}
+	if v, ok := auo.mutation.Elevation(); ok {
+		if err := airport.ElevationValidator(v); err != nil {
+			return &ValidationError{Name: "elevation", err: fmt.Errorf(`ent: validator failed for field "Airport.elevation": %w`, err)}
+		}
+	}
+	if v, ok := auo.mutation.Terminals(); ok {
+		if err := airport.TerminalsValidator(v); err != nil {
+			return &ValidationError{Name: "terminals", err: fmt.Errorf(`ent: validator failed for field "Airport.terminals": %w`, err)}
+		}
+	}
+	if v, ok := auo.mutation.Runways(); ok {
+		if err := airport.RunwaysValidator(v); err != nil {
+			return &ValidationError{Name: "runways", err: fmt.Errorf(`ent: validator failed for field "Airport.runways": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -1145,6 +1295,48 @@ func (auo *AirportUpdateOne) sqlSave(ctx context.Context) (_node *Airport, err e
 			Type:   field.TypeString,
 			Value:  value,
 			Column: airport.FieldIcaoCode,
+		})
+	}
+	if value, ok := auo.mutation.Elevation(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: airport.FieldElevation,
+		})
+	}
+	if value, ok := auo.mutation.AddedElevation(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: airport.FieldElevation,
+		})
+	}
+	if value, ok := auo.mutation.Terminals(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: airport.FieldTerminals,
+		})
+	}
+	if value, ok := auo.mutation.AddedTerminals(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: airport.FieldTerminals,
+		})
+	}
+	if value, ok := auo.mutation.Runways(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: airport.FieldRunways,
+		})
+	}
+	if value, ok := auo.mutation.AddedRunways(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: airport.FieldRunways,
 		})
 	}
 	if value, ok := auo.mutation.CreatedAt(); ok {

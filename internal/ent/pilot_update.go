@@ -64,6 +64,34 @@ func (pu *PilotUpdate) AddFlightHours(i int) *PilotUpdate {
 	return pu
 }
 
+// SetIsLicenseRevoked sets the "is_license_revoked" field.
+func (pu *PilotUpdate) SetIsLicenseRevoked(b bool) *PilotUpdate {
+	pu.mutation.SetIsLicenseRevoked(b)
+	return pu
+}
+
+// SetNillableIsLicenseRevoked sets the "is_license_revoked" field if the given value is not nil.
+func (pu *PilotUpdate) SetNillableIsLicenseRevoked(b *bool) *PilotUpdate {
+	if b != nil {
+		pu.SetIsLicenseRevoked(*b)
+	}
+	return pu
+}
+
+// SetIsUnderProbation sets the "is_under_probation" field.
+func (pu *PilotUpdate) SetIsUnderProbation(b bool) *PilotUpdate {
+	pu.mutation.SetIsUnderProbation(b)
+	return pu
+}
+
+// SetNillableIsUnderProbation sets the "is_under_probation" field if the given value is not nil.
+func (pu *PilotUpdate) SetNillableIsUnderProbation(b *bool) *PilotUpdate {
+	if b != nil {
+		pu.SetIsUnderProbation(*b)
+	}
+	return pu
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (pu *PilotUpdate) SetCreatedAt(t time.Time) *PilotUpdate {
 	pu.mutation.SetCreatedAt(t)
@@ -269,6 +297,20 @@ func (pu *PilotUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: pilot.FieldFlightHours,
 		})
 	}
+	if value, ok := pu.mutation.IsLicenseRevoked(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeBool,
+			Value:  value,
+			Column: pilot.FieldIsLicenseRevoked,
+		})
+	}
+	if value, ok := pu.mutation.IsUnderProbation(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeBool,
+			Value:  value,
+			Column: pilot.FieldIsUnderProbation,
+		})
+	}
 	if value, ok := pu.mutation.CreatedAt(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
@@ -402,6 +444,34 @@ func (puo *PilotUpdateOne) SetNillableFlightHours(i *int) *PilotUpdateOne {
 // AddFlightHours adds i to the "flight_hours" field.
 func (puo *PilotUpdateOne) AddFlightHours(i int) *PilotUpdateOne {
 	puo.mutation.AddFlightHours(i)
+	return puo
+}
+
+// SetIsLicenseRevoked sets the "is_license_revoked" field.
+func (puo *PilotUpdateOne) SetIsLicenseRevoked(b bool) *PilotUpdateOne {
+	puo.mutation.SetIsLicenseRevoked(b)
+	return puo
+}
+
+// SetNillableIsLicenseRevoked sets the "is_license_revoked" field if the given value is not nil.
+func (puo *PilotUpdateOne) SetNillableIsLicenseRevoked(b *bool) *PilotUpdateOne {
+	if b != nil {
+		puo.SetIsLicenseRevoked(*b)
+	}
+	return puo
+}
+
+// SetIsUnderProbation sets the "is_under_probation" field.
+func (puo *PilotUpdateOne) SetIsUnderProbation(b bool) *PilotUpdateOne {
+	puo.mutation.SetIsUnderProbation(b)
+	return puo
+}
+
+// SetNillableIsUnderProbation sets the "is_under_probation" field if the given value is not nil.
+func (puo *PilotUpdateOne) SetNillableIsUnderProbation(b *bool) *PilotUpdateOne {
+	if b != nil {
+		puo.SetIsUnderProbation(*b)
+	}
 	return puo
 }
 
@@ -632,6 +702,20 @@ func (puo *PilotUpdateOne) sqlSave(ctx context.Context) (_node *Pilot, err error
 			Type:   field.TypeInt,
 			Value:  value,
 			Column: pilot.FieldFlightHours,
+		})
+	}
+	if value, ok := puo.mutation.IsLicenseRevoked(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeBool,
+			Value:  value,
+			Column: pilot.FieldIsLicenseRevoked,
+		})
+	}
+	if value, ok := puo.mutation.IsUnderProbation(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeBool,
+			Value:  value,
+			Column: pilot.FieldIsUnderProbation,
 		})
 	}
 	if value, ok := puo.mutation.CreatedAt(); ok {

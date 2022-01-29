@@ -85,6 +85,8 @@ var (
 		{Name: "capacity", Type: field.TypeInt},
 		{Name: "range", Type: field.TypeInt},
 		{Name: "manufactured_at", Type: field.TypeTime},
+		{Name: "is_grounded", Type: field.TypeBool, Default: false},
+		{Name: "grounded_at", Type: field.TypeTime, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "airline_id", Type: field.TypeUUID, Nullable: true},
@@ -98,13 +100,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "aircrafts_airlines_aircrafts",
-				Columns:    []*schema.Column{AircraftsColumns[9]},
+				Columns:    []*schema.Column{AircraftsColumns[11]},
 				RefColumns: []*schema.Column{AirlinesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "aircrafts_flight_instances_aircraft",
-				Columns:    []*schema.Column{AircraftsColumns[10]},
+				Columns:    []*schema.Column{AircraftsColumns[12]},
 				RefColumns: []*schema.Column{FlightInstancesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -134,6 +136,9 @@ var (
 		{Name: "name", Type: field.TypeString, Size: 250},
 		{Name: "iata_code", Type: field.TypeString, Unique: true, Size: 3},
 		{Name: "icao_code", Type: field.TypeString, Unique: true, Size: 4},
+		{Name: "elevation", Type: field.TypeInt},
+		{Name: "terminals", Type: field.TypeInt},
+		{Name: "runways", Type: field.TypeInt},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "address_id", Type: field.TypeUUID, Unique: true, Nullable: true},
@@ -146,7 +151,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "airports_addresses_airport",
-				Columns:    []*schema.Column{AirportsColumns[6]},
+				Columns:    []*schema.Column{AirportsColumns[9]},
 				RefColumns: []*schema.Column{AddressesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -477,6 +482,8 @@ var (
 		{Name: "employee_id", Type: field.TypeString, Size: 50},
 		{Name: "licence_number", Type: field.TypeString, Size: 50},
 		{Name: "flight_hours", Type: field.TypeInt, Default: 0},
+		{Name: "is_license_revoked", Type: field.TypeBool, Default: false},
+		{Name: "is_under_probation", Type: field.TypeBool, Default: false},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "airline_id", Type: field.TypeUUID, Nullable: true},
@@ -490,13 +497,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "pilots_airlines_pilots",
-				Columns:    []*schema.Column{PilotsColumns[6]},
+				Columns:    []*schema.Column{PilotsColumns[8]},
 				RefColumns: []*schema.Column{AirlinesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "pilots_users_pilot",
-				Columns:    []*schema.Column{PilotsColumns[7]},
+				Columns:    []*schema.Column{PilotsColumns[9]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},

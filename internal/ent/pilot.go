@@ -25,6 +25,10 @@ type Pilot struct {
 	LicenceNumber string `json:"licence_number,omitempty"`
 	// FlightHours holds the value of the "flight_hours" field.
 	FlightHours int `json:"flight_hours,omitempty"`
+	// IsLicenseRevoked holds the value of the "is_license_revoked" field.
+	IsLicenseRevoked bool `json:"is_license_revoked,omitempty"`
+	// IsUnderProbation holds the value of the "is_under_probation" field.
+	IsUnderProbation bool `json:"is_under_probation,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -80,6 +84,8 @@ func (*Pilot) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case pilot.FieldIsLicenseRevoked, pilot.FieldIsUnderProbation:
+			values[i] = new(sql.NullBool)
 		case pilot.FieldFlightHours:
 			values[i] = new(sql.NullInt64)
 		case pilot.FieldEmployeeID, pilot.FieldLicenceNumber:
@@ -130,6 +136,18 @@ func (pi *Pilot) assignValues(columns []string, values []interface{}) error {
 				return fmt.Errorf("unexpected type %T for field flight_hours", values[i])
 			} else if value.Valid {
 				pi.FlightHours = int(value.Int64)
+			}
+		case pilot.FieldIsLicenseRevoked:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field is_license_revoked", values[i])
+			} else if value.Valid {
+				pi.IsLicenseRevoked = value.Bool
+			}
+		case pilot.FieldIsUnderProbation:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field is_under_probation", values[i])
+			} else if value.Valid {
+				pi.IsUnderProbation = value.Bool
 			}
 		case pilot.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -201,6 +219,10 @@ func (pi *Pilot) String() string {
 	builder.WriteString(pi.LicenceNumber)
 	builder.WriteString(", flight_hours=")
 	builder.WriteString(fmt.Sprintf("%v", pi.FlightHours))
+	builder.WriteString(", is_license_revoked=")
+	builder.WriteString(fmt.Sprintf("%v", pi.IsLicenseRevoked))
+	builder.WriteString(", is_under_probation=")
+	builder.WriteString(fmt.Sprintf("%v", pi.IsUnderProbation))
 	builder.WriteString(", created_at=")
 	builder.WriteString(pi.CreatedAt.Format(time.ANSIC))
 	builder.WriteString(", updated_at=")

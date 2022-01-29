@@ -82,6 +82,40 @@ func (au *AircraftUpdate) SetManufacturedAt(t time.Time) *AircraftUpdate {
 	return au
 }
 
+// SetIsGrounded sets the "is_grounded" field.
+func (au *AircraftUpdate) SetIsGrounded(b bool) *AircraftUpdate {
+	au.mutation.SetIsGrounded(b)
+	return au
+}
+
+// SetNillableIsGrounded sets the "is_grounded" field if the given value is not nil.
+func (au *AircraftUpdate) SetNillableIsGrounded(b *bool) *AircraftUpdate {
+	if b != nil {
+		au.SetIsGrounded(*b)
+	}
+	return au
+}
+
+// SetGroundedAt sets the "grounded_at" field.
+func (au *AircraftUpdate) SetGroundedAt(t time.Time) *AircraftUpdate {
+	au.mutation.SetGroundedAt(t)
+	return au
+}
+
+// SetNillableGroundedAt sets the "grounded_at" field if the given value is not nil.
+func (au *AircraftUpdate) SetNillableGroundedAt(t *time.Time) *AircraftUpdate {
+	if t != nil {
+		au.SetGroundedAt(*t)
+	}
+	return au
+}
+
+// ClearGroundedAt clears the value of the "grounded_at" field.
+func (au *AircraftUpdate) ClearGroundedAt() *AircraftUpdate {
+	au.mutation.ClearGroundedAt()
+	return au
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (au *AircraftUpdate) SetCreatedAt(t time.Time) *AircraftUpdate {
 	au.mutation.SetCreatedAt(t)
@@ -366,6 +400,26 @@ func (au *AircraftUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: aircraft.FieldManufacturedAt,
 		})
 	}
+	if value, ok := au.mutation.IsGrounded(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeBool,
+			Value:  value,
+			Column: aircraft.FieldIsGrounded,
+		})
+	}
+	if value, ok := au.mutation.GroundedAt(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  value,
+			Column: aircraft.FieldGroundedAt,
+		})
+	}
+	if au.mutation.GroundedAtCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Column: aircraft.FieldGroundedAt,
+		})
+	}
 	if value, ok := au.mutation.CreatedAt(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
@@ -570,6 +624,40 @@ func (auo *AircraftUpdateOne) AddRange(i int) *AircraftUpdateOne {
 // SetManufacturedAt sets the "manufactured_at" field.
 func (auo *AircraftUpdateOne) SetManufacturedAt(t time.Time) *AircraftUpdateOne {
 	auo.mutation.SetManufacturedAt(t)
+	return auo
+}
+
+// SetIsGrounded sets the "is_grounded" field.
+func (auo *AircraftUpdateOne) SetIsGrounded(b bool) *AircraftUpdateOne {
+	auo.mutation.SetIsGrounded(b)
+	return auo
+}
+
+// SetNillableIsGrounded sets the "is_grounded" field if the given value is not nil.
+func (auo *AircraftUpdateOne) SetNillableIsGrounded(b *bool) *AircraftUpdateOne {
+	if b != nil {
+		auo.SetIsGrounded(*b)
+	}
+	return auo
+}
+
+// SetGroundedAt sets the "grounded_at" field.
+func (auo *AircraftUpdateOne) SetGroundedAt(t time.Time) *AircraftUpdateOne {
+	auo.mutation.SetGroundedAt(t)
+	return auo
+}
+
+// SetNillableGroundedAt sets the "grounded_at" field if the given value is not nil.
+func (auo *AircraftUpdateOne) SetNillableGroundedAt(t *time.Time) *AircraftUpdateOne {
+	if t != nil {
+		auo.SetGroundedAt(*t)
+	}
+	return auo
+}
+
+// ClearGroundedAt clears the value of the "grounded_at" field.
+func (auo *AircraftUpdateOne) ClearGroundedAt() *AircraftUpdateOne {
+	auo.mutation.ClearGroundedAt()
 	return auo
 }
 
@@ -879,6 +967,26 @@ func (auo *AircraftUpdateOne) sqlSave(ctx context.Context) (_node *Aircraft, err
 			Type:   field.TypeTime,
 			Value:  value,
 			Column: aircraft.FieldManufacturedAt,
+		})
+	}
+	if value, ok := auo.mutation.IsGrounded(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeBool,
+			Value:  value,
+			Column: aircraft.FieldIsGrounded,
+		})
+	}
+	if value, ok := auo.mutation.GroundedAt(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  value,
+			Column: aircraft.FieldGroundedAt,
+		})
+	}
+	if auo.mutation.GroundedAtCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Column: aircraft.FieldGroundedAt,
 		})
 	}
 	if value, ok := auo.mutation.CreatedAt(); ok {

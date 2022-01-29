@@ -43,6 +43,24 @@ func (ac *AirportCreate) SetIcaoCode(s string) *AirportCreate {
 	return ac
 }
 
+// SetElevation sets the "elevation" field.
+func (ac *AirportCreate) SetElevation(i int) *AirportCreate {
+	ac.mutation.SetElevation(i)
+	return ac
+}
+
+// SetTerminals sets the "terminals" field.
+func (ac *AirportCreate) SetTerminals(i int) *AirportCreate {
+	ac.mutation.SetTerminals(i)
+	return ac
+}
+
+// SetRunways sets the "runways" field.
+func (ac *AirportCreate) SetRunways(i int) *AirportCreate {
+	ac.mutation.SetRunways(i)
+	return ac
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (ac *AirportCreate) SetCreatedAt(t time.Time) *AirportCreate {
 	ac.mutation.SetCreatedAt(t)
@@ -290,6 +308,30 @@ func (ac *AirportCreate) check() error {
 			return &ValidationError{Name: "icao_code", err: fmt.Errorf(`ent: validator failed for field "Airport.icao_code": %w`, err)}
 		}
 	}
+	if _, ok := ac.mutation.Elevation(); !ok {
+		return &ValidationError{Name: "elevation", err: errors.New(`ent: missing required field "Airport.elevation"`)}
+	}
+	if v, ok := ac.mutation.Elevation(); ok {
+		if err := airport.ElevationValidator(v); err != nil {
+			return &ValidationError{Name: "elevation", err: fmt.Errorf(`ent: validator failed for field "Airport.elevation": %w`, err)}
+		}
+	}
+	if _, ok := ac.mutation.Terminals(); !ok {
+		return &ValidationError{Name: "terminals", err: errors.New(`ent: missing required field "Airport.terminals"`)}
+	}
+	if v, ok := ac.mutation.Terminals(); ok {
+		if err := airport.TerminalsValidator(v); err != nil {
+			return &ValidationError{Name: "terminals", err: fmt.Errorf(`ent: validator failed for field "Airport.terminals": %w`, err)}
+		}
+	}
+	if _, ok := ac.mutation.Runways(); !ok {
+		return &ValidationError{Name: "runways", err: errors.New(`ent: missing required field "Airport.runways"`)}
+	}
+	if v, ok := ac.mutation.Runways(); ok {
+		if err := airport.RunwaysValidator(v); err != nil {
+			return &ValidationError{Name: "runways", err: fmt.Errorf(`ent: validator failed for field "Airport.runways": %w`, err)}
+		}
+	}
 	if _, ok := ac.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Airport.created_at"`)}
 	}
@@ -355,6 +397,30 @@ func (ac *AirportCreate) createSpec() (*Airport, *sqlgraph.CreateSpec) {
 			Column: airport.FieldIcaoCode,
 		})
 		_node.IcaoCode = value
+	}
+	if value, ok := ac.mutation.Elevation(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: airport.FieldElevation,
+		})
+		_node.Elevation = value
+	}
+	if value, ok := ac.mutation.Terminals(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: airport.FieldTerminals,
+		})
+		_node.Terminals = value
+	}
+	if value, ok := ac.mutation.Runways(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: airport.FieldRunways,
+		})
+		_node.Runways = value
 	}
 	if value, ok := ac.mutation.CreatedAt(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{

@@ -115,6 +115,27 @@ func IcaoCode(v string) predicate.Airport {
 	})
 }
 
+// Elevation applies equality check predicate on the "elevation" field. It's identical to ElevationEQ.
+func Elevation(v int) predicate.Airport {
+	return predicate.Airport(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldElevation), v))
+	})
+}
+
+// Terminals applies equality check predicate on the "terminals" field. It's identical to TerminalsEQ.
+func Terminals(v int) predicate.Airport {
+	return predicate.Airport(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldTerminals), v))
+	})
+}
+
+// Runways applies equality check predicate on the "runways" field. It's identical to RunwaysEQ.
+func Runways(v int) predicate.Airport {
+	return predicate.Airport(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldRunways), v))
+	})
+}
+
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.Airport {
 	return predicate.Airport(func(s *sql.Selector) {
@@ -459,6 +480,234 @@ func IcaoCodeEqualFold(v string) predicate.Airport {
 func IcaoCodeContainsFold(v string) predicate.Airport {
 	return predicate.Airport(func(s *sql.Selector) {
 		s.Where(sql.ContainsFold(s.C(FieldIcaoCode), v))
+	})
+}
+
+// ElevationEQ applies the EQ predicate on the "elevation" field.
+func ElevationEQ(v int) predicate.Airport {
+	return predicate.Airport(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldElevation), v))
+	})
+}
+
+// ElevationNEQ applies the NEQ predicate on the "elevation" field.
+func ElevationNEQ(v int) predicate.Airport {
+	return predicate.Airport(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldElevation), v))
+	})
+}
+
+// ElevationIn applies the In predicate on the "elevation" field.
+func ElevationIn(vs ...int) predicate.Airport {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Airport(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldElevation), v...))
+	})
+}
+
+// ElevationNotIn applies the NotIn predicate on the "elevation" field.
+func ElevationNotIn(vs ...int) predicate.Airport {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Airport(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldElevation), v...))
+	})
+}
+
+// ElevationGT applies the GT predicate on the "elevation" field.
+func ElevationGT(v int) predicate.Airport {
+	return predicate.Airport(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldElevation), v))
+	})
+}
+
+// ElevationGTE applies the GTE predicate on the "elevation" field.
+func ElevationGTE(v int) predicate.Airport {
+	return predicate.Airport(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldElevation), v))
+	})
+}
+
+// ElevationLT applies the LT predicate on the "elevation" field.
+func ElevationLT(v int) predicate.Airport {
+	return predicate.Airport(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldElevation), v))
+	})
+}
+
+// ElevationLTE applies the LTE predicate on the "elevation" field.
+func ElevationLTE(v int) predicate.Airport {
+	return predicate.Airport(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldElevation), v))
+	})
+}
+
+// TerminalsEQ applies the EQ predicate on the "terminals" field.
+func TerminalsEQ(v int) predicate.Airport {
+	return predicate.Airport(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldTerminals), v))
+	})
+}
+
+// TerminalsNEQ applies the NEQ predicate on the "terminals" field.
+func TerminalsNEQ(v int) predicate.Airport {
+	return predicate.Airport(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldTerminals), v))
+	})
+}
+
+// TerminalsIn applies the In predicate on the "terminals" field.
+func TerminalsIn(vs ...int) predicate.Airport {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Airport(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldTerminals), v...))
+	})
+}
+
+// TerminalsNotIn applies the NotIn predicate on the "terminals" field.
+func TerminalsNotIn(vs ...int) predicate.Airport {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Airport(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldTerminals), v...))
+	})
+}
+
+// TerminalsGT applies the GT predicate on the "terminals" field.
+func TerminalsGT(v int) predicate.Airport {
+	return predicate.Airport(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldTerminals), v))
+	})
+}
+
+// TerminalsGTE applies the GTE predicate on the "terminals" field.
+func TerminalsGTE(v int) predicate.Airport {
+	return predicate.Airport(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldTerminals), v))
+	})
+}
+
+// TerminalsLT applies the LT predicate on the "terminals" field.
+func TerminalsLT(v int) predicate.Airport {
+	return predicate.Airport(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldTerminals), v))
+	})
+}
+
+// TerminalsLTE applies the LTE predicate on the "terminals" field.
+func TerminalsLTE(v int) predicate.Airport {
+	return predicate.Airport(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldTerminals), v))
+	})
+}
+
+// RunwaysEQ applies the EQ predicate on the "runways" field.
+func RunwaysEQ(v int) predicate.Airport {
+	return predicate.Airport(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldRunways), v))
+	})
+}
+
+// RunwaysNEQ applies the NEQ predicate on the "runways" field.
+func RunwaysNEQ(v int) predicate.Airport {
+	return predicate.Airport(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldRunways), v))
+	})
+}
+
+// RunwaysIn applies the In predicate on the "runways" field.
+func RunwaysIn(vs ...int) predicate.Airport {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Airport(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldRunways), v...))
+	})
+}
+
+// RunwaysNotIn applies the NotIn predicate on the "runways" field.
+func RunwaysNotIn(vs ...int) predicate.Airport {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Airport(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldRunways), v...))
+	})
+}
+
+// RunwaysGT applies the GT predicate on the "runways" field.
+func RunwaysGT(v int) predicate.Airport {
+	return predicate.Airport(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldRunways), v))
+	})
+}
+
+// RunwaysGTE applies the GTE predicate on the "runways" field.
+func RunwaysGTE(v int) predicate.Airport {
+	return predicate.Airport(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldRunways), v))
+	})
+}
+
+// RunwaysLT applies the LT predicate on the "runways" field.
+func RunwaysLT(v int) predicate.Airport {
+	return predicate.Airport(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldRunways), v))
+	})
+}
+
+// RunwaysLTE applies the LTE predicate on the "runways" field.
+func RunwaysLTE(v int) predicate.Airport {
+	return predicate.Airport(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldRunways), v))
 	})
 }
 

@@ -21,6 +21,9 @@ func (Airport) Fields() []ent.Field {
 		field.String("name").MaxLen(250),
 		field.String("iata_code").MaxLen(3).Unique(),
 		field.String("icao_code").MaxLen(4).Unique(),
+		field.Int("elevation").NonNegative(),
+		field.Int("terminals").Min(1),
+		field.Int("runways").Min(1),
 		field.Time("created_at").Default(time.Now),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 	}

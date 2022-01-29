@@ -31,6 +31,10 @@ type Aircraft struct {
 	Range int `json:"range,omitempty"`
 	// ManufacturedAt holds the value of the "manufactured_at" field.
 	ManufacturedAt time.Time `json:"manufactured_at,omitempty"`
+	// IsGrounded holds the value of the "is_grounded" field.
+	IsGrounded bool `json:"is_grounded,omitempty"`
+	// GroundedAt holds the value of the "grounded_at" field.
+	GroundedAt time.Time `json:"grounded_at,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -97,11 +101,13 @@ func (*Aircraft) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case aircraft.FieldIsGrounded:
+			values[i] = new(sql.NullBool)
 		case aircraft.FieldCapacity, aircraft.FieldRange:
 			values[i] = new(sql.NullInt64)
 		case aircraft.FieldTailNumber, aircraft.FieldManufacturer, aircraft.FieldModel:
 			values[i] = new(sql.NullString)
-		case aircraft.FieldManufacturedAt, aircraft.FieldCreatedAt, aircraft.FieldUpdatedAt:
+		case aircraft.FieldManufacturedAt, aircraft.FieldGroundedAt, aircraft.FieldCreatedAt, aircraft.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
 		case aircraft.FieldID:
 			values[i] = new(uuid.UUID)
@@ -165,6 +171,18 @@ func (a *Aircraft) assignValues(columns []string, values []interface{}) error {
 				return fmt.Errorf("unexpected type %T for field manufactured_at", values[i])
 			} else if value.Valid {
 				a.ManufacturedAt = value.Time
+			}
+		case aircraft.FieldIsGrounded:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field is_grounded", values[i])
+			} else if value.Valid {
+				a.IsGrounded = value.Bool
+			}
+		case aircraft.FieldGroundedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field grounded_at", values[i])
+			} else if value.Valid {
+				a.GroundedAt = value.Time
 			}
 		case aircraft.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -247,6 +265,10 @@ func (a *Aircraft) String() string {
 	builder.WriteString(fmt.Sprintf("%v", a.Range))
 	builder.WriteString(", manufactured_at=")
 	builder.WriteString(a.ManufacturedAt.Format(time.ANSIC))
+	builder.WriteString(", is_grounded=")
+	builder.WriteString(fmt.Sprintf("%v", a.IsGrounded))
+	builder.WriteString(", grounded_at=")
+	builder.WriteString(a.GroundedAt.Format(time.ANSIC))
 	builder.WriteString(", created_at=")
 	builder.WriteString(a.CreatedAt.Format(time.ANSIC))
 	builder.WriteString(", updated_at=")

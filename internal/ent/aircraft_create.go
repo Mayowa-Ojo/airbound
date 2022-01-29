@@ -60,6 +60,34 @@ func (ac *AircraftCreate) SetManufacturedAt(t time.Time) *AircraftCreate {
 	return ac
 }
 
+// SetIsGrounded sets the "is_grounded" field.
+func (ac *AircraftCreate) SetIsGrounded(b bool) *AircraftCreate {
+	ac.mutation.SetIsGrounded(b)
+	return ac
+}
+
+// SetNillableIsGrounded sets the "is_grounded" field if the given value is not nil.
+func (ac *AircraftCreate) SetNillableIsGrounded(b *bool) *AircraftCreate {
+	if b != nil {
+		ac.SetIsGrounded(*b)
+	}
+	return ac
+}
+
+// SetGroundedAt sets the "grounded_at" field.
+func (ac *AircraftCreate) SetGroundedAt(t time.Time) *AircraftCreate {
+	ac.mutation.SetGroundedAt(t)
+	return ac
+}
+
+// SetNillableGroundedAt sets the "grounded_at" field if the given value is not nil.
+func (ac *AircraftCreate) SetNillableGroundedAt(t *time.Time) *AircraftCreate {
+	if t != nil {
+		ac.SetGroundedAt(*t)
+	}
+	return ac
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (ac *AircraftCreate) SetCreatedAt(t time.Time) *AircraftCreate {
 	ac.mutation.SetCreatedAt(t)
@@ -226,6 +254,10 @@ func (ac *AircraftCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (ac *AircraftCreate) defaults() {
+	if _, ok := ac.mutation.IsGrounded(); !ok {
+		v := aircraft.DefaultIsGrounded
+		ac.mutation.SetIsGrounded(v)
+	}
 	if _, ok := ac.mutation.CreatedAt(); !ok {
 		v := aircraft.DefaultCreatedAt()
 		ac.mutation.SetCreatedAt(v)
@@ -284,6 +316,9 @@ func (ac *AircraftCreate) check() error {
 	}
 	if _, ok := ac.mutation.ManufacturedAt(); !ok {
 		return &ValidationError{Name: "manufactured_at", err: errors.New(`ent: missing required field "Aircraft.manufactured_at"`)}
+	}
+	if _, ok := ac.mutation.IsGrounded(); !ok {
+		return &ValidationError{Name: "is_grounded", err: errors.New(`ent: missing required field "Aircraft.is_grounded"`)}
 	}
 	if _, ok := ac.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Aircraft.created_at"`)}
@@ -374,6 +409,22 @@ func (ac *AircraftCreate) createSpec() (*Aircraft, *sqlgraph.CreateSpec) {
 			Column: aircraft.FieldManufacturedAt,
 		})
 		_node.ManufacturedAt = value
+	}
+	if value, ok := ac.mutation.IsGrounded(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeBool,
+			Value:  value,
+			Column: aircraft.FieldIsGrounded,
+		})
+		_node.IsGrounded = value
+	}
+	if value, ok := ac.mutation.GroundedAt(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  value,
+			Column: aircraft.FieldGroundedAt,
+		})
+		_node.GroundedAt = value
 	}
 	if value, ok := ac.mutation.CreatedAt(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{

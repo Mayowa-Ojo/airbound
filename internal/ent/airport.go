@@ -24,6 +24,12 @@ type Airport struct {
 	IataCode string `json:"iata_code,omitempty"`
 	// IcaoCode holds the value of the "icao_code" field.
 	IcaoCode string `json:"icao_code,omitempty"`
+	// Elevation holds the value of the "elevation" field.
+	Elevation int `json:"elevation,omitempty"`
+	// Terminals holds the value of the "terminals" field.
+	Terminals int `json:"terminals,omitempty"`
+	// Runways holds the value of the "runways" field.
+	Runways int `json:"runways,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -117,6 +123,8 @@ func (*Airport) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case airport.FieldElevation, airport.FieldTerminals, airport.FieldRunways:
+			values[i] = new(sql.NullInt64)
 		case airport.FieldName, airport.FieldIataCode, airport.FieldIcaoCode:
 			values[i] = new(sql.NullString)
 		case airport.FieldCreatedAt, airport.FieldUpdatedAt:
@@ -163,6 +171,24 @@ func (a *Airport) assignValues(columns []string, values []interface{}) error {
 				return fmt.Errorf("unexpected type %T for field icao_code", values[i])
 			} else if value.Valid {
 				a.IcaoCode = value.String
+			}
+		case airport.FieldElevation:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field elevation", values[i])
+			} else if value.Valid {
+				a.Elevation = int(value.Int64)
+			}
+		case airport.FieldTerminals:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field terminals", values[i])
+			} else if value.Valid {
+				a.Terminals = int(value.Int64)
+			}
+		case airport.FieldRunways:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field runways", values[i])
+			} else if value.Valid {
+				a.Runways = int(value.Int64)
 			}
 		case airport.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -247,6 +273,12 @@ func (a *Airport) String() string {
 	builder.WriteString(a.IataCode)
 	builder.WriteString(", icao_code=")
 	builder.WriteString(a.IcaoCode)
+	builder.WriteString(", elevation=")
+	builder.WriteString(fmt.Sprintf("%v", a.Elevation))
+	builder.WriteString(", terminals=")
+	builder.WriteString(fmt.Sprintf("%v", a.Terminals))
+	builder.WriteString(", runways=")
+	builder.WriteString(fmt.Sprintf("%v", a.Runways))
 	builder.WriteString(", created_at=")
 	builder.WriteString(a.CreatedAt.Format(time.ANSIC))
 	builder.WriteString(", updated_at=")

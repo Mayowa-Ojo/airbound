@@ -115,6 +115,20 @@ func FlightHours(v int) predicate.Pilot {
 	})
 }
 
+// IsLicenseRevoked applies equality check predicate on the "is_license_revoked" field. It's identical to IsLicenseRevokedEQ.
+func IsLicenseRevoked(v bool) predicate.Pilot {
+	return predicate.Pilot(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldIsLicenseRevoked), v))
+	})
+}
+
+// IsUnderProbation applies equality check predicate on the "is_under_probation" field. It's identical to IsUnderProbationEQ.
+func IsUnderProbation(v bool) predicate.Pilot {
+	return predicate.Pilot(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldIsUnderProbation), v))
+	})
+}
+
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.Pilot {
 	return predicate.Pilot(func(s *sql.Selector) {
@@ -424,6 +438,34 @@ func FlightHoursLT(v int) predicate.Pilot {
 func FlightHoursLTE(v int) predicate.Pilot {
 	return predicate.Pilot(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldFlightHours), v))
+	})
+}
+
+// IsLicenseRevokedEQ applies the EQ predicate on the "is_license_revoked" field.
+func IsLicenseRevokedEQ(v bool) predicate.Pilot {
+	return predicate.Pilot(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldIsLicenseRevoked), v))
+	})
+}
+
+// IsLicenseRevokedNEQ applies the NEQ predicate on the "is_license_revoked" field.
+func IsLicenseRevokedNEQ(v bool) predicate.Pilot {
+	return predicate.Pilot(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldIsLicenseRevoked), v))
+	})
+}
+
+// IsUnderProbationEQ applies the EQ predicate on the "is_under_probation" field.
+func IsUnderProbationEQ(v bool) predicate.Pilot {
+	return predicate.Pilot(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldIsUnderProbation), v))
+	})
+}
+
+// IsUnderProbationNEQ applies the NEQ predicate on the "is_under_probation" field.
+func IsUnderProbationNEQ(v bool) predicate.Pilot {
+	return predicate.Pilot(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldIsUnderProbation), v))
 	})
 }
 

@@ -21,6 +21,8 @@ func (Pilot) Fields() []ent.Field {
 		field.String("employee_id").MaxLen(50),
 		field.String("licence_number").MaxLen(50),
 		field.Int("flight_hours").NonNegative().Default(0),
+		field.Bool("is_license_revoked").Default(false),
+		field.Bool("is_under_probation").Default(false),
 		field.Time("created_at").Default(time.Now),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 	}

@@ -25,6 +25,10 @@ const (
 	FieldRange = "range"
 	// FieldManufacturedAt holds the string denoting the manufactured_at field in the database.
 	FieldManufacturedAt = "manufactured_at"
+	// FieldIsGrounded holds the string denoting the is_grounded field in the database.
+	FieldIsGrounded = "is_grounded"
+	// FieldGroundedAt holds the string denoting the grounded_at field in the database.
+	FieldGroundedAt = "grounded_at"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
@@ -69,6 +73,8 @@ var Columns = []string{
 	FieldCapacity,
 	FieldRange,
 	FieldManufacturedAt,
+	FieldIsGrounded,
+	FieldGroundedAt,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }
@@ -106,6 +112,8 @@ var (
 	CapacityValidator func(int) error
 	// RangeValidator is a validator for the "range" field. It is called by the builders before save.
 	RangeValidator func(int) error
+	// DefaultIsGrounded holds the default value on creation for the "is_grounded" field.
+	DefaultIsGrounded bool
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.

@@ -19,6 +19,10 @@ const (
 	FieldLicenceNumber = "licence_number"
 	// FieldFlightHours holds the string denoting the flight_hours field in the database.
 	FieldFlightHours = "flight_hours"
+	// FieldIsLicenseRevoked holds the string denoting the is_license_revoked field in the database.
+	FieldIsLicenseRevoked = "is_license_revoked"
+	// FieldIsUnderProbation holds the string denoting the is_under_probation field in the database.
+	FieldIsUnderProbation = "is_under_probation"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
@@ -51,6 +55,8 @@ var Columns = []string{
 	FieldEmployeeID,
 	FieldLicenceNumber,
 	FieldFlightHours,
+	FieldIsLicenseRevoked,
+	FieldIsUnderProbation,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }
@@ -86,6 +92,10 @@ var (
 	DefaultFlightHours int
 	// FlightHoursValidator is a validator for the "flight_hours" field. It is called by the builders before save.
 	FlightHoursValidator func(int) error
+	// DefaultIsLicenseRevoked holds the default value on creation for the "is_license_revoked" field.
+	DefaultIsLicenseRevoked bool
+	// DefaultIsUnderProbation holds the default value on creation for the "is_under_probation" field.
+	DefaultIsUnderProbation bool
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.

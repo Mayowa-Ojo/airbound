@@ -24,6 +24,8 @@ func (Aircraft) Fields() []ent.Field {
 		field.Int("capacity").NonNegative(),
 		field.Int("range").NonNegative(),
 		field.Time("manufactured_at"),
+		field.Bool("is_grounded").Default(false),
+		field.Time("grounded_at").Optional(),
 		field.Time("created_at").Default(time.Now),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 	}

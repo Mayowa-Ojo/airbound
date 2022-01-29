@@ -49,6 +49,34 @@ func (pc *PilotCreate) SetNillableFlightHours(i *int) *PilotCreate {
 	return pc
 }
 
+// SetIsLicenseRevoked sets the "is_license_revoked" field.
+func (pc *PilotCreate) SetIsLicenseRevoked(b bool) *PilotCreate {
+	pc.mutation.SetIsLicenseRevoked(b)
+	return pc
+}
+
+// SetNillableIsLicenseRevoked sets the "is_license_revoked" field if the given value is not nil.
+func (pc *PilotCreate) SetNillableIsLicenseRevoked(b *bool) *PilotCreate {
+	if b != nil {
+		pc.SetIsLicenseRevoked(*b)
+	}
+	return pc
+}
+
+// SetIsUnderProbation sets the "is_under_probation" field.
+func (pc *PilotCreate) SetIsUnderProbation(b bool) *PilotCreate {
+	pc.mutation.SetIsUnderProbation(b)
+	return pc
+}
+
+// SetNillableIsUnderProbation sets the "is_under_probation" field if the given value is not nil.
+func (pc *PilotCreate) SetNillableIsUnderProbation(b *bool) *PilotCreate {
+	if b != nil {
+		pc.SetIsUnderProbation(*b)
+	}
+	return pc
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (pc *PilotCreate) SetCreatedAt(t time.Time) *PilotCreate {
 	pc.mutation.SetCreatedAt(t)
@@ -196,6 +224,14 @@ func (pc *PilotCreate) defaults() {
 		v := pilot.DefaultFlightHours
 		pc.mutation.SetFlightHours(v)
 	}
+	if _, ok := pc.mutation.IsLicenseRevoked(); !ok {
+		v := pilot.DefaultIsLicenseRevoked
+		pc.mutation.SetIsLicenseRevoked(v)
+	}
+	if _, ok := pc.mutation.IsUnderProbation(); !ok {
+		v := pilot.DefaultIsUnderProbation
+		pc.mutation.SetIsUnderProbation(v)
+	}
 	if _, ok := pc.mutation.CreatedAt(); !ok {
 		v := pilot.DefaultCreatedAt()
 		pc.mutation.SetCreatedAt(v)
@@ -235,6 +271,12 @@ func (pc *PilotCreate) check() error {
 		if err := pilot.FlightHoursValidator(v); err != nil {
 			return &ValidationError{Name: "flight_hours", err: fmt.Errorf(`ent: validator failed for field "Pilot.flight_hours": %w`, err)}
 		}
+	}
+	if _, ok := pc.mutation.IsLicenseRevoked(); !ok {
+		return &ValidationError{Name: "is_license_revoked", err: errors.New(`ent: missing required field "Pilot.is_license_revoked"`)}
+	}
+	if _, ok := pc.mutation.IsUnderProbation(); !ok {
+		return &ValidationError{Name: "is_under_probation", err: errors.New(`ent: missing required field "Pilot.is_under_probation"`)}
 	}
 	if _, ok := pc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Pilot.created_at"`)}
@@ -304,6 +346,22 @@ func (pc *PilotCreate) createSpec() (*Pilot, *sqlgraph.CreateSpec) {
 			Column: pilot.FieldFlightHours,
 		})
 		_node.FlightHours = value
+	}
+	if value, ok := pc.mutation.IsLicenseRevoked(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeBool,
+			Value:  value,
+			Column: pilot.FieldIsLicenseRevoked,
+		})
+		_node.IsLicenseRevoked = value
+	}
+	if value, ok := pc.mutation.IsUnderProbation(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeBool,
+			Value:  value,
+			Column: pilot.FieldIsUnderProbation,
+		})
+		_node.IsUnderProbation = value
 	}
 	if value, ok := pc.mutation.CreatedAt(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{

@@ -19,6 +19,12 @@ const (
 	FieldIataCode = "iata_code"
 	// FieldIcaoCode holds the string denoting the icao_code field in the database.
 	FieldIcaoCode = "icao_code"
+	// FieldElevation holds the string denoting the elevation field in the database.
+	FieldElevation = "elevation"
+	// FieldTerminals holds the string denoting the terminals field in the database.
+	FieldTerminals = "terminals"
+	// FieldRunways holds the string denoting the runways field in the database.
+	FieldRunways = "runways"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
@@ -87,6 +93,9 @@ var Columns = []string{
 	FieldName,
 	FieldIataCode,
 	FieldIcaoCode,
+	FieldElevation,
+	FieldTerminals,
+	FieldRunways,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }
@@ -119,6 +128,12 @@ var (
 	IataCodeValidator func(string) error
 	// IcaoCodeValidator is a validator for the "icao_code" field. It is called by the builders before save.
 	IcaoCodeValidator func(string) error
+	// ElevationValidator is a validator for the "elevation" field. It is called by the builders before save.
+	ElevationValidator func(int) error
+	// TerminalsValidator is a validator for the "terminals" field. It is called by the builders before save.
+	TerminalsValidator func(int) error
+	// RunwaysValidator is a validator for the "runways" field. It is called by the builders before save.
+	RunwaysValidator func(int) error
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.

@@ -140,12 +140,16 @@ func init() {
 	aircraftDescRange := aircraftFields[5].Descriptor()
 	// aircraft.RangeValidator is a validator for the "range" field. It is called by the builders before save.
 	aircraft.RangeValidator = aircraftDescRange.Validators[0].(func(int) error)
+	// aircraftDescIsGrounded is the schema descriptor for is_grounded field.
+	aircraftDescIsGrounded := aircraftFields[7].Descriptor()
+	// aircraft.DefaultIsGrounded holds the default value on creation for the is_grounded field.
+	aircraft.DefaultIsGrounded = aircraftDescIsGrounded.Default.(bool)
 	// aircraftDescCreatedAt is the schema descriptor for created_at field.
-	aircraftDescCreatedAt := aircraftFields[7].Descriptor()
+	aircraftDescCreatedAt := aircraftFields[9].Descriptor()
 	// aircraft.DefaultCreatedAt holds the default value on creation for the created_at field.
 	aircraft.DefaultCreatedAt = aircraftDescCreatedAt.Default.(func() time.Time)
 	// aircraftDescUpdatedAt is the schema descriptor for updated_at field.
-	aircraftDescUpdatedAt := aircraftFields[8].Descriptor()
+	aircraftDescUpdatedAt := aircraftFields[10].Descriptor()
 	// aircraft.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	aircraft.DefaultUpdatedAt = aircraftDescUpdatedAt.Default.(func() time.Time)
 	// aircraft.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
@@ -208,12 +212,24 @@ func init() {
 	airportDescIcaoCode := airportFields[3].Descriptor()
 	// airport.IcaoCodeValidator is a validator for the "icao_code" field. It is called by the builders before save.
 	airport.IcaoCodeValidator = airportDescIcaoCode.Validators[0].(func(string) error)
+	// airportDescElevation is the schema descriptor for elevation field.
+	airportDescElevation := airportFields[4].Descriptor()
+	// airport.ElevationValidator is a validator for the "elevation" field. It is called by the builders before save.
+	airport.ElevationValidator = airportDescElevation.Validators[0].(func(int) error)
+	// airportDescTerminals is the schema descriptor for terminals field.
+	airportDescTerminals := airportFields[5].Descriptor()
+	// airport.TerminalsValidator is a validator for the "terminals" field. It is called by the builders before save.
+	airport.TerminalsValidator = airportDescTerminals.Validators[0].(func(int) error)
+	// airportDescRunways is the schema descriptor for runways field.
+	airportDescRunways := airportFields[6].Descriptor()
+	// airport.RunwaysValidator is a validator for the "runways" field. It is called by the builders before save.
+	airport.RunwaysValidator = airportDescRunways.Validators[0].(func(int) error)
 	// airportDescCreatedAt is the schema descriptor for created_at field.
-	airportDescCreatedAt := airportFields[4].Descriptor()
+	airportDescCreatedAt := airportFields[7].Descriptor()
 	// airport.DefaultCreatedAt holds the default value on creation for the created_at field.
 	airport.DefaultCreatedAt = airportDescCreatedAt.Default.(func() time.Time)
 	// airportDescUpdatedAt is the schema descriptor for updated_at field.
-	airportDescUpdatedAt := airportFields[5].Descriptor()
+	airportDescUpdatedAt := airportFields[8].Descriptor()
 	// airport.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	airport.DefaultUpdatedAt = airportDescUpdatedAt.Default.(func() time.Time)
 	// airport.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
@@ -478,12 +494,20 @@ func init() {
 	pilot.DefaultFlightHours = pilotDescFlightHours.Default.(int)
 	// pilot.FlightHoursValidator is a validator for the "flight_hours" field. It is called by the builders before save.
 	pilot.FlightHoursValidator = pilotDescFlightHours.Validators[0].(func(int) error)
+	// pilotDescIsLicenseRevoked is the schema descriptor for is_license_revoked field.
+	pilotDescIsLicenseRevoked := pilotFields[4].Descriptor()
+	// pilot.DefaultIsLicenseRevoked holds the default value on creation for the is_license_revoked field.
+	pilot.DefaultIsLicenseRevoked = pilotDescIsLicenseRevoked.Default.(bool)
+	// pilotDescIsUnderProbation is the schema descriptor for is_under_probation field.
+	pilotDescIsUnderProbation := pilotFields[5].Descriptor()
+	// pilot.DefaultIsUnderProbation holds the default value on creation for the is_under_probation field.
+	pilot.DefaultIsUnderProbation = pilotDescIsUnderProbation.Default.(bool)
 	// pilotDescCreatedAt is the schema descriptor for created_at field.
-	pilotDescCreatedAt := pilotFields[4].Descriptor()
+	pilotDescCreatedAt := pilotFields[6].Descriptor()
 	// pilot.DefaultCreatedAt holds the default value on creation for the created_at field.
 	pilot.DefaultCreatedAt = pilotDescCreatedAt.Default.(func() time.Time)
 	// pilotDescUpdatedAt is the schema descriptor for updated_at field.
-	pilotDescUpdatedAt := pilotFields[5].Descriptor()
+	pilotDescUpdatedAt := pilotFields[7].Descriptor()
 	// pilot.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	pilot.DefaultUpdatedAt = pilotDescUpdatedAt.Default.(func() time.Time)
 	// pilot.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
