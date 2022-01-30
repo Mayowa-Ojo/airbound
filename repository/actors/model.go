@@ -85,12 +85,22 @@ type AdminRepository interface {
 }
 
 type Admin struct {
-	ID             uuid.UUID `json:"id"`
-	TwoFaSecret    string    `json:"two_fa_secret"`
-	TwoFaCompleted bool      `json:"two_fa_completed"`
-	Token          string    `json:"token"`
-	CreatedAt      time.Time `json:"created_at"`
-	UpdatedAt      time.Time `json:"updated_at"`
+	ID               uuid.UUID `json:"id"`
+	Level            int       `json:"level"`
+	SecurityQuestion string    `json:"security_question"`
+	SecurityAnswer   string    `json:"security_answer"`
+	CreatedAt        time.Time `json:"created_at"`
+	UpdatedAt        time.Time `json:"updated_at"`
+}
+
+func ParseToAdmin(model *ent.Admin) *Admin {
+	return &Admin{
+		ID:               model.ID,
+		SecurityQuestion: model.SecurityQuestion,
+		SecurityAnswer:   model.SecurityAnswer,
+		CreatedAt:        model.CreatedAt,
+		UpdatedAt:        model.UpdatedAt,
+	}
 }
 
 type CustomerRepository interface {
@@ -105,18 +115,42 @@ type Customer struct {
 	UpdatedAt           time.Time `json:"updated_at"`
 }
 
+func ParseToCustomer(model *ent.Customer) *Customer {
+	return &Customer{
+		ID:                  model.ID,
+		FrequentFlyerNumber: model.FrequentFlyerNumber,
+		CreatedAt:           model.CreatedAt,
+		UpdatedAt:           model.UpdatedAt,
+	}
+}
+
 type PilotRepository interface {
 	transaction.TxRunner
 	CreatePilot(ctx context.Context, p *Pilot, userID uuid.UUID) (*ent.Pilot, error)
 }
 
 type Pilot struct {
-	ID            uuid.UUID `json:"id"`
-	EmployeeID    string    `json:"employee_id"`
-	LicenceNumber string    `json:"licence_number"`
-	FlightHours   int       `json:"flight_hours"`
-	CreatedAt     time.Time `json:"created_at"`
-	UpdatedAt     time.Time `json:"updated_at"`
+	ID               uuid.UUID `json:"id"`
+	EmployeeID       string    `json:"employee_id"`
+	LicenceNumber    string    `json:"licence_number"`
+	FlightHours      int       `json:"flight_hours"`
+	IsLicenseRevoked bool      `json:"is_license_revoked"`
+	IsUnderProbation bool      `json:"is_under_probation"`
+	CreatedAt        time.Time `json:"created_at"`
+	UpdatedAt        time.Time `json:"updated_at"`
+}
+
+func ParseToPilot(model *ent.Pilot) *Pilot {
+	return &Pilot{
+		ID:               model.ID,
+		EmployeeID:       model.EmployeeID,
+		LicenceNumber:    model.LicenceNumber,
+		FlightHours:      model.FlightHours,
+		IsLicenseRevoked: model.IsLicenseRevoked,
+		IsUnderProbation: model.IsUnderProbation,
+		CreatedAt:        model.CreatedAt,
+		UpdatedAt:        model.UpdatedAt,
+	}
 }
 
 type CrewRepository interface {
@@ -131,6 +165,15 @@ type Crew struct {
 	UpdatedAt  time.Time `json:"updated_at"`
 }
 
+func ParseToCrew(model *ent.Crew) *Crew {
+	return &Crew{
+		ID:         model.ID,
+		EmployeeID: model.EmployeeID,
+		CreatedAt:  model.CreatedAt,
+		UpdatedAt:  model.UpdatedAt,
+	}
+}
+
 type FrontDeskRepository interface {
 	transaction.TxRunner
 	CreateFrontDesk(ctx context.Context, f *FrontDesk, userID uuid.UUID) (*ent.FrontDesk, error)
@@ -141,4 +184,13 @@ type FrontDesk struct {
 	EmployeeID string    `json:"employee_id"`
 	CreatedAt  time.Time `json:"created_at"`
 	UpdatedAt  time.Time `json:"updated_at"`
+}
+
+func ParseToFrontDesk(model *ent.FrontDesk) *FrontDesk {
+	return &FrontDesk{
+		ID:         model.ID,
+		EmployeeID: model.EmployeeID,
+		CreatedAt:  model.CreatedAt,
+		UpdatedAt:  model.UpdatedAt,
+	}
 }
