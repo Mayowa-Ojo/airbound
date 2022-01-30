@@ -23,7 +23,9 @@ func (Airline) Fields() []ent.Field {
 		field.String("icao_code").MaxLen(3).Unique(),
 		field.String("call_sign").MaxLen(250).Unique(),
 		field.String("country").MaxLen(250),
-		field.String("license_code").MaxLen(250),
+		field.String("license_code").MaxLen(250).Unique(),
+		field.Int("fleet_size").NonNegative(),
+		field.Int("ranking").Range(0, 6),
 		field.Time("created_at").Default(time.Now),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 	}

@@ -140,16 +140,12 @@ func init() {
 	aircraftDescRange := aircraftFields[5].Descriptor()
 	// aircraft.RangeValidator is a validator for the "range" field. It is called by the builders before save.
 	aircraft.RangeValidator = aircraftDescRange.Validators[0].(func(int) error)
-	// aircraftDescIsGrounded is the schema descriptor for is_grounded field.
-	aircraftDescIsGrounded := aircraftFields[7].Descriptor()
-	// aircraft.DefaultIsGrounded holds the default value on creation for the is_grounded field.
-	aircraft.DefaultIsGrounded = aircraftDescIsGrounded.Default.(bool)
 	// aircraftDescCreatedAt is the schema descriptor for created_at field.
-	aircraftDescCreatedAt := aircraftFields[9].Descriptor()
+	aircraftDescCreatedAt := aircraftFields[10].Descriptor()
 	// aircraft.DefaultCreatedAt holds the default value on creation for the created_at field.
 	aircraft.DefaultCreatedAt = aircraftDescCreatedAt.Default.(func() time.Time)
 	// aircraftDescUpdatedAt is the schema descriptor for updated_at field.
-	aircraftDescUpdatedAt := aircraftFields[10].Descriptor()
+	aircraftDescUpdatedAt := aircraftFields[11].Descriptor()
 	// aircraft.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	aircraft.DefaultUpdatedAt = aircraftDescUpdatedAt.Default.(func() time.Time)
 	// aircraft.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
@@ -184,12 +180,20 @@ func init() {
 	airlineDescLicenseCode := airlineFields[6].Descriptor()
 	// airline.LicenseCodeValidator is a validator for the "license_code" field. It is called by the builders before save.
 	airline.LicenseCodeValidator = airlineDescLicenseCode.Validators[0].(func(string) error)
+	// airlineDescFleetSize is the schema descriptor for fleet_size field.
+	airlineDescFleetSize := airlineFields[7].Descriptor()
+	// airline.FleetSizeValidator is a validator for the "fleet_size" field. It is called by the builders before save.
+	airline.FleetSizeValidator = airlineDescFleetSize.Validators[0].(func(int) error)
+	// airlineDescRanking is the schema descriptor for ranking field.
+	airlineDescRanking := airlineFields[8].Descriptor()
+	// airline.RankingValidator is a validator for the "ranking" field. It is called by the builders before save.
+	airline.RankingValidator = airlineDescRanking.Validators[0].(func(int) error)
 	// airlineDescCreatedAt is the schema descriptor for created_at field.
-	airlineDescCreatedAt := airlineFields[7].Descriptor()
+	airlineDescCreatedAt := airlineFields[9].Descriptor()
 	// airline.DefaultCreatedAt holds the default value on creation for the created_at field.
 	airline.DefaultCreatedAt = airlineDescCreatedAt.Default.(func() time.Time)
 	// airlineDescUpdatedAt is the schema descriptor for updated_at field.
-	airlineDescUpdatedAt := airlineFields[8].Descriptor()
+	airlineDescUpdatedAt := airlineFields[10].Descriptor()
 	// airline.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	airline.DefaultUpdatedAt = airlineDescUpdatedAt.Default.(func() time.Time)
 	// airline.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.

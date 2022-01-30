@@ -29,6 +29,10 @@ type Airline struct {
 	Country string `json:"country,omitempty"`
 	// LicenseCode holds the value of the "license_code" field.
 	LicenseCode string `json:"license_code,omitempty"`
+	// FleetSize holds the value of the "fleet_size" field.
+	FleetSize int `json:"fleet_size,omitempty"`
+	// Ranking holds the value of the "ranking" field.
+	Ranking int `json:"ranking,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
@@ -94,6 +98,8 @@ func (*Airline) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case airline.FieldFleetSize, airline.FieldRanking:
+			values[i] = new(sql.NullInt64)
 		case airline.FieldName, airline.FieldIataCode, airline.FieldIcaoCode, airline.FieldCallSign, airline.FieldCountry, airline.FieldLicenseCode:
 			values[i] = new(sql.NullString)
 		case airline.FieldCreatedAt, airline.FieldUpdatedAt:
@@ -156,6 +162,18 @@ func (a *Airline) assignValues(columns []string, values []interface{}) error {
 				return fmt.Errorf("unexpected type %T for field license_code", values[i])
 			} else if value.Valid {
 				a.LicenseCode = value.String
+			}
+		case airline.FieldFleetSize:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field fleet_size", values[i])
+			} else if value.Valid {
+				a.FleetSize = int(value.Int64)
+			}
+		case airline.FieldRanking:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field ranking", values[i])
+			} else if value.Valid {
+				a.Ranking = int(value.Int64)
 			}
 		case airline.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -229,6 +247,10 @@ func (a *Airline) String() string {
 	builder.WriteString(a.Country)
 	builder.WriteString(", license_code=")
 	builder.WriteString(a.LicenseCode)
+	builder.WriteString(", fleet_size=")
+	builder.WriteString(fmt.Sprintf("%v", a.FleetSize))
+	builder.WriteString(", ranking=")
+	builder.WriteString(fmt.Sprintf("%v", a.Ranking))
 	builder.WriteString(", created_at=")
 	builder.WriteString(a.CreatedAt.Format(time.ANSIC))
 	builder.WriteString(", updated_at=")

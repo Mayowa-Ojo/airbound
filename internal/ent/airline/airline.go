@@ -25,6 +25,10 @@ const (
 	FieldCountry = "country"
 	// FieldLicenseCode holds the string denoting the license_code field in the database.
 	FieldLicenseCode = "license_code"
+	// FieldFleetSize holds the string denoting the fleet_size field in the database.
+	FieldFleetSize = "fleet_size"
+	// FieldRanking holds the string denoting the ranking field in the database.
+	FieldRanking = "ranking"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
@@ -78,6 +82,8 @@ var Columns = []string{
 	FieldCallSign,
 	FieldCountry,
 	FieldLicenseCode,
+	FieldFleetSize,
+	FieldRanking,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }
@@ -105,6 +111,10 @@ var (
 	CountryValidator func(string) error
 	// LicenseCodeValidator is a validator for the "license_code" field. It is called by the builders before save.
 	LicenseCodeValidator func(string) error
+	// FleetSizeValidator is a validator for the "fleet_size" field. It is called by the builders before save.
+	FleetSizeValidator func(int) error
+	// RankingValidator is a validator for the "ranking" field. It is called by the builders before save.
+	RankingValidator func(int) error
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.

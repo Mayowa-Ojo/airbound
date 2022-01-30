@@ -61,6 +61,18 @@ func (ac *AirlineCreate) SetLicenseCode(s string) *AirlineCreate {
 	return ac
 }
 
+// SetFleetSize sets the "fleet_size" field.
+func (ac *AirlineCreate) SetFleetSize(i int) *AirlineCreate {
+	ac.mutation.SetFleetSize(i)
+	return ac
+}
+
+// SetRanking sets the "ranking" field.
+func (ac *AirlineCreate) SetRanking(i int) *AirlineCreate {
+	ac.mutation.SetRanking(i)
+	return ac
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (ac *AirlineCreate) SetCreatedAt(t time.Time) *AirlineCreate {
 	ac.mutation.SetCreatedAt(t)
@@ -298,6 +310,22 @@ func (ac *AirlineCreate) check() error {
 			return &ValidationError{Name: "license_code", err: fmt.Errorf(`ent: validator failed for field "Airline.license_code": %w`, err)}
 		}
 	}
+	if _, ok := ac.mutation.FleetSize(); !ok {
+		return &ValidationError{Name: "fleet_size", err: errors.New(`ent: missing required field "Airline.fleet_size"`)}
+	}
+	if v, ok := ac.mutation.FleetSize(); ok {
+		if err := airline.FleetSizeValidator(v); err != nil {
+			return &ValidationError{Name: "fleet_size", err: fmt.Errorf(`ent: validator failed for field "Airline.fleet_size": %w`, err)}
+		}
+	}
+	if _, ok := ac.mutation.Ranking(); !ok {
+		return &ValidationError{Name: "ranking", err: errors.New(`ent: missing required field "Airline.ranking"`)}
+	}
+	if v, ok := ac.mutation.Ranking(); ok {
+		if err := airline.RankingValidator(v); err != nil {
+			return &ValidationError{Name: "ranking", err: fmt.Errorf(`ent: validator failed for field "Airline.ranking": %w`, err)}
+		}
+	}
 	if _, ok := ac.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Airline.created_at"`)}
 	}
@@ -387,6 +415,22 @@ func (ac *AirlineCreate) createSpec() (*Airline, *sqlgraph.CreateSpec) {
 			Column: airline.FieldLicenseCode,
 		})
 		_node.LicenseCode = value
+	}
+	if value, ok := ac.mutation.FleetSize(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: airline.FieldFleetSize,
+		})
+		_node.FleetSize = value
+	}
+	if value, ok := ac.mutation.Ranking(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: airline.FieldRanking,
+		})
+		_node.Ranking = value
 	}
 	if value, ok := ac.mutation.CreatedAt(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{

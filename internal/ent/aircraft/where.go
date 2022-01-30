@@ -3,6 +3,7 @@
 package aircraft
 
 import (
+	"airbound/internal/ent/enums"
 	"airbound/internal/ent/predicate"
 	"time"
 
@@ -136,17 +137,17 @@ func ManufacturedAt(v time.Time) predicate.Aircraft {
 	})
 }
 
-// IsGrounded applies equality check predicate on the "is_grounded" field. It's identical to IsGroundedEQ.
-func IsGrounded(v bool) predicate.Aircraft {
-	return predicate.Aircraft(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldIsGrounded), v))
-	})
-}
-
 // GroundedAt applies equality check predicate on the "grounded_at" field. It's identical to GroundedAtEQ.
 func GroundedAt(v time.Time) predicate.Aircraft {
 	return predicate.Aircraft(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldGroundedAt), v))
+	})
+}
+
+// RetiredAt applies equality check predicate on the "retired_at" field. It's identical to RetiredAtEQ.
+func RetiredAt(v time.Time) predicate.Aircraft {
+	return predicate.Aircraft(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldRetiredAt), v))
 	})
 }
 
@@ -649,6 +650,56 @@ func RangeLTE(v int) predicate.Aircraft {
 	})
 }
 
+// AircraftStatusEQ applies the EQ predicate on the "aircraft_status" field.
+func AircraftStatusEQ(v enums.AircraftStatus) predicate.Aircraft {
+	vc := v
+	return predicate.Aircraft(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldAircraftStatus), vc))
+	})
+}
+
+// AircraftStatusNEQ applies the NEQ predicate on the "aircraft_status" field.
+func AircraftStatusNEQ(v enums.AircraftStatus) predicate.Aircraft {
+	vc := v
+	return predicate.Aircraft(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldAircraftStatus), vc))
+	})
+}
+
+// AircraftStatusIn applies the In predicate on the "aircraft_status" field.
+func AircraftStatusIn(vs ...enums.AircraftStatus) predicate.Aircraft {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Aircraft(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldAircraftStatus), v...))
+	})
+}
+
+// AircraftStatusNotIn applies the NotIn predicate on the "aircraft_status" field.
+func AircraftStatusNotIn(vs ...enums.AircraftStatus) predicate.Aircraft {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Aircraft(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldAircraftStatus), v...))
+	})
+}
+
 // ManufacturedAtEQ applies the EQ predicate on the "manufactured_at" field.
 func ManufacturedAtEQ(v time.Time) predicate.Aircraft {
 	return predicate.Aircraft(func(s *sql.Selector) {
@@ -722,20 +773,6 @@ func ManufacturedAtLT(v time.Time) predicate.Aircraft {
 func ManufacturedAtLTE(v time.Time) predicate.Aircraft {
 	return predicate.Aircraft(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldManufacturedAt), v))
-	})
-}
-
-// IsGroundedEQ applies the EQ predicate on the "is_grounded" field.
-func IsGroundedEQ(v bool) predicate.Aircraft {
-	return predicate.Aircraft(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldIsGrounded), v))
-	})
-}
-
-// IsGroundedNEQ applies the NEQ predicate on the "is_grounded" field.
-func IsGroundedNEQ(v bool) predicate.Aircraft {
-	return predicate.Aircraft(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldIsGrounded), v))
 	})
 }
 
@@ -826,6 +863,96 @@ func GroundedAtIsNil() predicate.Aircraft {
 func GroundedAtNotNil() predicate.Aircraft {
 	return predicate.Aircraft(func(s *sql.Selector) {
 		s.Where(sql.NotNull(s.C(FieldGroundedAt)))
+	})
+}
+
+// RetiredAtEQ applies the EQ predicate on the "retired_at" field.
+func RetiredAtEQ(v time.Time) predicate.Aircraft {
+	return predicate.Aircraft(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldRetiredAt), v))
+	})
+}
+
+// RetiredAtNEQ applies the NEQ predicate on the "retired_at" field.
+func RetiredAtNEQ(v time.Time) predicate.Aircraft {
+	return predicate.Aircraft(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldRetiredAt), v))
+	})
+}
+
+// RetiredAtIn applies the In predicate on the "retired_at" field.
+func RetiredAtIn(vs ...time.Time) predicate.Aircraft {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Aircraft(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldRetiredAt), v...))
+	})
+}
+
+// RetiredAtNotIn applies the NotIn predicate on the "retired_at" field.
+func RetiredAtNotIn(vs ...time.Time) predicate.Aircraft {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Aircraft(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldRetiredAt), v...))
+	})
+}
+
+// RetiredAtGT applies the GT predicate on the "retired_at" field.
+func RetiredAtGT(v time.Time) predicate.Aircraft {
+	return predicate.Aircraft(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldRetiredAt), v))
+	})
+}
+
+// RetiredAtGTE applies the GTE predicate on the "retired_at" field.
+func RetiredAtGTE(v time.Time) predicate.Aircraft {
+	return predicate.Aircraft(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldRetiredAt), v))
+	})
+}
+
+// RetiredAtLT applies the LT predicate on the "retired_at" field.
+func RetiredAtLT(v time.Time) predicate.Aircraft {
+	return predicate.Aircraft(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldRetiredAt), v))
+	})
+}
+
+// RetiredAtLTE applies the LTE predicate on the "retired_at" field.
+func RetiredAtLTE(v time.Time) predicate.Aircraft {
+	return predicate.Aircraft(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldRetiredAt), v))
+	})
+}
+
+// RetiredAtIsNil applies the IsNil predicate on the "retired_at" field.
+func RetiredAtIsNil() predicate.Aircraft {
+	return predicate.Aircraft(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldRetiredAt)))
+	})
+}
+
+// RetiredAtNotNil applies the NotNil predicate on the "retired_at" field.
+func RetiredAtNotNil() predicate.Aircraft {
+	return predicate.Aircraft(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldRetiredAt)))
 	})
 }
 

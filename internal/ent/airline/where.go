@@ -136,6 +136,20 @@ func LicenseCode(v string) predicate.Airline {
 	})
 }
 
+// FleetSize applies equality check predicate on the "fleet_size" field. It's identical to FleetSizeEQ.
+func FleetSize(v int) predicate.Airline {
+	return predicate.Airline(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldFleetSize), v))
+	})
+}
+
+// Ranking applies equality check predicate on the "ranking" field. It's identical to RankingEQ.
+func Ranking(v int) predicate.Airline {
+	return predicate.Airline(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldRanking), v))
+	})
+}
+
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.Airline {
 	return predicate.Airline(func(s *sql.Selector) {
@@ -813,6 +827,158 @@ func LicenseCodeEqualFold(v string) predicate.Airline {
 func LicenseCodeContainsFold(v string) predicate.Airline {
 	return predicate.Airline(func(s *sql.Selector) {
 		s.Where(sql.ContainsFold(s.C(FieldLicenseCode), v))
+	})
+}
+
+// FleetSizeEQ applies the EQ predicate on the "fleet_size" field.
+func FleetSizeEQ(v int) predicate.Airline {
+	return predicate.Airline(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldFleetSize), v))
+	})
+}
+
+// FleetSizeNEQ applies the NEQ predicate on the "fleet_size" field.
+func FleetSizeNEQ(v int) predicate.Airline {
+	return predicate.Airline(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldFleetSize), v))
+	})
+}
+
+// FleetSizeIn applies the In predicate on the "fleet_size" field.
+func FleetSizeIn(vs ...int) predicate.Airline {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Airline(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldFleetSize), v...))
+	})
+}
+
+// FleetSizeNotIn applies the NotIn predicate on the "fleet_size" field.
+func FleetSizeNotIn(vs ...int) predicate.Airline {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Airline(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldFleetSize), v...))
+	})
+}
+
+// FleetSizeGT applies the GT predicate on the "fleet_size" field.
+func FleetSizeGT(v int) predicate.Airline {
+	return predicate.Airline(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldFleetSize), v))
+	})
+}
+
+// FleetSizeGTE applies the GTE predicate on the "fleet_size" field.
+func FleetSizeGTE(v int) predicate.Airline {
+	return predicate.Airline(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldFleetSize), v))
+	})
+}
+
+// FleetSizeLT applies the LT predicate on the "fleet_size" field.
+func FleetSizeLT(v int) predicate.Airline {
+	return predicate.Airline(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldFleetSize), v))
+	})
+}
+
+// FleetSizeLTE applies the LTE predicate on the "fleet_size" field.
+func FleetSizeLTE(v int) predicate.Airline {
+	return predicate.Airline(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldFleetSize), v))
+	})
+}
+
+// RankingEQ applies the EQ predicate on the "ranking" field.
+func RankingEQ(v int) predicate.Airline {
+	return predicate.Airline(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldRanking), v))
+	})
+}
+
+// RankingNEQ applies the NEQ predicate on the "ranking" field.
+func RankingNEQ(v int) predicate.Airline {
+	return predicate.Airline(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldRanking), v))
+	})
+}
+
+// RankingIn applies the In predicate on the "ranking" field.
+func RankingIn(vs ...int) predicate.Airline {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Airline(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldRanking), v...))
+	})
+}
+
+// RankingNotIn applies the NotIn predicate on the "ranking" field.
+func RankingNotIn(vs ...int) predicate.Airline {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Airline(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(v) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldRanking), v...))
+	})
+}
+
+// RankingGT applies the GT predicate on the "ranking" field.
+func RankingGT(v int) predicate.Airline {
+	return predicate.Airline(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldRanking), v))
+	})
+}
+
+// RankingGTE applies the GTE predicate on the "ranking" field.
+func RankingGTE(v int) predicate.Airline {
+	return predicate.Airline(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldRanking), v))
+	})
+}
+
+// RankingLT applies the LT predicate on the "ranking" field.
+func RankingLT(v int) predicate.Airline {
+	return predicate.Airline(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldRanking), v))
+	})
+}
+
+// RankingLTE applies the LTE predicate on the "ranking" field.
+func RankingLTE(v int) predicate.Airline {
+	return predicate.Airline(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldRanking), v))
 	})
 }
 

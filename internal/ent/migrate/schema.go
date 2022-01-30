@@ -84,9 +84,10 @@ var (
 		{Name: "model", Type: field.TypeString, Size: 250},
 		{Name: "capacity", Type: field.TypeInt},
 		{Name: "range", Type: field.TypeInt},
+		{Name: "aircraft_status", Type: field.TypeEnum, Enums: []string{"IN_SERVICE", "PARKED", "GROUNDED", "RETIRED"}},
 		{Name: "manufactured_at", Type: field.TypeTime},
-		{Name: "is_grounded", Type: field.TypeBool, Default: false},
 		{Name: "grounded_at", Type: field.TypeTime, Nullable: true},
+		{Name: "retired_at", Type: field.TypeTime, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "airline_id", Type: field.TypeUUID, Nullable: true},
@@ -100,13 +101,13 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "aircrafts_airlines_aircrafts",
-				Columns:    []*schema.Column{AircraftsColumns[11]},
+				Columns:    []*schema.Column{AircraftsColumns[12]},
 				RefColumns: []*schema.Column{AirlinesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:     "aircrafts_flight_instances_aircraft",
-				Columns:    []*schema.Column{AircraftsColumns[12]},
+				Columns:    []*schema.Column{AircraftsColumns[13]},
 				RefColumns: []*schema.Column{FlightInstancesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -120,7 +121,9 @@ var (
 		{Name: "icao_code", Type: field.TypeString, Unique: true, Size: 3},
 		{Name: "call_sign", Type: field.TypeString, Unique: true, Size: 250},
 		{Name: "country", Type: field.TypeString, Size: 250},
-		{Name: "license_code", Type: field.TypeString, Size: 250},
+		{Name: "license_code", Type: field.TypeString, Unique: true, Size: 250},
+		{Name: "fleet_size", Type: field.TypeInt},
+		{Name: "ranking", Type: field.TypeInt},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 	}

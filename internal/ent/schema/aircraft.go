@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"airbound/internal/ent/enums"
 	"time"
 
 	"entgo.io/ent"
@@ -23,9 +24,10 @@ func (Aircraft) Fields() []ent.Field {
 		field.String("model").MaxLen(250),
 		field.Int("capacity").NonNegative(),
 		field.Int("range").NonNegative(),
+		field.Enum("aircraft_status").GoType(enums.AircraftStatus("")),
 		field.Time("manufactured_at"),
-		field.Bool("is_grounded").Default(false),
 		field.Time("grounded_at").Optional(),
+		field.Time("retired_at").Optional(),
 		field.Time("created_at").Default(time.Now),
 		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 	}

@@ -152,6 +152,22 @@ func (Role) Values() (kinds []string) {
 	return
 }
 
+type AircraftStatus string
+
+const (
+	InService AircraftStatus = "IN_SERVICE"
+	Grounded  AircraftStatus = "GROUNDED"
+	Parked    AircraftStatus = "PARKED"
+	Retired   AircraftStatus = "RETIRED"
+)
+
+func (AircraftStatus) Values() (kinds []string) {
+	for _, s := range []AircraftStatus{InService, Parked, Grounded, Retired} {
+		kinds = append(kinds, string(s))
+	}
+	return
+}
+
 type AdminLevel int
 
 const (

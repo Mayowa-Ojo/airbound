@@ -2355,9 +2355,10 @@ type AircraftMutation struct {
 	addcapacity            *int
 	_range                 *int
 	add_range              *int
+	aircraft_status        *enums.AircraftStatus
 	manufactured_at        *time.Time
-	is_grounded            *bool
 	grounded_at            *time.Time
+	retired_at             *time.Time
 	created_at             *time.Time
 	updated_at             *time.Time
 	clearedFields          map[string]struct{}
@@ -2697,6 +2698,42 @@ func (m *AircraftMutation) ResetRange() {
 	m.add_range = nil
 }
 
+// SetAircraftStatus sets the "aircraft_status" field.
+func (m *AircraftMutation) SetAircraftStatus(es enums.AircraftStatus) {
+	m.aircraft_status = &es
+}
+
+// AircraftStatus returns the value of the "aircraft_status" field in the mutation.
+func (m *AircraftMutation) AircraftStatus() (r enums.AircraftStatus, exists bool) {
+	v := m.aircraft_status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAircraftStatus returns the old "aircraft_status" field's value of the Aircraft entity.
+// If the Aircraft object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AircraftMutation) OldAircraftStatus(ctx context.Context) (v enums.AircraftStatus, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAircraftStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAircraftStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAircraftStatus: %w", err)
+	}
+	return oldValue.AircraftStatus, nil
+}
+
+// ResetAircraftStatus resets all changes to the "aircraft_status" field.
+func (m *AircraftMutation) ResetAircraftStatus() {
+	m.aircraft_status = nil
+}
+
 // SetManufacturedAt sets the "manufactured_at" field.
 func (m *AircraftMutation) SetManufacturedAt(t time.Time) {
 	m.manufactured_at = &t
@@ -2731,42 +2768,6 @@ func (m *AircraftMutation) OldManufacturedAt(ctx context.Context) (v time.Time, 
 // ResetManufacturedAt resets all changes to the "manufactured_at" field.
 func (m *AircraftMutation) ResetManufacturedAt() {
 	m.manufactured_at = nil
-}
-
-// SetIsGrounded sets the "is_grounded" field.
-func (m *AircraftMutation) SetIsGrounded(b bool) {
-	m.is_grounded = &b
-}
-
-// IsGrounded returns the value of the "is_grounded" field in the mutation.
-func (m *AircraftMutation) IsGrounded() (r bool, exists bool) {
-	v := m.is_grounded
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldIsGrounded returns the old "is_grounded" field's value of the Aircraft entity.
-// If the Aircraft object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AircraftMutation) OldIsGrounded(ctx context.Context) (v bool, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldIsGrounded is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldIsGrounded requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldIsGrounded: %w", err)
-	}
-	return oldValue.IsGrounded, nil
-}
-
-// ResetIsGrounded resets all changes to the "is_grounded" field.
-func (m *AircraftMutation) ResetIsGrounded() {
-	m.is_grounded = nil
 }
 
 // SetGroundedAt sets the "grounded_at" field.
@@ -2816,6 +2817,55 @@ func (m *AircraftMutation) GroundedAtCleared() bool {
 func (m *AircraftMutation) ResetGroundedAt() {
 	m.grounded_at = nil
 	delete(m.clearedFields, aircraft.FieldGroundedAt)
+}
+
+// SetRetiredAt sets the "retired_at" field.
+func (m *AircraftMutation) SetRetiredAt(t time.Time) {
+	m.retired_at = &t
+}
+
+// RetiredAt returns the value of the "retired_at" field in the mutation.
+func (m *AircraftMutation) RetiredAt() (r time.Time, exists bool) {
+	v := m.retired_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRetiredAt returns the old "retired_at" field's value of the Aircraft entity.
+// If the Aircraft object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AircraftMutation) OldRetiredAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRetiredAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRetiredAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRetiredAt: %w", err)
+	}
+	return oldValue.RetiredAt, nil
+}
+
+// ClearRetiredAt clears the value of the "retired_at" field.
+func (m *AircraftMutation) ClearRetiredAt() {
+	m.retired_at = nil
+	m.clearedFields[aircraft.FieldRetiredAt] = struct{}{}
+}
+
+// RetiredAtCleared returns if the "retired_at" field was cleared in this mutation.
+func (m *AircraftMutation) RetiredAtCleared() bool {
+	_, ok := m.clearedFields[aircraft.FieldRetiredAt]
+	return ok
+}
+
+// ResetRetiredAt resets all changes to the "retired_at" field.
+func (m *AircraftMutation) ResetRetiredAt() {
+	m.retired_at = nil
+	delete(m.clearedFields, aircraft.FieldRetiredAt)
 }
 
 // SetCreatedAt sets the "created_at" field.
@@ -3041,7 +3091,7 @@ func (m *AircraftMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *AircraftMutation) Fields() []string {
-	fields := make([]string, 0, 10)
+	fields := make([]string, 0, 11)
 	if m.tail_number != nil {
 		fields = append(fields, aircraft.FieldTailNumber)
 	}
@@ -3057,14 +3107,17 @@ func (m *AircraftMutation) Fields() []string {
 	if m._range != nil {
 		fields = append(fields, aircraft.FieldRange)
 	}
+	if m.aircraft_status != nil {
+		fields = append(fields, aircraft.FieldAircraftStatus)
+	}
 	if m.manufactured_at != nil {
 		fields = append(fields, aircraft.FieldManufacturedAt)
 	}
-	if m.is_grounded != nil {
-		fields = append(fields, aircraft.FieldIsGrounded)
-	}
 	if m.grounded_at != nil {
 		fields = append(fields, aircraft.FieldGroundedAt)
+	}
+	if m.retired_at != nil {
+		fields = append(fields, aircraft.FieldRetiredAt)
 	}
 	if m.created_at != nil {
 		fields = append(fields, aircraft.FieldCreatedAt)
@@ -3090,12 +3143,14 @@ func (m *AircraftMutation) Field(name string) (ent.Value, bool) {
 		return m.Capacity()
 	case aircraft.FieldRange:
 		return m.Range()
+	case aircraft.FieldAircraftStatus:
+		return m.AircraftStatus()
 	case aircraft.FieldManufacturedAt:
 		return m.ManufacturedAt()
-	case aircraft.FieldIsGrounded:
-		return m.IsGrounded()
 	case aircraft.FieldGroundedAt:
 		return m.GroundedAt()
+	case aircraft.FieldRetiredAt:
+		return m.RetiredAt()
 	case aircraft.FieldCreatedAt:
 		return m.CreatedAt()
 	case aircraft.FieldUpdatedAt:
@@ -3119,12 +3174,14 @@ func (m *AircraftMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldCapacity(ctx)
 	case aircraft.FieldRange:
 		return m.OldRange(ctx)
+	case aircraft.FieldAircraftStatus:
+		return m.OldAircraftStatus(ctx)
 	case aircraft.FieldManufacturedAt:
 		return m.OldManufacturedAt(ctx)
-	case aircraft.FieldIsGrounded:
-		return m.OldIsGrounded(ctx)
 	case aircraft.FieldGroundedAt:
 		return m.OldGroundedAt(ctx)
+	case aircraft.FieldRetiredAt:
+		return m.OldRetiredAt(ctx)
 	case aircraft.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case aircraft.FieldUpdatedAt:
@@ -3173,6 +3230,13 @@ func (m *AircraftMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetRange(v)
 		return nil
+	case aircraft.FieldAircraftStatus:
+		v, ok := value.(enums.AircraftStatus)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAircraftStatus(v)
+		return nil
 	case aircraft.FieldManufacturedAt:
 		v, ok := value.(time.Time)
 		if !ok {
@@ -3180,19 +3244,19 @@ func (m *AircraftMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetManufacturedAt(v)
 		return nil
-	case aircraft.FieldIsGrounded:
-		v, ok := value.(bool)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetIsGrounded(v)
-		return nil
 	case aircraft.FieldGroundedAt:
 		v, ok := value.(time.Time)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetGroundedAt(v)
+		return nil
+	case aircraft.FieldRetiredAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRetiredAt(v)
 		return nil
 	case aircraft.FieldCreatedAt:
 		v, ok := value.(time.Time)
@@ -3268,6 +3332,9 @@ func (m *AircraftMutation) ClearedFields() []string {
 	if m.FieldCleared(aircraft.FieldGroundedAt) {
 		fields = append(fields, aircraft.FieldGroundedAt)
 	}
+	if m.FieldCleared(aircraft.FieldRetiredAt) {
+		fields = append(fields, aircraft.FieldRetiredAt)
+	}
 	return fields
 }
 
@@ -3284,6 +3351,9 @@ func (m *AircraftMutation) ClearField(name string) error {
 	switch name {
 	case aircraft.FieldGroundedAt:
 		m.ClearGroundedAt()
+		return nil
+	case aircraft.FieldRetiredAt:
+		m.ClearRetiredAt()
 		return nil
 	}
 	return fmt.Errorf("unknown Aircraft nullable field %s", name)
@@ -3308,14 +3378,17 @@ func (m *AircraftMutation) ResetField(name string) error {
 	case aircraft.FieldRange:
 		m.ResetRange()
 		return nil
+	case aircraft.FieldAircraftStatus:
+		m.ResetAircraftStatus()
+		return nil
 	case aircraft.FieldManufacturedAt:
 		m.ResetManufacturedAt()
 		return nil
-	case aircraft.FieldIsGrounded:
-		m.ResetIsGrounded()
-		return nil
 	case aircraft.FieldGroundedAt:
 		m.ResetGroundedAt()
+		return nil
+	case aircraft.FieldRetiredAt:
+		m.ResetRetiredAt()
 		return nil
 	case aircraft.FieldCreatedAt:
 		m.ResetCreatedAt()
@@ -3459,6 +3532,10 @@ type AirlineMutation struct {
 	call_sign        *string
 	country          *string
 	license_code     *string
+	fleet_size       *int
+	addfleet_size    *int
+	ranking          *int
+	addranking       *int
 	created_at       *time.Time
 	updated_at       *time.Time
 	clearedFields    map[string]struct{}
@@ -3799,6 +3876,118 @@ func (m *AirlineMutation) ResetLicenseCode() {
 	m.license_code = nil
 }
 
+// SetFleetSize sets the "fleet_size" field.
+func (m *AirlineMutation) SetFleetSize(i int) {
+	m.fleet_size = &i
+	m.addfleet_size = nil
+}
+
+// FleetSize returns the value of the "fleet_size" field in the mutation.
+func (m *AirlineMutation) FleetSize() (r int, exists bool) {
+	v := m.fleet_size
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFleetSize returns the old "fleet_size" field's value of the Airline entity.
+// If the Airline object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirlineMutation) OldFleetSize(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFleetSize is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFleetSize requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFleetSize: %w", err)
+	}
+	return oldValue.FleetSize, nil
+}
+
+// AddFleetSize adds i to the "fleet_size" field.
+func (m *AirlineMutation) AddFleetSize(i int) {
+	if m.addfleet_size != nil {
+		*m.addfleet_size += i
+	} else {
+		m.addfleet_size = &i
+	}
+}
+
+// AddedFleetSize returns the value that was added to the "fleet_size" field in this mutation.
+func (m *AirlineMutation) AddedFleetSize() (r int, exists bool) {
+	v := m.addfleet_size
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetFleetSize resets all changes to the "fleet_size" field.
+func (m *AirlineMutation) ResetFleetSize() {
+	m.fleet_size = nil
+	m.addfleet_size = nil
+}
+
+// SetRanking sets the "ranking" field.
+func (m *AirlineMutation) SetRanking(i int) {
+	m.ranking = &i
+	m.addranking = nil
+}
+
+// Ranking returns the value of the "ranking" field in the mutation.
+func (m *AirlineMutation) Ranking() (r int, exists bool) {
+	v := m.ranking
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRanking returns the old "ranking" field's value of the Airline entity.
+// If the Airline object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AirlineMutation) OldRanking(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRanking is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRanking requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRanking: %w", err)
+	}
+	return oldValue.Ranking, nil
+}
+
+// AddRanking adds i to the "ranking" field.
+func (m *AirlineMutation) AddRanking(i int) {
+	if m.addranking != nil {
+		*m.addranking += i
+	} else {
+		m.addranking = &i
+	}
+}
+
+// AddedRanking returns the value that was added to the "ranking" field in this mutation.
+func (m *AirlineMutation) AddedRanking() (r int, exists bool) {
+	v := m.addranking
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetRanking resets all changes to the "ranking" field.
+func (m *AirlineMutation) ResetRanking() {
+	m.ranking = nil
+	m.addranking = nil
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (m *AirlineMutation) SetCreatedAt(t time.Time) {
 	m.created_at = &t
@@ -4106,7 +4295,7 @@ func (m *AirlineMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *AirlineMutation) Fields() []string {
-	fields := make([]string, 0, 8)
+	fields := make([]string, 0, 10)
 	if m.name != nil {
 		fields = append(fields, airline.FieldName)
 	}
@@ -4124,6 +4313,12 @@ func (m *AirlineMutation) Fields() []string {
 	}
 	if m.license_code != nil {
 		fields = append(fields, airline.FieldLicenseCode)
+	}
+	if m.fleet_size != nil {
+		fields = append(fields, airline.FieldFleetSize)
+	}
+	if m.ranking != nil {
+		fields = append(fields, airline.FieldRanking)
 	}
 	if m.created_at != nil {
 		fields = append(fields, airline.FieldCreatedAt)
@@ -4151,6 +4346,10 @@ func (m *AirlineMutation) Field(name string) (ent.Value, bool) {
 		return m.Country()
 	case airline.FieldLicenseCode:
 		return m.LicenseCode()
+	case airline.FieldFleetSize:
+		return m.FleetSize()
+	case airline.FieldRanking:
+		return m.Ranking()
 	case airline.FieldCreatedAt:
 		return m.CreatedAt()
 	case airline.FieldUpdatedAt:
@@ -4176,6 +4375,10 @@ func (m *AirlineMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldCountry(ctx)
 	case airline.FieldLicenseCode:
 		return m.OldLicenseCode(ctx)
+	case airline.FieldFleetSize:
+		return m.OldFleetSize(ctx)
+	case airline.FieldRanking:
+		return m.OldRanking(ctx)
 	case airline.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
 	case airline.FieldUpdatedAt:
@@ -4231,6 +4434,20 @@ func (m *AirlineMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetLicenseCode(v)
 		return nil
+	case airline.FieldFleetSize:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFleetSize(v)
+		return nil
+	case airline.FieldRanking:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRanking(v)
+		return nil
 	case airline.FieldCreatedAt:
 		v, ok := value.(time.Time)
 		if !ok {
@@ -4252,13 +4469,26 @@ func (m *AirlineMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *AirlineMutation) AddedFields() []string {
-	return nil
+	var fields []string
+	if m.addfleet_size != nil {
+		fields = append(fields, airline.FieldFleetSize)
+	}
+	if m.addranking != nil {
+		fields = append(fields, airline.FieldRanking)
+	}
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *AirlineMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case airline.FieldFleetSize:
+		return m.AddedFleetSize()
+	case airline.FieldRanking:
+		return m.AddedRanking()
+	}
 	return nil, false
 }
 
@@ -4267,6 +4497,20 @@ func (m *AirlineMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *AirlineMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case airline.FieldFleetSize:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddFleetSize(v)
+		return nil
+	case airline.FieldRanking:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddRanking(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Airline numeric field %s", name)
 }
@@ -4311,6 +4555,12 @@ func (m *AirlineMutation) ResetField(name string) error {
 		return nil
 	case airline.FieldLicenseCode:
 		m.ResetLicenseCode()
+		return nil
+	case airline.FieldFleetSize:
+		m.ResetFleetSize()
+		return nil
+	case airline.FieldRanking:
+		m.ResetRanking()
 		return nil
 	case airline.FieldCreatedAt:
 		m.ResetCreatedAt()

@@ -69,6 +69,32 @@ func (au *AirlineUpdate) SetLicenseCode(s string) *AirlineUpdate {
 	return au
 }
 
+// SetFleetSize sets the "fleet_size" field.
+func (au *AirlineUpdate) SetFleetSize(i int) *AirlineUpdate {
+	au.mutation.ResetFleetSize()
+	au.mutation.SetFleetSize(i)
+	return au
+}
+
+// AddFleetSize adds i to the "fleet_size" field.
+func (au *AirlineUpdate) AddFleetSize(i int) *AirlineUpdate {
+	au.mutation.AddFleetSize(i)
+	return au
+}
+
+// SetRanking sets the "ranking" field.
+func (au *AirlineUpdate) SetRanking(i int) *AirlineUpdate {
+	au.mutation.ResetRanking()
+	au.mutation.SetRanking(i)
+	return au
+}
+
+// AddRanking adds i to the "ranking" field.
+func (au *AirlineUpdate) AddRanking(i int) *AirlineUpdate {
+	au.mutation.AddRanking(i)
+	return au
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (au *AirlineUpdate) SetCreatedAt(t time.Time) *AirlineUpdate {
 	au.mutation.SetCreatedAt(t)
@@ -339,6 +365,16 @@ func (au *AirlineUpdate) check() error {
 			return &ValidationError{Name: "license_code", err: fmt.Errorf(`ent: validator failed for field "Airline.license_code": %w`, err)}
 		}
 	}
+	if v, ok := au.mutation.FleetSize(); ok {
+		if err := airline.FleetSizeValidator(v); err != nil {
+			return &ValidationError{Name: "fleet_size", err: fmt.Errorf(`ent: validator failed for field "Airline.fleet_size": %w`, err)}
+		}
+	}
+	if v, ok := au.mutation.Ranking(); ok {
+		if err := airline.RankingValidator(v); err != nil {
+			return &ValidationError{Name: "ranking", err: fmt.Errorf(`ent: validator failed for field "Airline.ranking": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -400,6 +436,34 @@ func (au *AirlineUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Type:   field.TypeString,
 			Value:  value,
 			Column: airline.FieldLicenseCode,
+		})
+	}
+	if value, ok := au.mutation.FleetSize(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: airline.FieldFleetSize,
+		})
+	}
+	if value, ok := au.mutation.AddedFleetSize(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: airline.FieldFleetSize,
+		})
+	}
+	if value, ok := au.mutation.Ranking(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: airline.FieldRanking,
+		})
+	}
+	if value, ok := au.mutation.AddedRanking(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: airline.FieldRanking,
 		})
 	}
 	if value, ok := au.mutation.CreatedAt(); ok {
@@ -687,6 +751,32 @@ func (auo *AirlineUpdateOne) SetLicenseCode(s string) *AirlineUpdateOne {
 	return auo
 }
 
+// SetFleetSize sets the "fleet_size" field.
+func (auo *AirlineUpdateOne) SetFleetSize(i int) *AirlineUpdateOne {
+	auo.mutation.ResetFleetSize()
+	auo.mutation.SetFleetSize(i)
+	return auo
+}
+
+// AddFleetSize adds i to the "fleet_size" field.
+func (auo *AirlineUpdateOne) AddFleetSize(i int) *AirlineUpdateOne {
+	auo.mutation.AddFleetSize(i)
+	return auo
+}
+
+// SetRanking sets the "ranking" field.
+func (auo *AirlineUpdateOne) SetRanking(i int) *AirlineUpdateOne {
+	auo.mutation.ResetRanking()
+	auo.mutation.SetRanking(i)
+	return auo
+}
+
+// AddRanking adds i to the "ranking" field.
+func (auo *AirlineUpdateOne) AddRanking(i int) *AirlineUpdateOne {
+	auo.mutation.AddRanking(i)
+	return auo
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (auo *AirlineUpdateOne) SetCreatedAt(t time.Time) *AirlineUpdateOne {
 	auo.mutation.SetCreatedAt(t)
@@ -964,6 +1054,16 @@ func (auo *AirlineUpdateOne) check() error {
 			return &ValidationError{Name: "license_code", err: fmt.Errorf(`ent: validator failed for field "Airline.license_code": %w`, err)}
 		}
 	}
+	if v, ok := auo.mutation.FleetSize(); ok {
+		if err := airline.FleetSizeValidator(v); err != nil {
+			return &ValidationError{Name: "fleet_size", err: fmt.Errorf(`ent: validator failed for field "Airline.fleet_size": %w`, err)}
+		}
+	}
+	if v, ok := auo.mutation.Ranking(); ok {
+		if err := airline.RankingValidator(v); err != nil {
+			return &ValidationError{Name: "ranking", err: fmt.Errorf(`ent: validator failed for field "Airline.ranking": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -1042,6 +1142,34 @@ func (auo *AirlineUpdateOne) sqlSave(ctx context.Context) (_node *Airline, err e
 			Type:   field.TypeString,
 			Value:  value,
 			Column: airline.FieldLicenseCode,
+		})
+	}
+	if value, ok := auo.mutation.FleetSize(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: airline.FieldFleetSize,
+		})
+	}
+	if value, ok := auo.mutation.AddedFleetSize(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: airline.FieldFleetSize,
+		})
+	}
+	if value, ok := auo.mutation.Ranking(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: airline.FieldRanking,
+		})
+	}
+	if value, ok := auo.mutation.AddedRanking(); ok {
+		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  value,
+			Column: airline.FieldRanking,
 		})
 	}
 	if value, ok := auo.mutation.CreatedAt(); ok {

@@ -5,6 +5,7 @@ package ent
 import (
 	"airbound/internal/ent/aircraft"
 	"airbound/internal/ent/airline"
+	"airbound/internal/ent/enums"
 	"airbound/internal/ent/flightinstance"
 	"airbound/internal/ent/predicate"
 	"airbound/internal/ent/seat"
@@ -76,23 +77,15 @@ func (au *AircraftUpdate) AddRange(i int) *AircraftUpdate {
 	return au
 }
 
+// SetAircraftStatus sets the "aircraft_status" field.
+func (au *AircraftUpdate) SetAircraftStatus(es enums.AircraftStatus) *AircraftUpdate {
+	au.mutation.SetAircraftStatus(es)
+	return au
+}
+
 // SetManufacturedAt sets the "manufactured_at" field.
 func (au *AircraftUpdate) SetManufacturedAt(t time.Time) *AircraftUpdate {
 	au.mutation.SetManufacturedAt(t)
-	return au
-}
-
-// SetIsGrounded sets the "is_grounded" field.
-func (au *AircraftUpdate) SetIsGrounded(b bool) *AircraftUpdate {
-	au.mutation.SetIsGrounded(b)
-	return au
-}
-
-// SetNillableIsGrounded sets the "is_grounded" field if the given value is not nil.
-func (au *AircraftUpdate) SetNillableIsGrounded(b *bool) *AircraftUpdate {
-	if b != nil {
-		au.SetIsGrounded(*b)
-	}
 	return au
 }
 
@@ -113,6 +106,26 @@ func (au *AircraftUpdate) SetNillableGroundedAt(t *time.Time) *AircraftUpdate {
 // ClearGroundedAt clears the value of the "grounded_at" field.
 func (au *AircraftUpdate) ClearGroundedAt() *AircraftUpdate {
 	au.mutation.ClearGroundedAt()
+	return au
+}
+
+// SetRetiredAt sets the "retired_at" field.
+func (au *AircraftUpdate) SetRetiredAt(t time.Time) *AircraftUpdate {
+	au.mutation.SetRetiredAt(t)
+	return au
+}
+
+// SetNillableRetiredAt sets the "retired_at" field if the given value is not nil.
+func (au *AircraftUpdate) SetNillableRetiredAt(t *time.Time) *AircraftUpdate {
+	if t != nil {
+		au.SetRetiredAt(*t)
+	}
+	return au
+}
+
+// ClearRetiredAt clears the value of the "retired_at" field.
+func (au *AircraftUpdate) ClearRetiredAt() *AircraftUpdate {
+	au.mutation.ClearRetiredAt()
 	return au
 }
 
@@ -323,6 +336,11 @@ func (au *AircraftUpdate) check() error {
 			return &ValidationError{Name: "range", err: fmt.Errorf(`ent: validator failed for field "Aircraft.range": %w`, err)}
 		}
 	}
+	if v, ok := au.mutation.AircraftStatus(); ok {
+		if err := aircraft.AircraftStatusValidator(v); err != nil {
+			return &ValidationError{Name: "aircraft_status", err: fmt.Errorf(`ent: validator failed for field "Aircraft.aircraft_status": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -393,18 +411,18 @@ func (au *AircraftUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: aircraft.FieldRange,
 		})
 	}
+	if value, ok := au.mutation.AircraftStatus(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeEnum,
+			Value:  value,
+			Column: aircraft.FieldAircraftStatus,
+		})
+	}
 	if value, ok := au.mutation.ManufacturedAt(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  value,
 			Column: aircraft.FieldManufacturedAt,
-		})
-	}
-	if value, ok := au.mutation.IsGrounded(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeBool,
-			Value:  value,
-			Column: aircraft.FieldIsGrounded,
 		})
 	}
 	if value, ok := au.mutation.GroundedAt(); ok {
@@ -418,6 +436,19 @@ func (au *AircraftUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Column: aircraft.FieldGroundedAt,
+		})
+	}
+	if value, ok := au.mutation.RetiredAt(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  value,
+			Column: aircraft.FieldRetiredAt,
+		})
+	}
+	if au.mutation.RetiredAtCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Column: aircraft.FieldRetiredAt,
 		})
 	}
 	if value, ok := au.mutation.CreatedAt(); ok {
@@ -621,23 +652,15 @@ func (auo *AircraftUpdateOne) AddRange(i int) *AircraftUpdateOne {
 	return auo
 }
 
+// SetAircraftStatus sets the "aircraft_status" field.
+func (auo *AircraftUpdateOne) SetAircraftStatus(es enums.AircraftStatus) *AircraftUpdateOne {
+	auo.mutation.SetAircraftStatus(es)
+	return auo
+}
+
 // SetManufacturedAt sets the "manufactured_at" field.
 func (auo *AircraftUpdateOne) SetManufacturedAt(t time.Time) *AircraftUpdateOne {
 	auo.mutation.SetManufacturedAt(t)
-	return auo
-}
-
-// SetIsGrounded sets the "is_grounded" field.
-func (auo *AircraftUpdateOne) SetIsGrounded(b bool) *AircraftUpdateOne {
-	auo.mutation.SetIsGrounded(b)
-	return auo
-}
-
-// SetNillableIsGrounded sets the "is_grounded" field if the given value is not nil.
-func (auo *AircraftUpdateOne) SetNillableIsGrounded(b *bool) *AircraftUpdateOne {
-	if b != nil {
-		auo.SetIsGrounded(*b)
-	}
 	return auo
 }
 
@@ -658,6 +681,26 @@ func (auo *AircraftUpdateOne) SetNillableGroundedAt(t *time.Time) *AircraftUpdat
 // ClearGroundedAt clears the value of the "grounded_at" field.
 func (auo *AircraftUpdateOne) ClearGroundedAt() *AircraftUpdateOne {
 	auo.mutation.ClearGroundedAt()
+	return auo
+}
+
+// SetRetiredAt sets the "retired_at" field.
+func (auo *AircraftUpdateOne) SetRetiredAt(t time.Time) *AircraftUpdateOne {
+	auo.mutation.SetRetiredAt(t)
+	return auo
+}
+
+// SetNillableRetiredAt sets the "retired_at" field if the given value is not nil.
+func (auo *AircraftUpdateOne) SetNillableRetiredAt(t *time.Time) *AircraftUpdateOne {
+	if t != nil {
+		auo.SetRetiredAt(*t)
+	}
+	return auo
+}
+
+// ClearRetiredAt clears the value of the "retired_at" field.
+func (auo *AircraftUpdateOne) ClearRetiredAt() *AircraftUpdateOne {
+	auo.mutation.ClearRetiredAt()
 	return auo
 }
 
@@ -875,6 +918,11 @@ func (auo *AircraftUpdateOne) check() error {
 			return &ValidationError{Name: "range", err: fmt.Errorf(`ent: validator failed for field "Aircraft.range": %w`, err)}
 		}
 	}
+	if v, ok := auo.mutation.AircraftStatus(); ok {
+		if err := aircraft.AircraftStatusValidator(v); err != nil {
+			return &ValidationError{Name: "aircraft_status", err: fmt.Errorf(`ent: validator failed for field "Aircraft.aircraft_status": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -962,18 +1010,18 @@ func (auo *AircraftUpdateOne) sqlSave(ctx context.Context) (_node *Aircraft, err
 			Column: aircraft.FieldRange,
 		})
 	}
+	if value, ok := auo.mutation.AircraftStatus(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeEnum,
+			Value:  value,
+			Column: aircraft.FieldAircraftStatus,
+		})
+	}
 	if value, ok := auo.mutation.ManufacturedAt(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Value:  value,
 			Column: aircraft.FieldManufacturedAt,
-		})
-	}
-	if value, ok := auo.mutation.IsGrounded(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeBool,
-			Value:  value,
-			Column: aircraft.FieldIsGrounded,
 		})
 	}
 	if value, ok := auo.mutation.GroundedAt(); ok {
@@ -987,6 +1035,19 @@ func (auo *AircraftUpdateOne) sqlSave(ctx context.Context) (_node *Aircraft, err
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
 			Column: aircraft.FieldGroundedAt,
+		})
+	}
+	if value, ok := auo.mutation.RetiredAt(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  value,
+			Column: aircraft.FieldRetiredAt,
+		})
+	}
+	if auo.mutation.RetiredAtCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Column: aircraft.FieldRetiredAt,
 		})
 	}
 	if value, ok := auo.mutation.CreatedAt(); ok {

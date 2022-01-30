@@ -3,6 +3,8 @@
 package aircraft
 
 import (
+	"airbound/internal/ent/enums"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -23,12 +25,14 @@ const (
 	FieldCapacity = "capacity"
 	// FieldRange holds the string denoting the range field in the database.
 	FieldRange = "range"
+	// FieldAircraftStatus holds the string denoting the aircraft_status field in the database.
+	FieldAircraftStatus = "aircraft_status"
 	// FieldManufacturedAt holds the string denoting the manufactured_at field in the database.
 	FieldManufacturedAt = "manufactured_at"
-	// FieldIsGrounded holds the string denoting the is_grounded field in the database.
-	FieldIsGrounded = "is_grounded"
 	// FieldGroundedAt holds the string denoting the grounded_at field in the database.
 	FieldGroundedAt = "grounded_at"
+	// FieldRetiredAt holds the string denoting the retired_at field in the database.
+	FieldRetiredAt = "retired_at"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
@@ -72,9 +76,10 @@ var Columns = []string{
 	FieldModel,
 	FieldCapacity,
 	FieldRange,
+	FieldAircraftStatus,
 	FieldManufacturedAt,
-	FieldIsGrounded,
 	FieldGroundedAt,
+	FieldRetiredAt,
 	FieldCreatedAt,
 	FieldUpdatedAt,
 }
@@ -112,8 +117,6 @@ var (
 	CapacityValidator func(int) error
 	// RangeValidator is a validator for the "range" field. It is called by the builders before save.
 	RangeValidator func(int) error
-	// DefaultIsGrounded holds the default value on creation for the "is_grounded" field.
-	DefaultIsGrounded bool
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
@@ -123,3 +126,13 @@ var (
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
+
+// AircraftStatusValidator is a validator for the "aircraft_status" field enum values. It is called by the builders before save.
+func AircraftStatusValidator(as enums.AircraftStatus) error {
+	switch as {
+	case "IN_SERVICE", "PARKED", "GROUNDED", "RETIRED":
+		return nil
+	default:
+		return fmt.Errorf("aircraft: invalid enum value for aircraft_status field: %q", as)
+	}
+}
