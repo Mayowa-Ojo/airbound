@@ -29,6 +29,7 @@ type Config struct {
 	TwoFaIssuer            string        `envconfig:"TWO_FA_ISSUER"`
 	TwoFaTTL               time.Duration `envconfig:"TWO_FA_TTL"`
 	TwoFaLength            int           `envconfig:"TWO_FA_LENGTH"`
+	MaxAircraftAge         time.Duration `envconfig:"MAX_AIRCRAFT_AGE"`
 }
 
 func LoadConfig() *Config {
