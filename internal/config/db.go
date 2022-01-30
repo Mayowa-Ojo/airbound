@@ -2,11 +2,14 @@ package config
 
 import (
 	"airbound/internal/ent"
+	"airbound/internal/ent/hooks"
 	"airbound/internal/ent/migrate"
 	"airbound/internal/log"
 	"context"
 	"fmt"
 	"os"
+
+	_ "airbound/internal/ent/runtime"
 
 	"entgo.io/ent/dialect/sql/schema"
 	_ "github.com/lib/pq"
@@ -22,6 +25,8 @@ func NewEntClient(cfg *Config) *ent.Client {
 	if err != nil {
 		log.Fatal("[ENT]: error connecting to db %s", err)
 	}
+
+	client.Airline.Use(hooks.EnsureUppercaseField())
 
 	log.Info("[ENT]: connected to database")
 
