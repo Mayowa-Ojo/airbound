@@ -73,8 +73,11 @@ func AuthenticateUser(cfg *config.Config) gin.HandlerFunc {
 func AuthorizeUser(permission string) gin.HandlerFunc {
 	// check permissions
 	return func(c *gin.Context) {
+		logger := log.WithField(string(log.LogFieldFunctionName), "<Middleware>AuthorizeUser")
+
 		td, ok := c.Get("token-data")
 		if !ok {
+			logger.Warn("could not retrieve token data")
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 				"status":  "error",
 				"message": "missing/malformed token",
@@ -86,6 +89,7 @@ func AuthorizeUser(permission string) gin.HandlerFunc {
 		tokenData := td.(*auth.TokenData)
 
 		if tokenData.User.Role.Name != tokenData.Role {
+			logger.Warn("user role mismatch")
 			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{
 				"status":  "error",
 				"message": "action not allowed",
@@ -115,11 +119,11 @@ func AuthorizeUser(permission string) gin.HandlerFunc {
 
 func EnsureTwoFa() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		logger := log.WithField(string(log.LogFieldFunctionName), "EnsureTwoFa")
+		logger := log.WithField(string(log.LogFieldFunctionName), "<Middleware>EnsureTwoFa")
 
 		td, ok := c.Get("token-data")
 		if !ok {
-			logger.Error("error fetching token data")
+			logger.Warn("could not retrieve token data")
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 				"status":  "error",
 				"message": "missing/malformed token",
@@ -140,6 +144,57 @@ func EnsureTwoFa() gin.HandlerFunc {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 				"status":  "error",
 				"message": fmt.Sprint(errors.ErrTwoFaSetupIncomplete),
+				"data":    nil,
+			})
+			return
+		}
+
+		c.Next()
+	}
+}
+
+func CheckAccountStatus() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		logger := log.WithField(string(log.LogFieldFunctionName), "<Middleware>CheckAccountStatus")
+
+		td, ok := c.Get("token-data")
+		if !ok {
+			logger.Warn("could not retrieve token data")
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+				"status":  "error",
+				"message": "missing/malformed token",
+				"data":    nil,
+			})
+			return
+		}
+
+		tokenData := td.(*auth.TokenData)
+
+		if tokenData.User.Account.AccountStatus == enums.AccountStatusBlacklisted {
+			logger.Warn("account is blacklisted")
+			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{
+				"status":  "error",
+				"message": fmt.Sprint(errors.ErrAccountBlacklisted),
+				"data":    nil,
+			})
+			return
+		}
+
+		if tokenData.User.Account.AccountStatus == enums.AccountStatusBlocked {
+			logger.Warn("account is blocked")
+			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{
+				"status":  "error",
+				"message": fmt.Sprint(errors.ErrAccountBlocked),
+				"data":    nil,
+			})
+			return
+		}
+
+		if tokenData.User.Account.AccountStatus == enums.AccountStatusClosed {
+			logger.Warn("account is closed")
+			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{
+				"status":  "error",
+				"message": fmt.Sprint(errors.ErrAccountClosed),
 				"data":    nil,
 			})
 			return
