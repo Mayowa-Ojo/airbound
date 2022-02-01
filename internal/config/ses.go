@@ -1,7 +1,7 @@
 package config
 
 import (
-	logger "airbound/internal/log"
+	"airbound/internal/log"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -9,6 +9,8 @@ import (
 )
 
 func NewSESSession(cfg *Config) *session.Session {
+	logger := log.WithField(string(log.LogFieldFunctionName), "<Config>NewSESSession")
+
 	sess, err := session.NewSession(&aws.Config{
 		Region: &cfg.AWSRegion,
 		Credentials: credentials.NewStaticCredentials(
