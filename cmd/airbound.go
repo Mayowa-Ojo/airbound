@@ -22,9 +22,11 @@ func Execute() {
 
 	awsSESSession := config.NewSESSession(cfg)
 
+	awsSQSSession := config.NewSQSSession(cfg)
+
 	config.SchemaMigrateUp(context, client)
 
-	router := api.Run(client, cfg, awsSESSession)
+	router := api.Run(client, cfg, awsSESSession, awsSQSSession)
 
 	srv := &http.Server{
 		Addr:    fmt.Sprintf(":%d", cfg.Port),
